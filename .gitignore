@@ -1,58 +1,82 @@
-# =====================
+# =====================================================
 # macOS
-# =====================
+# =====================================================
 .DS_Store
 .AppleDouble
 .LSOverride
 **/.DS_Store
 
-# =====================
-# Xcode
-# =====================
+# =====================================================
+# Xcode / iOS
+# =====================================================
+# Build products
 build/
 DerivedData/
-*.pbxuser
-*.mode1v3
-*.mode2v3
-*.perspectivev3
-*.xcuserstate
-*.xcscmblueprint
 
 # User-specific Xcode files
 xcuserdata/
 **/xcuserdata/
 
-# Workspace user data
-*.xcworkspace/xcuserdata/
-*.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+# Xcode project user state
+*.xcuserstate
+*.xcscmblueprint
 
-# =====================
+# Xcode workspace junk (IGNORE EVERYWHERE)
+**/*.xcworkspace/xcuserdata/
+**/*.xcworkspace/xcshareddata/
+**/xcshareddata/
+
+# Old Xcode junk
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# =====================================================
 # Swift Package Manager
-# =====================
+# =====================================================
 .swiftpm/
 .build/
 
-# =====================
+# =====================================================
 # CocoaPods
-# =====================
+# =====================================================
 Pods/
 Podfile.lock
 
-# =====================
+# =====================================================
 # Carthage
-# =====================
+# =====================================================
 Carthage/Build/
 
-# =====================
+# =====================================================
 # Fastlane
-# =====================
+# =====================================================
 fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/
 fastlane/test_output/
 
-# =====================
-# Vim / temp
-# =====================
+# =====================================================
+# Node / Backend
+# =====================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.*
+
+# =====================================================
+# Firebase / Google
+# =====================================================
+firebase-debug.log
+.firestore/
+.storage/
+
+# =====================================================
+# Editor / Temp
+# =====================================================
 *.swp
 *.tmp
+*.log
