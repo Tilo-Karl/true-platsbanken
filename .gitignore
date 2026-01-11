@@ -1,0 +1,58 @@
+# =====================
+# macOS
+# =====================
+.DS_Store
+.AppleDouble
+.LSOverride
+**/.DS_Store
+
+# =====================
+# Xcode
+# =====================
+build/
+DerivedData/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
+*.xcscmblueprint
+
+# User-specific Xcode files
+xcuserdata/
+**/xcuserdata/
+
+# Workspace user data
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+
+# =====================
+# Swift Package Manager
+# =====================
+.swiftpm/
+.build/
+
+# =====================
+# CocoaPods
+# =====================
+Pods/
+Podfile.lock
+
+# =====================
+# Carthage
+# =====================
+Carthage/Build/
+
+# =====================
+# Fastlane
+# =====================
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# =====================
+# Vim / temp
+# =====================
+*.swp
+*.tmp
