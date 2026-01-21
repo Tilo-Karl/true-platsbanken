@@ -1,25 +1,26 @@
 {
   "name": "true-platsbanken-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "True Platsbanken Backend API",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js",
+    "dev": "node src/index.js",
+    "deploy": "firebase deploy --only functions"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.3"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Tilo-Karl/true-platsbanken-backend.git"
   },
-  "keywords": [],
   "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/Tilo-Karl/true-platsbanken-backend/issues"
-  },
-  "homepage": "https://github.com/Tilo-Karl/true-platsbanken-backend#readme",
-  "dependencies": {
-    "firebase-admin": "^13.6.0",
-    "firebase-functions": "^7.0.3"
-  }
+  "license": "ISC"
 }

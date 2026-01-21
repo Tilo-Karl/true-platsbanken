@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Job",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "source",
+    "url",
+    "title",
+    "description",
+    "employerName",
+    "municipality",
+    "publishedAt",
+    "employmentType",
+    "remotePossible"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "source": { "type": "string", "const": "platsbanken" },
+    "url": { "type": "string" },
+    "title": { "type": "string" },
+    "description": { "type": "string" },
+    "employerName": { "type": "string" },
+    "municipality": { "type": "string" },
+    "publishedAt": { "type": "string", "format": "date-time" },
+    "employmentType": {
+      "type": "string",
+      "enum": ["full_time", "part_time", "unknown"]
+    },
+    "remotePossible": { "type": ["boolean", "null"] }
+  }
+}

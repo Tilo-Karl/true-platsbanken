@@ -1,0 +1,18 @@
+{
+  "models": [
+    {
+      "title": "Claude 3.5 Sonnet",
+      "provider": "anthropic",
+      "model": "claude-3-5-sonnet-latest"
+    }
+  ],
+  "contextProviders": [
+    { "name": "codebase" },
+    { "name": "repo-map" }
+  ],
+  "experimental": {
+    "modelRoles": {
+      "inlineEdit": "Claude 3.5 Sonnet"
+    }
+  }
+}
