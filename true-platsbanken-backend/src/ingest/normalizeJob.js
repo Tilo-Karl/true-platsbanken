@@ -17,9 +17,14 @@ function normalizeJob(raw) {
   const publishedAt = Number.isNaN(publishedDate.getTime())
     ? new Date().toISOString()
     : publishedDate.toISOString();
+  const id = String(raw.id || '');
+
+  if (!id) {
+    return null;
+  }
 
   return {
-    id: String(raw.id || ''),
+    id,
     source: 'platsbanken',
     url: String(raw.webpage_url || ''),
     title: String(title),

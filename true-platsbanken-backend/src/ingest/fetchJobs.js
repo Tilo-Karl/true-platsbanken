@@ -1,10 +1,10 @@
+const { requireFirestoreDb } = require('../invariants/requireFirestoreDb');
+const { upsertJob } = require('../writers/jobs');
 const { jobStream } = require('./jobStream');
 const { normalizeJob } = require('./normalizeJob');
 
 async function fetchAndStoreJobs(db, options = {}) {
-  if (!db) {
-    throw new Error('Firestore db is required');
-  }
+  requireFirestoreDb(db);
 
   let totalWritten = 0;
   let pagesFetched = 0;
@@ -13,12 +13,11 @@ async function fetchAndStoreJobs(db, options = {}) {
     for await (const rawJob of jobStream(options)) {
       const job = normalizeJob(rawJob);
 
-      if (!job.id) {
+      if (!job) {
         continue;
       }
 
-      const docRef = db.collection('jobs').doc(job.id);
-      await docRef.set(job, { merge: true });
+      await upsertJob(db, job);
       totalWritten += 1;
 
       pagesFetched += 1;

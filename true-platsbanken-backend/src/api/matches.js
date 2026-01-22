@@ -1,40 +1,24 @@
-const { scoreProfile } = require('../ai/match/score');
+const { requireFirestoreDb } = require('../invariants/requireFirestoreDb');
+const { requireProfileId } = require('../invariants/requireProfileId');
+const { requireProfileExists } = require('../invariants/requireProfileExists');
+const { normalizeMatchRequest } = require('../domain/matching/normalizeMatchRequest');
+const { matchQueryOptions } = require('../domain/matching/matchQueryOptions');
+const { rankMatches } = require('../domain/matching/rankMatches');
+const { getProfileById } = require('../readers/profiles');
+const { listJobsForMatching } = require('../readers/jobs');
 
 async function getMatches(db, request) {
-  if (!db) {
-    throw new Error('Firestore db is required');
-  }
+  requireFirestoreDb(db);
 
-  const { profileId, limit = 20 } = request;
+  const { profileId, limit } = normalizeMatchRequest(request);
+  requireProfileId(profileId);
 
-  if (!profileId) {
-    throw new Error('profileId is required');
-  }
+  const profile = await getProfileById(db, profileId);
+  requireProfileExists(profile);
 
-  const profileDoc = await db.collection('profiles').doc(profileId).get();
-  if (!profileDoc.exists) {
-    throw new Error('Profile not found');
-  }
-
-  const profile = profileDoc.data();
-  let jobsQuery = db.collection('jobs').orderBy('publishedAt', 'desc');
-
-  if (profile.municipality) {
-    jobsQuery = jobsQuery.where('municipality', '==', profile.municipality);
-  }
-
-  const jobSnapshot = await jobsQuery.limit(Math.min(limit * 2, 500)).get();
-  const jobs = jobSnapshot.docs.map(doc => doc.data());
-
-  const matches = jobs
-    .map(job => ({
-      jobId: job.id,
-      job,
-      score: scoreProfile(profile, job),
-      reasons: []
-    }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
+  const options = matchQueryOptions(profile, limit);
+  const jobs = await listJobsForMatching(db, options);
+  const matches = rankMatches(profile, jobs, limit);
 
   return { matches, count: matches.length };
 }

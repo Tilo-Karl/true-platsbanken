@@ -1,10 +1,6 @@
 const { fetchAndStoreJobs } = require('../ingest/fetchJobs');
 
 async function tick(db) {
-  if (!db) {
-    throw new Error('Firestore db is required');
-  }
-
   const startTime = Date.now();
   console.log('[tick] Starting job ingestion at', new Date().toISOString());
 
