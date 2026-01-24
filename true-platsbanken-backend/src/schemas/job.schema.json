@@ -28,6 +28,20 @@
       "type": "string",
       "enum": ["full_time", "part_time", "unknown"]
     },
+    "employmentTypeLabel": { "type": ["string", "null"] },
+    "durationLabel": { "type": ["string", "null"] },
+    "scopeOfWork": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "min": { "type": ["number", "null"] },
+        "max": { "type": ["number", "null"] },
+        "label": { "type": ["string", "null"] }
+      }
+    },
+    "applicationDeadline": { "type": ["string", "null"] },
+    "numberOfVacancies": { "type": ["number", "null"] },
+    "occupationLabel": { "type": ["string", "null"] },
     "remotePossible": { "type": ["boolean", "null"] }
   }
 }

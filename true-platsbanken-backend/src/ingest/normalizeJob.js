@@ -18,6 +18,20 @@ function normalizeJob(raw) {
     ? new Date().toISOString()
     : publishedDate.toISOString();
   const id = String(raw.id || '');
+  const applicationDeadlineRaw = raw.application_deadline;
+  const applicationDeadlineDate = new Date(applicationDeadlineRaw);
+  const applicationDeadline = applicationDeadlineRaw
+    ? (Number.isNaN(applicationDeadlineDate.getTime())
+      ? String(applicationDeadlineRaw)
+      : applicationDeadlineDate.toISOString())
+    : null;
+  const scopeOfWork = raw?.scope_of_work
+    ? {
+      min: raw.scope_of_work.min ?? null,
+      max: raw.scope_of_work.max ?? null,
+      label: raw.scope_of_work.label ?? null
+    }
+    : null;
 
   if (!id) {
     return null;
@@ -33,6 +47,14 @@ function normalizeJob(raw) {
     municipality: String(raw?.workplace_address?.municipality || ''),
     publishedAt,
     employmentType: mapEmploymentType(raw?.employment_type?.label),
+    employmentTypeLabel: raw?.employment_type?.label ? String(raw.employment_type.label) : null,
+    durationLabel: raw?.duration?.label ? String(raw.duration.label) : null,
+    scopeOfWork,
+    applicationDeadline,
+    numberOfVacancies: Number.isFinite(Number(raw?.number_of_vacancies))
+      ? Number(raw.number_of_vacancies)
+      : null,
+    occupationLabel: raw?.occupation?.label ? String(raw.occupation.label) : null,
     remotePossible: null
   };
 }

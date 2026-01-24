@@ -10,13 +10,15 @@ import Firebase
 
 @main
 struct trueplatsbankenApp: App {
+    @StateObject private var appState = AppStateViewModel()
+
     init() {
         FirebaseApp.configure()
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(appState: appState)
         }
     }
 }
