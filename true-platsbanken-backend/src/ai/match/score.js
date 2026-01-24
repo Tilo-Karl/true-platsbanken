@@ -1,4 +1,4 @@
-function scoreProfile(profile, job) {
+function scoreProfile(profile, job, profileSignals) {
   if (!profile || !job) {
     return 0;
   }
