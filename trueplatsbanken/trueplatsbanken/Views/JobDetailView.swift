@@ -13,7 +13,7 @@ struct JobDetailView: View {
                     Text(job.title)
                         .font(.title2)
                         .bold()
-                    Text(employerLine())
+                    Text(JobPresentation.employerLine(for: job))
                         .font(.headline)
                     Text(job.municipality)
                         .font(.subheadline)
@@ -23,13 +23,8 @@ struct JobDetailView: View {
                 Divider()
 
                 VStack(alignment: .leading, spacing: 8) {
-                    if let label = job.employmentTypeLabel, !label.isEmpty {
-                        Label(label, systemImage: "clock")
-                            .font(.subheadline)
-                    } else {
-                        Label(AppStrings.employmentTypeLabel(for: job.employmentType), systemImage: "clock")
-                            .font(.subheadline)
-                    }
+                    Label(JobPresentation.employmentTypeLabel(for: job), systemImage: "clock")
+                        .font(.subheadline)
                     if let occupation = job.occupationLabel, !occupation.isEmpty {
                         Label(occupation, systemImage: "person.text.rectangle")
                             .font(.subheadline)
@@ -38,19 +33,19 @@ struct JobDetailView: View {
                         Label(duration, systemImage: "calendar.badge.clock")
                             .font(.subheadline)
                     }
-                    if let scopeLabel = job.scopeOfWorkLabel, !scopeLabel.isEmpty {
+                    if let scopeLabel = JobPresentation.scopeOfWorkLabel(for: job) {
                         Label(scopeLabel, systemImage: "chart.bar")
                             .font(.subheadline)
                     }
-                    if let vacanciesLabel = vacanciesLabel() {
+                    if let vacanciesLabel = JobPresentation.vacanciesLabel(for: job) {
                         Label(vacanciesLabel, systemImage: "person.3")
                             .font(.subheadline)
                     }
-                    if let deadline = applicationDeadlineLabel() {
+                    if let deadline = JobPresentation.applicationDeadlineLabel(for: job) {
                         Label(deadline, systemImage: "calendar.badge.exclamationmark")
                             .font(.subheadline)
                     }
-                    if let publishedDateLabel = job.publishedDateLabel {
+                    if let publishedDateLabel = JobPresentation.publishedDateLabel(for: job) {
                         Label(publishedDateLabel, systemImage: "calendar")
                             .font(.subheadline)
                     }
@@ -69,60 +64,5 @@ struct JobDetailView: View {
         }
         .navigationTitle(AppStrings.jobDetailTitle)
         .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func employerLine() -> String {
-        if let workplace = job.employerWorkplace, !workplace.isEmpty {
-            return workplace
-        }
-        return job.employerName
-    }
-
-    private func vacanciesLabel() -> String? {
-        guard let vacancies = job.numberOfVacancies else {
-            return nil
-        }
-        let count = Int(vacancies)
-        if count == 0 {
-            return nil
-        }
-        return AppStrings.vacanciesLabel(count)
-    }
-
-    private func applicationDeadlineLabel() -> String? {
-        guard let value = job.applicationDeadline, !value.isEmpty else {
-            return nil
-        }
-
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "sv_SE")
-        formatter.dateFormat = "yyyy-MM-dd"
-
-        if let date = parseISO8601(value) {
-            let base = formatter.string(from: date)
-            if let days = daysUntil(date), days >= 0 {
-                return AppStrings.applicationDeadline(base, days: days)
-            }
-            return AppStrings.applicationDeadline(base)
-        }
-
-        return AppStrings.applicationDeadline(value)
-    }
-
-    private func daysUntil(_ date: Date) -> Int? {
-        let calendar = Calendar.current
-        let start = calendar.startOfDay(for: Date())
-        let end = calendar.startOfDay(for: date)
-        return calendar.dateComponents([.day], from: start, to: end).day
-    }
-
-    private func parseISO8601(_ value: String) -> Date? {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: value) {
-            return date
-        }
-        let fallback = ISO8601DateFormatter()
-        return fallback.date(from: value)
     }
 }

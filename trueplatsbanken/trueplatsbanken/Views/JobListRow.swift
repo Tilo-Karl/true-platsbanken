@@ -8,20 +8,20 @@ struct JobListRow: View {
         let _ = languageStore.language
 
         VStack(alignment: .leading, spacing: 4) {
-            Text(headlineText())
+            Text(JobPresentation.headline(for: job))
                 .font(.headline)
 
-            Text(employerLine())
+            Text(JobPresentation.employerLine(for: job))
                 .font(.subheadline)
 
-            if let occupation = nonEmpty(job.occupationLabel) {
+            if let occupation = JobPresentation.occupationLabel(for: job) {
                 Text(occupation)
                     .font(.subheadline)
             }
 
-            if let publishedText = job.publishedDisplayText {
+            if let published = JobPresentation.publishedPresentation(for: job, now: Date()) {
                 HStack(spacing: 8) {
-                    if let badgeText = job.publishedBadgeText {
+                    if let badgeText = published.badgeLabel {
                         Text(badgeText)
                             .font(.caption.bold())
                             .padding(.horizontal, 6)
@@ -30,44 +30,12 @@ struct JobListRow: View {
                             .clipShape(Capsule())
                     }
 
-                    Text(publishedText)
+                    Text(published.listLabel)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func headlineText() -> String {
-        if let vacancies = job.numberOfVacancies {
-            let count = Int(vacancies)
-            if count > 1 {
-                return AppStrings.headlineWithVacancies(job.title, count)
-            }
-        }
-        return job.title
-    }
-
-    private func employerLine() -> String {
-        if let workplace = nonEmpty(job.employerWorkplace) {
-            return workplaceLine(workplace)
-        }
-        return workplaceLine(job.employerName)
-    }
-
-    private func workplaceLine(_ workplace: String) -> String {
-        let municipality = job.municipality.trimmingCharacters(in: .whitespacesAndNewlines)
-        if municipality.isEmpty {
-            return workplace
-        }
-        return AppStrings.employerLine(workplace: workplace, municipality: municipality)
-    }
-
-    private func nonEmpty(_ value: String?) -> String? {
-        guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return nil
-        }
-        return value
     }
 }

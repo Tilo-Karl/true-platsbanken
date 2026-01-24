@@ -136,3 +136,5 @@ UI components (e.g. SwiftUI Views) are presentation-only.
 They are exempt from orchestrator/writer classification.
 They must not contain business logic, invariants, validation, or state mutation beyond UI state.
 ViewModels are orchestrators and must obey all orchestration rules.
+
+Note: All user-visible strings must come from AppStrings (no hardcoded UI strings in views).

@@ -49,8 +49,6 @@ final class JobTechJobReader: JobReading {
                 return nil
             }
 
-            let publicationInfo = publicationInfo(from: hit.publicationDate)
-
             return Job(
                 id: id,
                 title: hit.headline ?? "",
@@ -58,11 +56,11 @@ final class JobTechJobReader: JobReading {
                 employerName: hit.employer?.name ?? "",
                 employerWorkplace: hit.employer?.workplace,
                 municipality: hit.workplaceAddress?.municipality ?? "",
-                employmentType: hit.employmentType?.label ?? AppStrings.unknownLabel,
+                employmentType: hit.employmentType?.label ?? "",
                 employmentTypeLabel: hit.employmentType?.label,
                 workingHoursTypeLabel: hit.workingHoursType?.label,
                 durationLabel: hit.duration?.label,
-                scopeOfWorkLabel: scopeOfWorkLabel(from: hit.scopeOfWork),
+                scopeOfWorkLabel: hit.scopeOfWork?.label,
                 scopeOfWork: ScopeOfWork(
                     min: hit.scopeOfWork?.min,
                     max: hit.scopeOfWork?.max,
@@ -78,10 +76,10 @@ final class JobTechJobReader: JobReading {
                 occupationLabel: hit.occupation?.label,
                 occupationGroupLabel: hit.occupationGroup?.label,
                 occupationFieldLabel: hit.occupationField?.label,
-                publishedDisplayText: publicationInfo.listLabel,
-                publishedBadgeText: publicationInfo.badgeLabel,
-                publishedDateLabel: publicationInfo.dateLabel,
-                publishedAt: publicationInfo.date,
+                publishedDisplayText: nil,
+                publishedBadgeText: nil,
+                publishedDateLabel: nil,
+                publishedAt: JobDateParsing.parsePublicationDate(hit.publicationDate),
                 url: URL(string: hit.webpageURL ?? "")
             )
         }
@@ -170,20 +168,6 @@ private struct JobTechScopeOfWork: Decodable {
     let label: String?
 }
 
-private func scopeOfWorkLabel(from scope: JobTechScopeOfWork?) -> String? {
-    guard let scope else { return nil }
-    if let label = scope.label, !label.isEmpty {
-        return label
-    }
-    if let min = scope.min, let max = scope.max {
-        if min == max {
-            return AppStrings.scopeOfWorkSinglePercent(Int(min))
-        }
-        return AppStrings.scopeOfWorkRangePercent(min: Int(min), max: Int(max))
-    }
-    return nil
-}
-
 private struct JobTechOccupation: Decodable {
     let label: String?
 }
@@ -198,73 +182,4 @@ private struct JobTechOccupationField: Decodable {
 
 private struct JobTechApplicationDetails: Decodable {
     let url: String?
-}
-
-private struct PublicationInfo {
-    let date: Date?
-    let listLabel: String?
-    let badgeLabel: String?
-    let dateLabel: String?
-}
-
-private func publicationInfo(from value: String?) -> PublicationInfo {
-    guard let value else {
-        return PublicationInfo(date: nil, listLabel: nil, badgeLabel: nil, dateLabel: nil)
-    }
-
-    let stockholm = TimeZone(identifier: "Europe/Stockholm") ?? .current
-    var calendar = Calendar(identifier: .gregorian)
-    calendar.timeZone = stockholm
-
-    let date = parseISO8601(value) ?? parseStockholmLocal(value, timeZone: stockholm)
-    guard let date else {
-        return PublicationInfo(date: nil, listLabel: nil, badgeLabel: nil, dateLabel: nil)
-    }
-
-    let dateFormatter = DateFormatter()
-    dateFormatter.locale = Locale(identifier: "sv_SE")
-    dateFormatter.timeZone = stockholm
-    dateFormatter.dateFormat = "yyyy-MM-dd"
-
-    let timeFormatter = DateFormatter()
-    timeFormatter.locale = Locale(identifier: "sv_SE")
-    timeFormatter.timeZone = stockholm
-    timeFormatter.dateFormat = "HH:mm"
-
-    let isToday = calendar.isDateInToday(date)
-    let listLabel: String
-    let badgeLabel: String?
-
-    if isToday {
-        listLabel = AppStrings.publishedToday(timeFormatter.string(from: date))
-        badgeLabel = AppStrings.newBadge
-    } else {
-        listLabel = AppStrings.publishedOn(dateFormatter.string(from: date))
-        badgeLabel = nil
-    }
-
-    return PublicationInfo(
-        date: date,
-        listLabel: listLabel,
-        badgeLabel: badgeLabel,
-        dateLabel: dateFormatter.string(from: date)
-    )
-}
-
-private func parseISO8601(_ value: String) -> Date? {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    if let date = formatter.date(from: value) {
-        return date
-    }
-    let fallback = ISO8601DateFormatter()
-    return fallback.date(from: value)
-}
-
-private func parseStockholmLocal(_ value: String, timeZone: TimeZone) -> Date? {
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.timeZone = timeZone
-    formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-    return formatter.date(from: value)
 }
