@@ -2,34 +2,50 @@ import SwiftUI
 
 struct RootView: View {
     @ObservedObject var appState: AppStateViewModel
+    @EnvironmentObject private var languageStore: AppLanguageStore
 
     var body: some View {
-        TabView(selection: $appState.selectedTab) {
-            JobListView(viewModel: appState.jobListViewModel)
+        let _ = languageStore.language
+
+        ZStack(alignment: .topTrailing) {
+            TabView(selection: $appState.selectedTab) {
+                JobListView(viewModel: appState.jobListViewModel)
+                    .tabItem {
+                        Label(AppStrings.jobsTitle, systemImage: "briefcase")
+                    }
+                    .tag(AppStateViewModel.Tab.jobs)
+
+                MatchResultsView(
+                    viewModel: appState.matchResultsViewModel,
+                    onRefresh: appState.refreshMatches
+                )
                 .tabItem {
-                    Label("Jobs", systemImage: "briefcase")
+                    Label(AppStrings.matchesTitle, systemImage: "checkmark.seal")
                 }
-                .tag(AppStateViewModel.Tab.jobs)
+                .tag(AppStateViewModel.Tab.matches)
 
-            MatchResultsView(
-                viewModel: appState.matchResultsViewModel,
-                onRefresh: appState.refreshMatches
-            )
-            .tabItem {
-                Label("Matches", systemImage: "checkmark.seal")
-            }
-            .tag(AppStateViewModel.Tab.matches)
-
-            ProfileEditorView(
-                viewModel: appState.profileEditorViewModel,
-                onSaved: {
-                    await appState.refreshMatches()
+                ProfileEditorView(
+                    viewModel: appState.profileEditorViewModel,
+                    onSaved: {
+                        await appState.refreshMatches()
+                    }
+                )
+                .tabItem {
+                    Label(AppStrings.profileTitle, systemImage: "person")
                 }
-            )
-            .tabItem {
-                Label("Profile", systemImage: "person")
+                .tag(AppStateViewModel.Tab.profile)
             }
-            .tag(AppStateViewModel.Tab.profile)
+
+            Button(action: { languageStore.toggle() }) {
+                Text(languageStore.buttonLabel)
+                    .font(.caption2)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.thinMaterial)
+                    .clipShape(Capsule())
+            }
+            .padding(.top, 6)
+            .padding(.trailing, 12)
         }
         .task {
             await appState.bootstrap()

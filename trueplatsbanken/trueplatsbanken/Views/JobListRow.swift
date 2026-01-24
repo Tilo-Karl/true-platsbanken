@@ -2,8 +2,11 @@ import SwiftUI
 
 struct JobListRow: View {
     let job: Job
+    @EnvironmentObject private var languageStore: AppLanguageStore
 
     var body: some View {
+        let _ = languageStore.language
+
         VStack(alignment: .leading, spacing: 4) {
             Text(headlineText())
                 .font(.headline)
@@ -40,7 +43,7 @@ struct JobListRow: View {
         if let vacancies = job.numberOfVacancies {
             let count = Int(vacancies)
             if count > 1 {
-                return "\(job.title) (\(count) jobb)"
+                return AppStrings.headlineWithVacancies(job.title, count)
             }
         }
         return job.title
@@ -58,7 +61,7 @@ struct JobListRow: View {
         if municipality.isEmpty {
             return workplace
         }
-        return "\(workplace) - \(municipality)"
+        return AppStrings.employerLine(workplace: workplace, municipality: municipality)
     }
 
     private func nonEmpty(_ value: String?) -> String? {

@@ -2,16 +2,19 @@ import SwiftUI
 
 struct JobListView: View {
     @ObservedObject var viewModel: JobListViewModel
+    @EnvironmentObject private var languageStore: AppLanguageStore
 
     var body: some View {
+        let _ = languageStore.language
+
         NavigationStack {
             Group {
                 if viewModel.isLoading {
-                    ProgressView("Loading jobs...")
+                    ProgressView(AppStrings.jobsLoading)
                 } else if let error = viewModel.errorMessage {
-                    ContentUnavailableView("Jobs unavailable", systemImage: "exclamationmark.triangle", description: Text(error))
+                    ContentUnavailableView(AppStrings.jobsUnavailable, systemImage: "exclamationmark.triangle", description: Text(error))
                 } else if viewModel.jobs.isEmpty {
-                    ContentUnavailableView("No jobs", systemImage: "tray", description: Text("Check back later."))
+                    ContentUnavailableView(AppStrings.noJobs, systemImage: "tray", description: Text(AppStrings.checkBackLater))
                 } else {
                     List(viewModel.jobs) { job in
                         NavigationLink(value: job) {
@@ -21,7 +24,7 @@ struct JobListView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("Jobs")
+            .navigationTitle(AppStrings.jobsTitle)
             .navigationDestination(for: Job.self) { job in
                 JobDetailView(job: job)
             }

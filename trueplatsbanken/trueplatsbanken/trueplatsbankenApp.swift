@@ -10,6 +10,7 @@ import Firebase
 
 @main
 struct trueplatsbankenApp: App {
+    @StateObject private var languageStore = AppLanguageStore()
     @StateObject private var appState = AppStateViewModel()
 
     init() {
@@ -19,6 +20,8 @@ struct trueplatsbankenApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(appState: appState)
+                .environmentObject(languageStore)
+                .environment(\.locale, languageStore.locale)
         }
     }
 }

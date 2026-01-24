@@ -26,7 +26,7 @@ final class FirestoreProfileStore: ProfileReading, ProfileWriting {
             email: data["email"] as? String ?? "",
             phone: data["phone"] as? String ?? "",
             municipality: data["municipality"] as? String ?? "",
-            employmentType: data["employmentType"] as? String ?? "unknown",
+            employmentType: data["employmentType"] as? String ?? AppStrings.unknownLabel,
             skills: data["skills"] as? [String] ?? [],
             cvText: data["cvText"] as? String ?? ""
         )

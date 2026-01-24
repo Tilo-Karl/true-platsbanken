@@ -1,0 +1,52 @@
+"jobs.title" = "Jobs";
+"matches.title" = "Matches";
+"profile.title" = "Profile";
+"jobDetail.title" = "Job Detail";
+
+"jobs.loading" = "Loading jobs...";
+"jobs.unavailable" = "Jobs unavailable";
+"jobs.none" = "No jobs";
+"jobs.checkBackLater" = "Check back later.";
+
+"matches.loading" = "Loading matches...";
+"matches.unavailable" = "Matches unavailable";
+"matches.none" = "No matches yet";
+"matches.refreshToCheck" = "Refresh to check again.";
+"common.refresh" = "Refresh";
+
+"matches.score" = "Score: %d";
+
+"profile.section.identity" = "Identity";
+"profile.section.preferences" = "Preferences";
+"profile.section.skills" = "Skills";
+"profile.section.cv" = "CV";
+"profile.field.userId" = "User ID";
+"profile.field.name" = "Name";
+"profile.field.email" = "Email";
+"profile.field.phone" = "Phone";
+"profile.field.municipality" = "Municipality";
+"profile.field.employmentType" = "Employment Type";
+"profile.field.skillsPlaceholder" = "Comma-separated skills";
+"profile.action.save" = "Save Profile";
+
+"employmentType.any" = "Any";
+"employmentType.fullTime" = "Full time";
+"employmentType.partTime" = "Part time";
+"employmentType.contract" = "Contract";
+
+"jobs.headlineWithVacancies" = "%@ (%d jobs)";
+"jobs.vacanciesLabel" = "Vacancies: %d";
+"jobs.employerLine" = "%@ - %@";
+"jobs.scopeOfWork.single" = "%d%%";
+"jobs.scopeOfWork.range" = "%d-%d%%";
+"jobs.badge.new" = "New";
+"jobs.publishedToday" = "Published today, %@";
+"jobs.publishedOn" = "Published %@";
+"jobs.applicationDeadline" = "Application deadline: %@";
+"jobs.applicationDeadlineWithDays" = "Application deadline: %@ (in %d days)";
+"jobs.viewListing" = "View listing";
+
+"common.unknown" = "unknown";
+
+"language.button.sv" = "🇸🇪";
+"language.button.en" = "🇺🇸";

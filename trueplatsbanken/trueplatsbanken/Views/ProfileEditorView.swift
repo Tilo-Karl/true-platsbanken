@@ -2,36 +2,39 @@ import SwiftUI
 
 struct ProfileEditorView: View {
     @ObservedObject var viewModel: ProfileEditorViewModel
+    @EnvironmentObject private var languageStore: AppLanguageStore
     let onSaved: () async -> Void
 
     var body: some View {
+        let _ = languageStore.language
+
         NavigationStack {
             Form {
-                Section("Identity") {
-                    TextField("User ID", text: $viewModel.draft.userId)
+                Section(AppStrings.profileSectionIdentity) {
+                    TextField(AppStrings.profileUserId, text: $viewModel.draft.userId)
                         .textInputAutocapitalization(.never)
-                    TextField("Name", text: $viewModel.draft.name)
-                    TextField("Email", text: $viewModel.draft.email)
+                    TextField(AppStrings.profileName, text: $viewModel.draft.name)
+                    TextField(AppStrings.profileEmail, text: $viewModel.draft.email)
                         .keyboardType(.emailAddress)
                         .textInputAutocapitalization(.never)
-                    TextField("Phone", text: $viewModel.draft.phone)
+                    TextField(AppStrings.profilePhone, text: $viewModel.draft.phone)
                         .keyboardType(.phonePad)
                 }
 
-                Section("Preferences") {
-                    TextField("Municipality", text: $viewModel.draft.municipality)
-                    Picker("Employment Type", selection: $viewModel.draft.employmentType) {
+                Section(AppStrings.profileSectionPreferences) {
+                    TextField(AppStrings.profileMunicipality, text: $viewModel.draft.municipality)
+                    Picker(AppStrings.profileEmploymentType, selection: $viewModel.draft.employmentType) {
                         ForEach(EmploymentTypeOptions.all, id: \.self) { type in
-                            Text(type.replacingOccurrences(of: "_", with: " "))
+                            Text(AppStrings.employmentTypeLabel(for: type))
                         }
                     }
                 }
 
-                Section("Skills") {
-                    TextField("Comma-separated skills", text: $viewModel.draft.skillsText)
+                Section(AppStrings.profileSectionSkills) {
+                    TextField(AppStrings.profileSkillsPlaceholder, text: $viewModel.draft.skillsText)
                 }
 
-                Section("CV") {
+                Section(AppStrings.profileSectionCv) {
                     TextEditor(text: $viewModel.draft.cvText)
                         .frame(minHeight: 120)
                 }
@@ -53,12 +56,12 @@ struct ProfileEditorView: View {
                         if viewModel.isSaving {
                             ProgressView()
                         } else {
-                            Text("Save Profile")
+                            Text(AppStrings.saveProfile)
                         }
                     }
                 }
             }
-            .navigationTitle("Profile")
+            .navigationTitle(AppStrings.profileTitle)
         }
     }
 }

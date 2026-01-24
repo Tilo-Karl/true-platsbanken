@@ -1,0 +1,52 @@
+"jobs.title" = "Jobb";
+"matches.title" = "Matchningar";
+"profile.title" = "Profil";
+"jobDetail.title" = "Jobbdetalj";
+
+"jobs.loading" = "Laddar jobb...";
+"jobs.unavailable" = "Jobb kunde inte laddas";
+"jobs.none" = "Inga jobb";
+"jobs.checkBackLater" = "Försök igen senare.";
+
+"matches.loading" = "Laddar matchningar...";
+"matches.unavailable" = "Matchningar kunde inte laddas";
+"matches.none" = "Inga matchningar än";
+"matches.refreshToCheck" = "Uppdatera för att se igen.";
+"common.refresh" = "Uppdatera";
+
+"matches.score" = "Poäng: %d";
+
+"profile.section.identity" = "Identitet";
+"profile.section.preferences" = "Preferenser";
+"profile.section.skills" = "Kompetenser";
+"profile.section.cv" = "CV";
+"profile.field.userId" = "Användar-ID";
+"profile.field.name" = "Namn";
+"profile.field.email" = "E-post";
+"profile.field.phone" = "Telefon";
+"profile.field.municipality" = "Kommun";
+"profile.field.employmentType" = "Anställningstyp";
+"profile.field.skillsPlaceholder" = "Komma-separerade kompetenser";
+"profile.action.save" = "Spara profil";
+
+"employmentType.any" = "Valfri";
+"employmentType.fullTime" = "Heltid";
+"employmentType.partTime" = "Deltid";
+"employmentType.contract" = "Kontrakt";
+
+"jobs.headlineWithVacancies" = "%@ (%d jobb)";
+"jobs.vacanciesLabel" = "Antal jobb: %d";
+"jobs.employerLine" = "%@ - %@";
+"jobs.scopeOfWork.single" = "%d%%";
+"jobs.scopeOfWork.range" = "%d-%d%%";
+"jobs.badge.new" = "Ny";
+"jobs.publishedToday" = "Publicerad idag, kl %@";
+"jobs.publishedOn" = "Publicerad %@";
+"jobs.applicationDeadline" = "Sista ansökningsdag: %@";
+"jobs.applicationDeadlineWithDays" = "Sista ansökningsdag: %@ (om %d dagar)";
+"jobs.viewListing" = "Visa annons";
+
+"common.unknown" = "okänd";
+
+"language.button.sv" = "🇸🇪";
+"language.button.en" = "🇺🇸";

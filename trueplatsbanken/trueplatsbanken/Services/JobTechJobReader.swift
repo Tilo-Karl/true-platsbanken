@@ -58,7 +58,7 @@ final class JobTechJobReader: JobReading {
                 employerName: hit.employer?.name ?? "",
                 employerWorkplace: hit.employer?.workplace,
                 municipality: hit.workplaceAddress?.municipality ?? "",
-                employmentType: hit.employmentType?.label ?? "unknown",
+                employmentType: hit.employmentType?.label ?? AppStrings.unknownLabel,
                 employmentTypeLabel: hit.employmentType?.label,
                 workingHoursTypeLabel: hit.workingHoursType?.label,
                 durationLabel: hit.duration?.label,
@@ -177,9 +177,9 @@ private func scopeOfWorkLabel(from scope: JobTechScopeOfWork?) -> String? {
     }
     if let min = scope.min, let max = scope.max {
         if min == max {
-            return "\(Int(min))%"
+            return AppStrings.scopeOfWorkSinglePercent(Int(min))
         }
-        return "\(Int(min))–\(Int(max))%"
+        return AppStrings.scopeOfWorkRangePercent(min: Int(min), max: Int(max))
     }
     return nil
 }
@@ -236,10 +236,10 @@ private func publicationInfo(from value: String?) -> PublicationInfo {
     let badgeLabel: String?
 
     if isToday {
-        listLabel = "Publicerad idag, kl \(timeFormatter.string(from: date))"
-        badgeLabel = "Ny"
+        listLabel = AppStrings.publishedToday(timeFormatter.string(from: date))
+        badgeLabel = AppStrings.newBadge
     } else {
-        listLabel = "Publicerad \(dateFormatter.string(from: date))"
+        listLabel = AppStrings.publishedOn(dateFormatter.string(from: date))
         badgeLabel = nil
     }
 

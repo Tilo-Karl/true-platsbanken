@@ -2,8 +2,11 @@ import SwiftUI
 
 struct JobDetailView: View {
     let job: Job
+    @EnvironmentObject private var languageStore: AppLanguageStore
 
     var body: some View {
+        let _ = languageStore.language
+
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
@@ -24,7 +27,7 @@ struct JobDetailView: View {
                         Label(label, systemImage: "clock")
                             .font(.subheadline)
                     } else {
-                        Label(job.employmentType.replacingOccurrences(of: "_", with: " "), systemImage: "clock")
+                        Label(AppStrings.employmentTypeLabel(for: job.employmentType), systemImage: "clock")
                             .font(.subheadline)
                     }
                     if let occupation = job.occupationLabel, !occupation.isEmpty {
@@ -52,7 +55,7 @@ struct JobDetailView: View {
                             .font(.subheadline)
                     }
                     if let url = job.url {
-                        Link("View listing", destination: url)
+                        Link(AppStrings.viewListing, destination: url)
                             .font(.subheadline)
                     }
                 }
@@ -64,7 +67,7 @@ struct JobDetailView: View {
             }
             .padding()
         }
-        .navigationTitle("Job Detail")
+        .navigationTitle(AppStrings.jobDetailTitle)
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -83,7 +86,7 @@ struct JobDetailView: View {
         if count == 0 {
             return nil
         }
-        return "Antal jobb: \(count)"
+        return AppStrings.vacanciesLabel(count)
     }
 
     private func applicationDeadlineLabel() -> String? {
@@ -98,12 +101,12 @@ struct JobDetailView: View {
         if let date = parseISO8601(value) {
             let base = formatter.string(from: date)
             if let days = daysUntil(date), days >= 0 {
-                return "Sista ansökningsdag: \(base) (om \(days) dagar)"
+                return AppStrings.applicationDeadline(base, days: days)
             }
-            return "Sista ansökningsdag: \(base)"
+            return AppStrings.applicationDeadline(base)
         }
 
-        return "Sista ansökningsdag: \(value)"
+        return AppStrings.applicationDeadline(value)
     }
 
     private func daysUntil(_ date: Date) -> Int? {
