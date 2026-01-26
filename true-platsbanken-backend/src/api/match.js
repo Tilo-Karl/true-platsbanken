@@ -1,6 +1,3 @@
-const { requireFirestoreDb } = require('../invariants/requireFirestoreDb');
-const { requireProfileId } = require('../invariants/requireProfileId');
-const { requireProfileExists } = require('../invariants/requireProfileExists');
 const { normalizeMatchRequest } = require('../domain/matching/normalizeMatchRequest');
 const { matchQueryOptions } = require('../domain/matching/matchQueryOptions');
 const { buildProfileSignalsFromProfile } = require('../domain/profile/profileSignalInput');
@@ -8,17 +5,13 @@ const { buildEmbeddingInputs, extractEmbeddings } = require('../domain/matching/
 const { rankSemanticMatches } = require('../domain/matching/semanticMatch');
 const { listJobTechJobs } = require('../domain/jobs/jobTechJobs');
 const { filterJobsByMunicipality } = require('../domain/jobs/filterJobs');
-const { getProfileById } = require('../readers/profiles');
 const { postOpenAI } = require('../readers/openai');
 
 async function getSemanticMatches(db, request) {
-  requireFirestoreDb(db);
-
-  const { profileId, limit } = normalizeMatchRequest(request);
-  requireProfileId(profileId);
-
-  const profile = await getProfileById(db, profileId);
-  requireProfileExists(profile);
+  const { profile, limit } = normalizeMatchRequest(request);
+  if (!profile) {
+    throw new Error('profile is required');
+  }
 
   const profileSignals = buildProfileSignalsFromProfile(profile);
 

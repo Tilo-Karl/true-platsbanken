@@ -32,6 +32,15 @@ function apiRoutes(db) {
     }
   });
 
+  router.post('/profile/extract', async (req, res) => {
+    try {
+      const result = await extractProfile(req.body?.text);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
   router.post('/profile/expand-roles', async (req, res) => {
     try {
       const result = await expandProfileRoles(req.body);
