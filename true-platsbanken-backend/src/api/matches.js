@@ -6,8 +6,9 @@ const { matchQueryOptions } = require('../domain/matching/matchQueryOptions');
 const { rankMatches } = require('../domain/matching/rankMatches');
 const { buildProfileSignalsFromProfile } = require('../domain/profile/profileSignalInput');
 const { buildEmbeddingInputs, extractEmbeddings } = require('../domain/matching/embeddingText');
+const { listJobTechJobs } = require('../domain/jobs/jobTechJobs');
+const { filterJobsByMunicipality } = require('../domain/jobs/filterJobs');
 const { getProfileById } = require('../readers/profiles');
-const { listJobsForMatching } = require('../readers/jobs');
 const { postOpenAI } = require('../readers/openai');
 
 async function getMatches(db, request) {
@@ -22,7 +23,8 @@ async function getMatches(db, request) {
   const profileSignals = buildProfileSignalsFromProfile(profile);
 
   const options = matchQueryOptions(profile, limit);
-  const jobs = await listJobsForMatching(db, options);
+  const jobResponse = await listJobTechJobs({ limit: options.limit });
+  const jobs = filterJobsByMunicipality(jobResponse.jobs, options.municipality);
 
   let profileEmbedding = null;
   let jobEmbeddings = [];

@@ -1,9 +1,10 @@
-const { requireFirestoreDb } = require('../invariants/requireFirestoreDb');
-const { listJobs: readJobs } = require('../readers/jobs');
+const { listJobTechJobs } = require('../domain/jobs/jobTechJobs');
 
 async function listJobs(db, query = {}) {
-  requireFirestoreDb(db);
-  return readJobs(db, query);
+  return listJobTechJobs({
+    offset: query.cursor,
+    limit: query.limit
+  });
 }
 
 module.exports = { listJobs };

@@ -6,8 +6,9 @@ const { matchQueryOptions } = require('../domain/matching/matchQueryOptions');
 const { buildProfileSignalsFromProfile } = require('../domain/profile/profileSignalInput');
 const { buildEmbeddingInputs, extractEmbeddings } = require('../domain/matching/embeddingText');
 const { rankSemanticMatches } = require('../domain/matching/semanticMatch');
+const { listJobTechJobs } = require('../domain/jobs/jobTechJobs');
+const { filterJobsByMunicipality } = require('../domain/jobs/filterJobs');
 const { getProfileById } = require('../readers/profiles');
-const { listJobsForMatching } = require('../readers/jobs');
 const { postOpenAI } = require('../readers/openai');
 
 async function getSemanticMatches(db, request) {
@@ -22,7 +23,8 @@ async function getSemanticMatches(db, request) {
   const profileSignals = buildProfileSignalsFromProfile(profile);
 
   const options = matchQueryOptions(profile, limit);
-  const jobs = await listJobsForMatching(db, options);
+  const jobResponse = await listJobTechJobs({ limit: options.limit });
+  const jobs = filterJobsByMunicipality(jobResponse.jobs, options.municipality);
 
   if (jobs.length === 0) {
     return { matches: [], count: 0 };
