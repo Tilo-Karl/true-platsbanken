@@ -3,14 +3,14 @@ const { requireProfileId } = require('../invariants/requireProfileId');
 const { requireProfileExists } = require('../invariants/requireProfileExists');
 const { normalizeMatchRequest } = require('../domain/matching/normalizeMatchRequest');
 const { matchQueryOptions } = require('../domain/matching/matchQueryOptions');
-const { rankMatches } = require('../domain/matching/rankMatches');
 const { buildProfileSignalsFromProfile } = require('../domain/profile/profileSignalInput');
 const { buildEmbeddingInputs, extractEmbeddings } = require('../domain/matching/embeddingText');
+const { rankSemanticMatches } = require('../domain/matching/semanticMatch');
 const { getProfileById } = require('../readers/profiles');
 const { listJobsForMatching } = require('../readers/jobs');
 const { postOpenAI } = require('../readers/openai');
 
-async function getMatches(db, request) {
+async function getSemanticMatches(db, request) {
   requireFirestoreDb(db);
 
   const { profileId, limit } = normalizeMatchRequest(request);
@@ -24,30 +24,21 @@ async function getMatches(db, request) {
   const options = matchQueryOptions(profile, limit);
   const jobs = await listJobsForMatching(db, options);
 
-  let profileEmbedding = null;
-  let jobEmbeddings = [];
-
-  if (jobs.length > 0) {
-    const { inputs } = buildEmbeddingInputs(profileSignals, jobs);
-    const payload = await postOpenAI('/v1/embeddings', {
-      model: 'text-embedding-3-large',
-      input: inputs
-    });
-    const extracted = extractEmbeddings(payload);
-    profileEmbedding = extracted.profileEmbedding;
-    jobEmbeddings = extracted.jobEmbeddings;
+  if (jobs.length === 0) {
+    return { matches: [], count: 0 };
   }
 
-  const matches = rankMatches(
-    profile,
-    profileSignals,
-    jobs,
-    limit,
-    profileEmbedding,
-    jobEmbeddings
-  );
+  const { inputs } = buildEmbeddingInputs(profileSignals, jobs);
+  const payload = await postOpenAI('/v1/embeddings', {
+    model: 'text-embedding-3-small',
+    input: inputs
+  });
+  const extracted = extractEmbeddings(payload);
+  const profileEmbedding = extracted.profileEmbedding;
+  const jobEmbeddings = extracted.jobEmbeddings;
 
+  const matches = rankSemanticMatches(jobs, profileEmbedding, jobEmbeddings, profileSignals, limit);
   return { matches, count: matches.length };
 }
 
-module.exports = { getMatches };
+module.exports = { getSemanticMatches };

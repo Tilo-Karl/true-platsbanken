@@ -1,4 +1,5 @@
 const { scoreProfile } = require('../../ai/match/score');
+const { buildMatchReasons } = require('./matchReasons');
 
 function rankMatches(profile, profileSignals, jobs, limit, profileEmbedding, jobEmbeddings) {
   return jobs
@@ -6,7 +7,7 @@ function rankMatches(profile, profileSignals, jobs, limit, profileEmbedding, job
       const baseScore = scoreProfile(profile, job, profileSignals);
       const embedding = Array.isArray(jobEmbeddings) ? jobEmbeddings[index] : null;
       const aiScore = embeddingScore(profileEmbedding, embedding);
-      const reasons = buildReasons(profileSignals, job);
+      const reasons = buildMatchReasons(profileSignals, job);
 
       return {
         jobId: job.id,
@@ -48,53 +49,6 @@ function cosineSimilarity(a, b) {
   }
 
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
-}
-
-function buildReasons(profileSignals, job) {
-  if (!profileSignals || !job) {
-    return [];
-  }
-
-  const jobText = [
-    job.title,
-    job.description,
-    job.occupationLabel,
-    job.municipality
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-
-  const sources = [
-    profileSignals.occupations || [],
-    profileSignals.keywords || [],
-    profileSignals.seniorityHints || [],
-    profileSignals.locations || []
-  ];
-
-  const reasons = [];
-  const seen = new Set();
-  for (const list of sources) {
-    for (const term of list) {
-      const value = String(term).trim();
-      if (!value) {
-        continue;
-      }
-      const key = value.toLowerCase();
-      if (seen.has(key)) {
-        continue;
-      }
-      if (jobText.includes(key)) {
-        seen.add(key);
-        reasons.push(value);
-      }
-      if (reasons.length >= 5) {
-        return reasons;
-      }
-    }
-  }
-
-  return reasons;
 }
 
 function clampScore(value) {

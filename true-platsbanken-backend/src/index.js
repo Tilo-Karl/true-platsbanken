@@ -13,6 +13,9 @@ app.use(express.json());
 
 app.use('/ingest', ingestRoutes(db));
 app.use('/api', apiRoutes(db));
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
 app.use('/scheduler', (req, res) => {
   if (req.path === '/tick' && req.method === 'POST') {
     tick(db)
@@ -23,8 +26,8 @@ app.use('/scheduler', (req, res) => {
   }
 });
 
+const port = process.env.PORT || 8080;
+app.listen(port);
+
 exports.api = functions.https.onRequest(app);
 exports.ingest = functions.https.onRequest(app);
-exports.scheduledTick = functions.pubsub.schedule('every 6 hours').onRun(() => {
-  return tick(db);
-});
