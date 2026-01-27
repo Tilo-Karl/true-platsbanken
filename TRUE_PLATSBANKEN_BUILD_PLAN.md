@@ -1,127 +1,182 @@
-True Platsbanken  Build Plan (Restated + Status)
+True Platsbanken — Build Plan (Stateless Backend)
 
-Phase 0  Architecture (DONE)
+⸻
+
+Phase 0 — Architecture ✅ DONE
 
 Goal: sane foundation
-Status: 4 Complete
-     Backend split into readers / writers / orchestrators
-     Frontend split into Views / ViewModels / Services
-     Data flows are clean, swappable, testable
-     Mock  real backend swap isolated and already exercised
+Status: ✔ Complete
+	•	Backend split into readers / domain / orchestrators
+	•	Frontend split into Views / ViewModels / Services
+	•	External adapters isolated (JobTech, OpenAI, Backend API)
+	•	Clean-code rules enforced and audited
+	•	Single OpenAI transport reader
+	•	Prompts treated as data, owned by domain
+	•	No duplicate invariants across files
 
-This phase is solid.
+This is solid and stays.
 
----
+⸻
 
-Phase 1  Data correctness (FOUNDATION)
+Phase 1 — Job data correctness ✅ DONE
 
 Goal: users trust the app immediately
-Status: 4 Functionally complete, with a small polish tail
+Status: ✔ Complete
+	•	Job model aligned with JobTech
+	•	Correct:
+	•	vacancies
+	•	employment type
+	•	duration
+	•	scope of work
+	•	deadline
+	•	occupation label
+	•	Reader-only mapping
+	•	UI mirrors Platsbanken
+	•	Employer field fixed
+	•	“Ny” badge + timestamps correct
+	•	Europe/Stockholm day handling correct
+	•	Localization:
+	•	Central AppStrings
+	•	sv / en
+	•	Language toggle works
 
-Whats done:
-     Job model aligned with JobTech
-     numberOfVacancies
-     employment_type.label
-     duration.label
-     scope_of_work (min/max + derived label)
-     application_deadline
-     occupation.label
-     Mapping centralized in reader only
-     List + detail layout mirrors Platsbanken closely
-     Employer field mismatch resolved:
-     We now use employer.workplace, matching Platsbanken
-     Ny badge + timestamps fixed
-     Correct parsing
-     Correct Europe/Stockholm day boundaries
-     Localization bonus completed
-     Central AppStrings
-     No hardcoded UI strings
-     sv / en ready
-     Language toggle wired (SwiftUI invalidation handled)
+Trust achieved. Move on.
 
-Remaining (minor, optional polish):
-     Decide which additional JobTech fields to surface (not model):
-     salary_description
-     conditions
-     working_hours_type.label
-     apply link prominence
+⸻
 
-But trust-wise: this phase is done.
-
----
-
-Phase 2  Profile signal extraction (NEXT)
+Phase 2 — Profile signals (Deterministic) ✅ DONE
 
 Goal: structure before intelligence
-Status:  Next phase
-     Input:
-     skills text
-     CV text
-     employment preferences
-     Output:
-     keywords
-     occupations
-     locations
-     seniority hints
-     Implementation:
-     ProfileSignalExtractor
-     pure, deterministic
-     no AI, no embeddings
+Status: ✔ Complete
 
-This is the bridge between form input and matching.
+What exists and is used:
+	•	Input:
+	•	CV text (raw)
+	•	skills text
+	•	employment preferences
+	•	Output:
+	•	keywords
+	•	occupations
+	•	locations
+	•	seniority hints
+	•	constraints
+	•	Implementation:
+	•	extractProfileSignals
+	•	deterministic
+	•	no AI
+	•	Used by:
+	•	embedding text construction
+	•	match explanations
+	•	constraints
+	•	fallback structure
 
----
+This is not a fallback for AI.
+It is signal scaffolding.
 
-Phase 3  AI v1: Semantic matching
+Mark done.
+
+⸻
+
+Phase 3 — AI v1: Profile understanding ✅ DONE
+
+Goal: turn CV → structured profile
+Status: ✔ Complete
+	•	/api/profile/extract
+	•	AI extracts:
+	•	keywords
+	•	roles
+	•	seniority
+	•	locations
+	•	summary
+	•	/api/profile/expand-roles
+	•	AI infers adjacent roles
+	•	rationale included
+	•	Strict JSON enforced
+	•	Stateless
+	•	Backend-only
+	•	No frontend changes required
+
+AI is alive.
+
+⸻
+
+Phase 4 — AI v1: Semantic matching ✅ DONE (backend)
 
 Goal: real matching, not filters
-Status:  Planned
-     Embeddings:
-     profile text
-     job description
-     Similarity scoring (cosine)
-     Explainability hooks (Matched on)
-     Lives entirely in backend
-     UI unchanged
+Status: ✔ Backend complete
+	•	Embeddings:
+	•	profile text
+	•	job text
+	•	Cosine similarity
+	•	Deterministic ranking layer
+	•	Explainability hooks (“matched on”)
+	•	No heuristics in UI
+	•	Backend owns intelligence
 
-This is where AI first appears.
+What’s missing is frontend wiring, not logic.
 
----
+⸻
 
-Phase 4  Hybrid scoring
+Phase 5 — Frontend ↔ Backend wiring (no persistence) 🔜 NEXT
 
-Goal: results feel obviously right
-Status:  Planned
-     Semantic score + hard constraints + soft boosts
-     Deterministic + explainable
-     Output: MatchResult { job, score, reasons }
+Goal: frontend becomes a thin client
+Status: 🚧 Next
 
----
+Required changes (no AI changes):
+	•	Frontend stops:
+	•	fetching JobTech directly
+	•	calling Firestore
+	•	Frontend starts:
+	•	GET /api/jobs
+	•	POST CV → /api/profile/extract
+	•	POST profile → /api/profile/expand-roles
+	•	POST profile + jobs → /api/match
+	•	Persist profile locally only (UserDefaults / file)
+	•	ViewModels updated to consume:
+	•	MatchResult { job, score, reasons }
 
-Phase 5  UX that sells the AI
+This is now the critical path.
 
-Goal: user understands why it works
-Status:  Planned
-     Match score indicator
-     Why this job?
-     Profile improvement feedback
+⸻
 
----
+Phase 6 — UX that sells the AI 🔜 NEXT+
 
-Phase 6  Final backend wiring
+Goal: user understands why
+Status: Planned
+	•	Match score indicator
+	•	“Why this job?” view
+	•	Show inferred roles (toggleable)
+	•	Profile improvement hints
+	•	No new intelligence — just surfacing what exists
 
-Goal: no scaffolding left
-Status:  Mostly already done, final sweep later
-     Remove last dev-only paths
-     Lock prod services
+⸻
 
----
+Phase 7 — Hardening & cleanup 🔜 LATER
 
-Phase 7  Ship
+Goal: remove scaffolding
+Status: Planned
+	•	Remove dev paths
+	•	Lock prod config
+	•	Rate limiting
+	•	Caching
+	•	Pagination
 
-Goal: ship something people trust
-Status:  Planned
-     caching
-     pagination
-     App Store copy
-     analytics after value is proven
+⸻
+
+Phase 8 — Ship 🚀
+
+Goal: real users
+Status: Planned
+	•	App Store copy
+	•	Analytics after value is proven
+	•	Iterate based on usage, not theory
+
+⸻
+
+Clarified architecture (v1)
+	•	Backend is stateless
+	•	No Firestore
+	•	No accounts/auth/consent/payments
+	•	No schedulers
+	•	Backend owns JobTech fetching + normalization
+	•	Frontend stores profile locally only

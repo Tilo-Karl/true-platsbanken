@@ -1,28 +1,27 @@
 import Foundation
 
 final class BackendMatchReader: MatchReading {
-    private let baseURL: URL?
+    private let baseURL: URL
     private let session: URLSession
 
     init(
         baseURL: URL? = nil,
         session: URLSession = .shared
     ) {
-        self.baseURL = baseURL ?? Self.loadBaseURL()
+        self.baseURL = baseURL ?? BackendServiceURLProvider.baseURL()
         self.session = session
     }
 
     func fetchMatches(for profile: Profile) async throws -> [MatchResult] {
-        guard var url = baseURL else {
-            throw URLError(.badURL)
-        }
-        url.append(path: "/api/matches")
+        var url = baseURL
+        url.appendPathComponent("api")
+        url.appendPathComponent("match")
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let body = MatchRequest(profileId: profile.id)
+        let body = MatchRequest(profile: profile, limit: 20)
         request.httpBody = try JSONEncoder().encode(body)
 
         let (data, response) = try await session.data(for: request)
@@ -43,16 +42,11 @@ final class BackendMatchReader: MatchReading {
         }
     }
 
-    private static func loadBaseURL() -> URL? {
-        guard let value = Bundle.main.object(forInfoDictionaryKey: "BackendBaseURL") as? String else {
-            return nil
-        }
-        return URL(string: value)
-    }
 }
 
 private struct MatchRequest: Encodable {
-    let profileId: String
+    let profile: Profile
+    let limit: Int
 }
 
 private struct MatchResponse: Decodable {

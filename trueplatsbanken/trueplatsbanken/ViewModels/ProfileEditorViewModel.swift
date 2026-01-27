@@ -5,13 +5,24 @@ final class ProfileEditorViewModel: ObservableObject {
     @Published var draft = ProfileDraft()
     @Published private(set) var isSaving = false
     @Published private(set) var errorMessage: String?
+    @Published private(set) var extractionResult: ProfileExtractionResult?
+    @Published private(set) var roleExpansion: ProfileRoleExpansion?
 
     private let profileReader: ProfileReading
     private let profileWriter: ProfileWriting
+    private let profileExtractor: BackendProfileExtractor
+    private let roleExpander: BackendRoleExpander
 
-    init(profileReader: ProfileReading, profileWriter: ProfileWriting) {
+    init(
+        profileReader: ProfileReading,
+        profileWriter: ProfileWriting,
+        profileExtractor: BackendProfileExtractor,
+        roleExpander: BackendRoleExpander
+    ) {
         self.profileReader = profileReader
         self.profileWriter = profileWriter
+        self.profileExtractor = profileExtractor
+        self.roleExpander = roleExpander
     }
 
     func loadProfile() async {
@@ -32,6 +43,7 @@ final class ProfileEditorViewModel: ObservableObject {
 
         do {
             try await profileWriter.saveProfile(profile)
+            await refreshExtraction(using: profile)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -54,4 +66,20 @@ final class ProfileEditorViewModel: ObservableObject {
         draft.cvText = profile.cvText
     }
 
+    private func refreshExtraction(using profile: Profile) async {
+        let cvText = profile.cvText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cvText.isEmpty else {
+            extractionResult = nil
+            roleExpansion = nil
+            return
+        }
+
+        do {
+            let extracted = try await profileExtractor.extractProfile(from: cvText)
+            extractionResult = extracted
+            roleExpansion = try await roleExpander.expandRoles(from: extracted)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
 }

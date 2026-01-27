@@ -15,14 +15,18 @@ final class AppStateViewModel: ObservableObject {
     let matchResultsViewModel: MatchResultsViewModel
 
     init(
-        jobReader: JobReading = JobTechJobReader(),
-        profileStore: ProfileReading & ProfileWriting = FirestoreProfileStore(),
-        matchReader: MatchReading = BackendMatchReader()
+        jobReader: JobReading = BackendJobReader(),
+        profileStore: ProfileReading & ProfileWriting = ProfileLocalStore(),
+        matchReader: MatchReading = BackendMatchReader(),
+        profileExtractor: BackendProfileExtractor = BackendProfileExtractor(),
+        roleExpander: BackendRoleExpander = BackendRoleExpander()
     ) {
         self.jobListViewModel = JobListViewModel(jobReader: jobReader)
         self.profileEditorViewModel = ProfileEditorViewModel(
             profileReader: profileStore,
-            profileWriter: profileStore
+            profileWriter: profileStore,
+            profileExtractor: profileExtractor,
+            roleExpander: roleExpander
         )
         self.matchResultsViewModel = MatchResultsViewModel(matchReader: matchReader)
     }
