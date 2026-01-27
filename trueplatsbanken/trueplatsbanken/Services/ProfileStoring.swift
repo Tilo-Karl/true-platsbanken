@@ -1,9 +1,9 @@
 import Foundation
 
-protocol ProfileReading {
-    func loadProfile() async throws -> Profile?
+protocol ProfileStateReading {
+    func loadState() async throws -> ProfileLocalState?
 }
 
-protocol ProfileWriting {
-    func saveProfile(_ profile: Profile) async throws
+protocol ProfileStateWriting {
+    func saveState(_ state: ProfileLocalState) async throws
 }

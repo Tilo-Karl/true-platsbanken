@@ -2,40 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>jobs.headlineWithVacancies</key>
-  <dict>
-    <key>NSStringLocalizedFormatKey</key>
-    <string>%@ (%#@jobs@)</string>
-    <key>jobs</key>
-    <dict>
-      <key>NSStringFormatSpecTypeKey</key>
-      <string>NSStringPluralRuleType</string>
-      <key>NSStringFormatValueTypeKey</key>
-      <string>d</string>
-      <key>one</key>
-      <string>%d jobb</string>
-      <key>other</key>
-      <string>%d jobb</string>
-    </dict>
-  </dict>
-
   <key>jobs.vacanciesLabel</key>
   <dict>
     <key>NSStringLocalizedFormatKey</key>
-    <string>Antal jobb: %#@jobs@</string>
-    <key>jobs</key>
+    <string>%#@count@</string>
+    <key>count</key>
     <dict>
       <key>NSStringFormatSpecTypeKey</key>
       <string>NSStringPluralRuleType</string>
       <key>NSStringFormatValueTypeKey</key>
       <string>d</string>
       <key>one</key>
-      <string>%d</string>
+      <string>Antal jobb: %d</string>
       <key>other</key>
-      <string>%d</string>
+      <string>Antal jobb: %d</string>
     </dict>
   </dict>
-
   <key>jobs.applicationDeadlineWithDays</key>
   <dict>
     <key>NSStringLocalizedFormatKey</key>
@@ -47,9 +29,9 @@
       <key>NSStringFormatValueTypeKey</key>
       <string>d</string>
       <key>one</key>
-      <string>%d dag</string>
+      <string>Sista ansökningsdag: %@ (om %d dag)</string>
       <key>other</key>
-      <string>%d dagar</string>
+      <string>Sista ansökningsdag: %@ (om %d dagar)</string>
     </dict>
   </dict>
 </dict>

@@ -1,21 +1,17 @@
-"jobs.title" = "Jobb";
 "matches.title" = "Matchningar";
+"jobs.title" = "Jobb";
 "profile.title" = "Profil";
-"jobDetail.title" = "Jobbdetalj";
-
+"jobDetail.title" = "Jobbdetaljer";
 "jobs.loading" = "Laddar jobb...";
 "jobs.unavailable" = "Jobb kunde inte laddas";
-"jobs.none" = "Inga jobb";
+"jobs.none" = "Inga jobb än";
 "jobs.checkBackLater" = "Försök igen senare.";
-
 "matches.loading" = "Laddar matchningar...";
 "matches.unavailable" = "Matchningar kunde inte laddas";
 "matches.none" = "Inga matchningar än";
 "matches.refreshToCheck" = "Uppdatera för att se igen.";
 "common.refresh" = "Uppdatera";
-
 "matches.score" = "Poäng: %d";
-
 "profile.section.identity" = "Identitet";
 "profile.section.preferences" = "Preferenser";
 "profile.section.skills" = "Kompetenser";
@@ -25,15 +21,28 @@
 "profile.field.email" = "E-post";
 "profile.field.phone" = "Telefon";
 "profile.field.municipality" = "Kommun";
-"profile.field.employmentType" = "Anställningstyp";
-"profile.field.skillsPlaceholder" = "Komma-separerade kompetenser";
+"profile.field.employmentType" = "Anställningsform";
+"profile.field.skillsPlaceholder" = "Kompetenser separerade med komma";
 "profile.action.save" = "Spara profil";
-
+"profile.action.extract" = "Skapa profil";
+"profile.action.pasteCv" = "Klistra in CV";
+"profile.action.replaceCv" = "Ersätt CV";
+"profile.action.match" = "Matcha";
+"profile.replace.title" = "Ersätt CV";
+"profile.replace.message" = "Ersätt nuvarande CV och skapa om profilen?";
+"profile.replace.confirm" = "Ersätt";
+"profile.replace.cancel" = "Avbryt";
+"profile.ai.summary" = "Sammanfattning";
+"profile.ai.seniority" = "Senioritet";
+"profile.ai.locations" = "Platser";
+"profile.ai.roles" = "Roller";
+"profile.ai.inferredRoles" = "Härledda roller";
+"profile.ai.keywords" = "Nyckelord";
+"profile.ai.none" = "Ingen";
 "employmentType.any" = "Valfri";
 "employmentType.fullTime" = "Heltid";
 "employmentType.partTime" = "Deltid";
 "employmentType.contract" = "Kontrakt";
-
 "jobs.headlineWithVacancies" = "%@ (%d jobb)";
 "jobs.vacanciesLabel" = "Antal jobb: %d";
 "jobs.employerLine" = "%@ - %@";
@@ -45,8 +54,6 @@
 "jobs.applicationDeadline" = "Sista ansökningsdag: %@";
 "jobs.applicationDeadlineWithDays" = "Sista ansökningsdag: %@ (om %d dagar)";
 "jobs.viewListing" = "Visa annons";
-
-"common.unknown" = "okänd";
-
+"common.unknown" = "Okänd";
 "language.button.sv" = "🇸🇪";
-"language.button.en" = "🇺🇸";
+"language.button.en" = "🇬🇧";

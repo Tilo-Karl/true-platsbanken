@@ -37,6 +37,21 @@ enum AppStrings {
     static var profileEmploymentType: String { localized("profile.field.employmentType") }
     static var profileSkillsPlaceholder: String { localized("profile.field.skillsPlaceholder") }
     static var saveProfile: String { localized("profile.action.save") }
+    static var profileExtract: String { localized("profile.action.extract") }
+    static var profilePasteCv: String { localized("profile.action.pasteCv") }
+    static var profileReplaceCv: String { localized("profile.action.replaceCv") }
+    static var profileReplaceConfirmTitle: String { localized("profile.replace.title") }
+    static var profileReplaceConfirmMessage: String { localized("profile.replace.message") }
+    static var profileReplaceConfirmAction: String { localized("profile.replace.confirm") }
+    static var profileReplaceCancel: String { localized("profile.replace.cancel") }
+    static var profileMatch: String { localized("profile.action.match") }
+    static var profileAiSummary: String { localized("profile.ai.summary") }
+    static var profileAiSeniority: String { localized("profile.ai.seniority") }
+    static var profileAiLocations: String { localized("profile.ai.locations") }
+    static var profileAiRoles: String { localized("profile.ai.roles") }
+    static var profileAiInferredRoles: String { localized("profile.ai.inferredRoles") }
+    static var profileAiKeywords: String { localized("profile.ai.keywords") }
+    static var profileAiNone: String { localized("profile.ai.none") }
 
     static func employmentTypeLabel(for key: String) -> String {
         switch key {

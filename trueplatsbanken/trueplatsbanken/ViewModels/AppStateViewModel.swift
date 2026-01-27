@@ -16,7 +16,7 @@ final class AppStateViewModel: ObservableObject {
 
     init(
         jobReader: JobReading = BackendJobReader(),
-        profileStore: ProfileReading & ProfileWriting = ProfileLocalStore(),
+        profileStore: ProfileStateReading & ProfileStateWriting = ProfileLocalStore(),
         matchReader: MatchReading = BackendMatchReader(),
         profileExtractor: BackendProfileExtractor = BackendProfileExtractor(),
         roleExpander: BackendRoleExpander = BackendRoleExpander()
@@ -37,7 +37,9 @@ final class AppStateViewModel: ObservableObject {
     }
 
     func refreshMatches() async {
-        let profile = profileEditorViewModel.currentProfile()
-        await matchResultsViewModel.loadMatches(profile: profile)
+        guard let payload = profileEditorViewModel.matchPayload() else {
+            return
+        }
+        await matchResultsViewModel.loadMatches(payload: payload)
     }
 }

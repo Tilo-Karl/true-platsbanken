@@ -12,7 +12,7 @@ final class BackendMatchReader: MatchReading {
         self.session = session
     }
 
-    func fetchMatches(for profile: Profile) async throws -> [MatchResult] {
+    func fetchMatches(for payload: ProfileMatchPayload) async throws -> [MatchResult] {
         var url = baseURL
         url.appendPathComponent("api")
         url.appendPathComponent("match")
@@ -21,7 +21,7 @@ final class BackendMatchReader: MatchReading {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let body = MatchRequest(profile: profile, limit: 20)
+        let body = MatchRequest(profile: payload, limit: 20)
         request.httpBody = try JSONEncoder().encode(body)
 
         let (data, response) = try await session.data(for: request)
@@ -45,7 +45,7 @@ final class BackendMatchReader: MatchReading {
 }
 
 private struct MatchRequest: Encodable {
-    let profile: Profile
+    let profile: ProfileMatchPayload
     let limit: Int
 }
 

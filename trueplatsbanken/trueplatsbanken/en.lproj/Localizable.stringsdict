@@ -2,40 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>jobs.headlineWithVacancies</key>
-  <dict>
-    <key>NSStringLocalizedFormatKey</key>
-    <string>%@ (%#@jobs@)</string>
-    <key>jobs</key>
-    <dict>
-      <key>NSStringFormatSpecTypeKey</key>
-      <string>NSStringPluralRuleType</string>
-      <key>NSStringFormatValueTypeKey</key>
-      <string>d</string>
-      <key>one</key>
-      <string>%d job</string>
-      <key>other</key>
-      <string>%d jobs</string>
-    </dict>
-  </dict>
-
   <key>jobs.vacanciesLabel</key>
   <dict>
     <key>NSStringLocalizedFormatKey</key>
-    <string>Vacancies: %#@jobs@</string>
-    <key>jobs</key>
+    <string>%#@count@</string>
+    <key>count</key>
     <dict>
       <key>NSStringFormatSpecTypeKey</key>
       <string>NSStringPluralRuleType</string>
       <key>NSStringFormatValueTypeKey</key>
       <string>d</string>
       <key>one</key>
-      <string>%d</string>
+      <string>Vacancy: %d</string>
       <key>other</key>
-      <string>%d</string>
+      <string>Vacancies: %d</string>
     </dict>
   </dict>
-
   <key>jobs.applicationDeadlineWithDays</key>
   <dict>
     <key>NSStringLocalizedFormatKey</key>
@@ -47,9 +29,9 @@
       <key>NSStringFormatValueTypeKey</key>
       <string>d</string>
       <key>one</key>
-      <string>%d day</string>
+      <string>Application deadline: %@ (in %d day)</string>
       <key>other</key>
-      <string>%d days</string>
+      <string>Application deadline: %@ (in %d days)</string>
     </dict>
   </dict>
 </dict>

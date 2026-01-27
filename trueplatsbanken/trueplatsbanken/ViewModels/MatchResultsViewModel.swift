@@ -12,12 +12,12 @@ final class MatchResultsViewModel: ObservableObject {
         self.matchReader = matchReader
     }
 
-    func loadMatches(profile: Profile) async {
+    func loadMatches(payload: ProfileMatchPayload) async {
         isLoading = true
         errorMessage = nil
 
         do {
-            matches = try await matchReader.fetchMatches(for: profile)
+            matches = try await matchReader.fetchMatches(for: payload)
         } catch {
             errorMessage = error.localizedDescription
             matches = []

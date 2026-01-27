@@ -1,9 +1,11 @@
 import SwiftUI
+import UIKit
 
 struct ProfileEditorView: View {
     @ObservedObject var viewModel: ProfileEditorViewModel
     @EnvironmentObject private var languageStore: AppLanguageStore
     let onSaved: () async -> Void
+    @State private var showReplaceConfirmation = false
 
     var body: some View {
         let _ = languageStore.language
@@ -34,9 +36,27 @@ struct ProfileEditorView: View {
                     TextField(AppStrings.profileSkillsPlaceholder, text: $viewModel.draft.skillsText)
                 }
 
-                Section(AppStrings.profileSectionCv) {
-                    TextEditor(text: $viewModel.draft.cvText)
-                        .frame(minHeight: 120)
+                ProfileInputView(
+                    cvText: $viewModel.draft.cvText,
+                    isExtracting: viewModel.isExtracting,
+                    onExtract: {
+                        Task {
+                            await viewModel.applyCV(text: viewModel.draft.cvText)
+                        }
+                    },
+                    onPaste: {
+                        if let text = UIPasteboard.general.string {
+                            viewModel.draft.cvText = text
+                        }
+                    },
+                    onReplace: {
+                        viewModel.scheduleReplacement(with: viewModel.draft.cvText)
+                        showReplaceConfirmation = true
+                    }
+                )
+
+                if let result = viewModel.aiResult {
+                    ProfileAIResultView(result: result)
                 }
 
                 if let error = viewModel.errorMessage {
@@ -49,8 +69,18 @@ struct ProfileEditorView: View {
                 Section {
                     Button {
                         Task {
-                            await viewModel.saveProfile()
                             await onSaved()
+                        }
+                    } label: {
+                        Text(AppStrings.profileMatch)
+                    }
+                    .disabled(!viewModel.canMatch)
+                }
+
+                Section {
+                    Button {
+                        Task {
+                            await viewModel.saveProfile()
                         }
                     } label: {
                         if viewModel.isSaving {
@@ -62,6 +92,19 @@ struct ProfileEditorView: View {
                 }
             }
             .navigationTitle(AppStrings.profileTitle)
+            .confirmationDialog(
+                AppStrings.profileReplaceConfirmTitle,
+                isPresented: $showReplaceConfirmation
+            ) {
+                Button(AppStrings.profileReplaceConfirmAction) {
+                    Task {
+                        await viewModel.confirmReplace()
+                    }
+                }
+                Button(AppStrings.profileReplaceCancel, role: .cancel) {}
+            } message: {
+                Text(AppStrings.profileReplaceConfirmMessage)
+            }
         }
     }
 }

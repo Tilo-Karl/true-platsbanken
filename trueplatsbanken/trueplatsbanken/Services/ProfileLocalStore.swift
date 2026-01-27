@@ -1,24 +1,26 @@
 import Foundation
 
-final class ProfileLocalStore: ProfileReading, ProfileWriting {
+final class ProfileLocalStore: ProfileStateReading, ProfileStateWriting {
     private let storage: UserDefaults
-    private let key = "profile.draft"
+    private let key = "profile.local.state"
 
     init(storage: UserDefaults = .standard) {
         self.storage = storage
     }
 
-    func loadProfile() async throws -> Profile? {
+    func loadState() async throws -> ProfileLocalState? {
         guard let data = storage.data(forKey: key) else {
             return nil
         }
         let decoder = JSONDecoder()
-        return try decoder.decode(Profile.self, from: data)
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(ProfileLocalState.self, from: data)
     }
 
-    func saveProfile(_ profile: Profile) async throws {
+    func saveState(_ state: ProfileLocalState) async throws {
         let encoder = JSONEncoder()
-        let data = try encoder.encode(profile)
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(state)
         storage.set(data, forKey: key)
     }
 }

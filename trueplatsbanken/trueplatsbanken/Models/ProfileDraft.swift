@@ -1,6 +1,6 @@
 import Foundation
 
-struct ProfileDraft: Hashable {
+struct ProfileDraft: Hashable, Codable {
     var userId: String = ""
     var name: String = ""
     var email: String = ""

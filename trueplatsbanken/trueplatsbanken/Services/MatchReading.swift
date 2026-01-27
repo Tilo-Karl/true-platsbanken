@@ -1,5 +1,5 @@
 import Foundation
 
 protocol MatchReading {
-    func fetchMatches(for profile: Profile) async throws -> [MatchResult]
+    func fetchMatches(for payload: ProfileMatchPayload) async throws -> [MatchResult]
 }
