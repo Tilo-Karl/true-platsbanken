@@ -36,6 +36,15 @@ final class AppStateViewModel: ObservableObject {
         await profileEditorViewModel.loadProfile()
     }
 
+    func consumeSharedCVIfAvailable() async {
+        guard let text = SharedCVStore.consumeText() else {
+            return
+        }
+
+        selectedTab = .profile
+        await profileEditorViewModel.handleSharedText(text)
+    }
+
     func refreshMatches() async {
         guard let payload = profileEditorViewModel.matchPayload() else {
             return

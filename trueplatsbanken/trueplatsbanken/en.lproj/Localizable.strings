@@ -57,3 +57,11 @@
 "common.unknown" = "Unknown";
 "language.button.sv" = "🇸🇪";
 "language.button.en" = "🇬🇧";
+"share.title" = "Send CV";
+"share.subtitle" = "Import up to 2 images.";
+"share.processing" = "Processing...";
+"share.done" = "Saved to True Platsbanken.";
+"share.error" = "Could not import CV.";
+"share.openApp" = "Open app";
+"share.close" = "Close";
+"share.limit" = "Select up to 2 images.";

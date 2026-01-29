@@ -10,6 +10,8 @@
 		D72BEDCB2F13F200006C4585 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D72BEDCA2F13F200006C4585 /* FirebaseAuth */; };
 		D72BEDCD2F13F200006C4585 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D72BEDCC2F13F200006C4585 /* FirebaseCore */; };
 		D72BEDCF2F13F200006C4585 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D72BEDCE2F13F200006C4585 /* FirebaseFirestore */; };
+		D7B639342F29134C00E8F405 /* TBShareExt.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D7B6392A2F29134C00E8F405 /* TBShareExt.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D7B68B012F2BCC7000BE96E6 /* READMEShareExt.md in Resources */ = {isa = PBXBuildFile; fileRef = D7B68B002F2BCC7000BE96E6 /* READMEShareExt.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,17 +29,60 @@
 			remoteGlobalIDString = D72BED3E2F13CD4E006C4585;
 			remoteInfo = trueplatsbanken;
 		};
+		D7B639322F29134C00E8F405 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D72BED372F13CD4E006C4585 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D7B639292F29134C00E8F405;
+			remoteInfo = TBShareExt;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D7B639352F29134C00E8F405 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				D7B639342F29134C00E8F405 /* TBShareExt.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		D72BED3F2F13CD4E006C4585 /* trueplatsbanken.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = trueplatsbanken.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D72BED4C2F13CD4F006C4585 /* trueplatsbankenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = trueplatsbankenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D72BED562F13CD4F006C4585 /* trueplatsbankenUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = trueplatsbankenUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D7B6392A2F29134C00E8F405 /* TBShareExt.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TBShareExt.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		D7B68B002F2BCC7000BE96E6 /* READMEShareExt.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = READMEShareExt.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D7B639382F29134C00E8F405 /* Exceptions for "TBShareExt" folder in "TBShareExt" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D7B639292F29134C00E8F405 /* TBShareExt */;
+		};
+		D7B63C592F2A44D000E8F405 /* Exceptions for "trueplatsbanken" folder in "trueplatsbanken" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D72BED3E2F13CD4E006C4585 /* trueplatsbanken */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		D72BED412F13CD4E006C4585 /* trueplatsbanken */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D7B63C592F2A44D000E8F405 /* Exceptions for "trueplatsbanken" folder in "trueplatsbanken" target */,
+			);
 			path = trueplatsbanken;
 			sourceTree = "<group>";
 		};
@@ -49,6 +94,14 @@
 		D72BED592F13CD4F006C4585 /* trueplatsbankenUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = trueplatsbankenUITests;
+			sourceTree = "<group>";
+		};
+		D7B6392B2F29134C00E8F405 /* TBShareExt */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D7B639382F29134C00E8F405 /* Exceptions for "TBShareExt" folder in "TBShareExt" target */,
+			);
+			path = TBShareExt;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -78,15 +131,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D7B639272F29134C00E8F405 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		D72BED362F13CD4E006C4585 = {
 			isa = PBXGroup;
 			children = (
+				D7B68B002F2BCC7000BE96E6 /* READMEShareExt.md */,
 				D72BED412F13CD4E006C4585 /* trueplatsbanken */,
 				D72BED4F2F13CD4F006C4585 /* trueplatsbankenTests */,
 				D72BED592F13CD4F006C4585 /* trueplatsbankenUITests */,
+				D7B6392B2F29134C00E8F405 /* TBShareExt */,
 				D72BED402F13CD4E006C4585 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -97,6 +159,7 @@
 				D72BED3F2F13CD4E006C4585 /* trueplatsbanken.app */,
 				D72BED4C2F13CD4F006C4585 /* trueplatsbankenTests.xctest */,
 				D72BED562F13CD4F006C4585 /* trueplatsbankenUITests.xctest */,
+				D7B6392A2F29134C00E8F405 /* TBShareExt.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -111,10 +174,12 @@
 				D72BED3B2F13CD4E006C4585 /* Sources */,
 				D72BED3C2F13CD4E006C4585 /* Frameworks */,
 				D72BED3D2F13CD4E006C4585 /* Resources */,
+				D7B639352F29134C00E8F405 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				D7B639332F29134C00E8F405 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				D72BED412F13CD4E006C4585 /* trueplatsbanken */,
@@ -175,6 +240,28 @@
 			productReference = D72BED562F13CD4F006C4585 /* trueplatsbankenUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		D7B639292F29134C00E8F405 /* TBShareExt */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D7B639392F29134C00E8F405 /* Build configuration list for PBXNativeTarget "TBShareExt" */;
+			buildPhases = (
+				D7B639262F29134C00E8F405 /* Sources */,
+				D7B639272F29134C00E8F405 /* Frameworks */,
+				D7B639282F29134C00E8F405 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D7B6392B2F29134C00E8F405 /* TBShareExt */,
+			);
+			name = TBShareExt;
+			packageProductDependencies = (
+			);
+			productName = TBShareExt;
+			productReference = D7B6392A2F29134C00E8F405 /* TBShareExt.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -195,6 +282,9 @@
 					D72BED552F13CD4F006C4585 = {
 						CreatedOnToolsVersion = 16.4;
 						TestTargetID = D72BED3E2F13CD4E006C4585;
+					};
+					D7B639292F29134C00E8F405 = {
+						CreatedOnToolsVersion = 16.4;
 					};
 				};
 			};
@@ -219,6 +309,7 @@
 				D72BED3E2F13CD4E006C4585 /* trueplatsbanken */,
 				D72BED4B2F13CD4F006C4585 /* trueplatsbankenTests */,
 				D72BED552F13CD4F006C4585 /* trueplatsbankenUITests */,
+				D7B639292F29134C00E8F405 /* TBShareExt */,
 			);
 		};
 /* End PBXProject section */
@@ -242,6 +333,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D7B639282F29134C00E8F405 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D7B68B012F2BCC7000BE96E6 /* READMEShareExt.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -269,6 +368,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D7B639262F29134C00E8F405 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -281,6 +387,11 @@
 			isa = PBXTargetDependency;
 			target = D72BED3E2F13CD4E006C4585 /* trueplatsbanken */;
 			targetProxy = D72BED572F13CD4F006C4585 /* PBXContainerItemProxy */;
+		};
+		D7B639332F29134C00E8F405 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D7B639292F29134C00E8F405 /* TBShareExt */;
+			targetProxy = D7B639322F29134C00E8F405 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -411,14 +522,17 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = trueplatsbanken/trueplatsbanken.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8JN55CP2C9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = trueplatsbanken/Info.plist;
+				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleURLSchemes =     (\n        trueplatsbanken,\n    );\n}";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Allow access to select CV images.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -439,14 +553,17 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = trueplatsbanken/trueplatsbanken.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8JN55CP2C9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = trueplatsbanken/Info.plist;
+				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleURLSchemes =     (\n        trueplatsbanken,\n    );\n}";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Allow access to select CV images.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -466,6 +583,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = TBShareExt/TBShareExt.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8JN55CP2C9;
@@ -485,6 +603,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = TBShareExt/TBShareExt.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8JN55CP2C9;
@@ -534,6 +653,58 @@
 			};
 			name = Release;
 		};
+		D7B639362F29134C00E8F405 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TBShareExt/TBShareExt.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8JN55CP2C9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TBShareExt/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "True Platsbanken";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tilodelau.trueplatsbanken.TBShareExt;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D7B639372F29134C00E8F405 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TBShareExt/TBShareExt.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8JN55CP2C9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TBShareExt/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "True Platsbanken";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tilodelau.trueplatsbanken.TBShareExt;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -569,6 +740,15 @@
 			buildConfigurations = (
 				D72BED672F13CD4F006C4585 /* Debug */,
 				D72BED682F13CD4F006C4585 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D7B639392F29134C00E8F405 /* Build configuration list for PBXNativeTarget "TBShareExt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D7B639362F29134C00E8F405 /* Debug */,
+				D7B639372F29134C00E8F405 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

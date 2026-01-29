@@ -7,28 +7,23 @@ struct JobListView: View {
     var body: some View {
         let _ = languageStore.language
 
-        NavigationStack {
-            Group {
-                if viewModel.isLoading {
-                    ProgressView(AppStrings.jobsLoading)
-                } else if let error = viewModel.errorMessage {
-                    ContentUnavailableView(AppStrings.jobsUnavailable, systemImage: "exclamationmark.triangle", description: Text(error))
-                } else if viewModel.jobs.isEmpty {
-                    ContentUnavailableView(AppStrings.noJobs, systemImage: "tray", description: Text(AppStrings.checkBackLater))
-                } else {
-                    List(viewModel.jobs) { job in
-                        NavigationLink(value: job) {
-                            JobListRow(job: job)
-                        }
+        Group {
+            if viewModel.isLoading {
+                ProgressView(AppStrings.jobsLoading)
+            } else if let error = viewModel.errorMessage {
+                ContentUnavailableView(AppStrings.jobsUnavailable, systemImage: "exclamationmark.triangle", description: Text(error))
+            } else if viewModel.jobs.isEmpty {
+                ContentUnavailableView(AppStrings.noJobs, systemImage: "tray", description: Text(AppStrings.checkBackLater))
+            } else {
+                List(viewModel.jobs) { job in
+                    NavigationLink(value: job) {
+                        JobListRow(job: job)
                     }
-                    .listStyle(.plain)
                 }
-            }
-            .navigationTitle(AppStrings.jobsTitle)
-            .navigationDestination(for: Job.self) { job in
-                JobDetailView(job: job)
+                .listStyle(.plain)
             }
         }
+        .navigationTitle(AppStrings.jobsTitle)
         .refreshable {
             await viewModel.loadJobs()
         }

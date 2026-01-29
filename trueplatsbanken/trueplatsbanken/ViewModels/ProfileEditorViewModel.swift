@@ -8,6 +8,7 @@ final class ProfileEditorViewModel: ObservableObject {
     @Published private(set) var isExtracting = false
     @Published private(set) var errorMessage: String?
     @Published var pendingReplacementText: String?
+    @Published var shouldConfirmReplacement = false
 
     private let profileReader: ProfileStateReading
     private let profileWriter: ProfileStateWriting
@@ -93,6 +94,7 @@ final class ProfileEditorViewModel: ObservableObject {
             return
         }
         pendingReplacementText = nil
+        shouldConfirmReplacement = false
         await applyCV(text: text)
     }
 
@@ -109,6 +111,24 @@ final class ProfileEditorViewModel: ObservableObject {
 
     func scheduleReplacement(with text: String) {
         pendingReplacementText = text
+        shouldConfirmReplacement = true
+    }
+
+    func handleSharedText(_ text: String) async {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return
+        }
+
+        if aiResult != nil || !draft.cvText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            scheduleReplacement(with: trimmed)
+        } else {
+            await applyCV(text: trimmed)
+        }
+    }
+
+    func setErrorMessage(_ message: String) {
+        errorMessage = message
     }
 
     private func applyState(_ state: ProfileLocalState) {

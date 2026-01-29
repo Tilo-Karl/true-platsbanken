@@ -109,4 +109,13 @@ enum AppStrings {
 
     static var languageButtonSv: String { localized("language.button.sv") }
     static var languageButtonEn: String { localized("language.button.en") }
+
+    static var shareTitle: String { localized("share.title") }
+    static var shareSubtitle: String { localized("share.subtitle") }
+    static var shareProcessing: String { localized("share.processing") }
+    static var shareDone: String { localized("share.done") }
+    static var shareError: String { localized("share.error") }
+    static var shareOpenApp: String { localized("share.openApp") }
+    static var shareClose: String { localized("share.close") }
+    static var shareLimit: String { localized("share.limit") }
 }

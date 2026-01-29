@@ -57,3 +57,11 @@
 "common.unknown" = "Okänd";
 "language.button.sv" = "🇸🇪";
 "language.button.en" = "🇬🇧";
+"share.title" = "Skicka CV";
+"share.subtitle" = "Importera upp till 2 bilder.";
+"share.processing" = "Bearbetar...";
+"share.done" = "Sparat till True Platsbanken.";
+"share.error" = "Kunde inte importera CV.";
+"share.openApp" = "Öppna appen";
+"share.close" = "Stäng";
+"share.limit" = "Välj max 2 bilder.";

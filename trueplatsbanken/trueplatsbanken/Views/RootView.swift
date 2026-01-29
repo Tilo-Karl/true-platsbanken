@@ -3,52 +3,66 @@ import SwiftUI
 struct RootView: View {
     @ObservedObject var appState: AppStateViewModel
     @EnvironmentObject private var languageStore: AppLanguageStore
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         let _ = languageStore.language
 
-        ZStack(alignment: .topTrailing) {
-            TabView(selection: $appState.selectedTab) {
-                JobListView(viewModel: appState.jobListViewModel)
+        NavigationStack {
+            ZStack(alignment: .topTrailing) {
+                TabView(selection: $appState.selectedTab) {
+                    JobListView(viewModel: appState.jobListViewModel)
+                        .tabItem {
+                            Label(AppStrings.jobsTitle, systemImage: "briefcase")
+                        }
+                        .tag(AppStateViewModel.Tab.jobs)
+
+                    MatchResultsView(
+                        viewModel: appState.matchResultsViewModel,
+                        onRefresh: appState.refreshMatches
+                    )
                     .tabItem {
-                        Label(AppStrings.jobsTitle, systemImage: "briefcase")
+                        Label(AppStrings.matchesTitle, systemImage: "checkmark.seal")
                     }
-                    .tag(AppStateViewModel.Tab.jobs)
+                    .tag(AppStateViewModel.Tab.matches)
 
-                MatchResultsView(
-                    viewModel: appState.matchResultsViewModel,
-                    onRefresh: appState.refreshMatches
-                )
-                .tabItem {
-                    Label(AppStrings.matchesTitle, systemImage: "checkmark.seal")
-                }
-                .tag(AppStateViewModel.Tab.matches)
-
-                ProfileEditorView(
-                    viewModel: appState.profileEditorViewModel,
-                    onSaved: {
-                        await appState.refreshMatches()
+                    ProfileEditorView(
+                        viewModel: appState.profileEditorViewModel,
+                        onMatch: {
+                            await appState.refreshMatches()
+                            appState.selectedTab = .matches
+                        }
+                    )
+                    .tabItem {
+                        Label(AppStrings.profileTitle, systemImage: "person")
                     }
-                )
-                .tabItem {
-                    Label(AppStrings.profileTitle, systemImage: "person")
+                    .tag(AppStateViewModel.Tab.profile)
                 }
-                .tag(AppStateViewModel.Tab.profile)
-            }
 
-            Button(action: { languageStore.toggle() }) {
-                Text(languageStore.buttonLabel)
-                    .font(.caption2)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.thinMaterial)
-                    .clipShape(Capsule())
+                Button(action: { languageStore.toggle() }) {
+                    Text(languageStore.buttonLabel)
+                        .font(.caption2)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(.thinMaterial)
+                        .clipShape(Capsule())
+                }
+                .padding(.top, 6)
+                .padding(.trailing, 12)
             }
-            .padding(.top, 6)
-            .padding(.trailing, 12)
+            .navigationDestination(for: Job.self) { job in
+                JobDetailView(job: job)
+            }
         }
         .task {
             await appState.bootstrap()
+            await appState.consumeSharedCVIfAvailable()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else { return }
+            Task {
+                await appState.consumeSharedCVIfAvailable()
+            }
         }
     }
 }
