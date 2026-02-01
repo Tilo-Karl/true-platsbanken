@@ -14,17 +14,20 @@ final class ProfileEditorViewModel: ObservableObject {
     private let profileWriter: ProfileStateWriting
     private let profileExtractor: BackendProfileExtractor
     private let roleExpander: BackendRoleExpander
+    private let localCVReader: LocalCVTextReading
 
     init(
         profileReader: ProfileStateReading,
         profileWriter: ProfileStateWriting,
         profileExtractor: BackendProfileExtractor,
-        roleExpander: BackendRoleExpander
+        roleExpander: BackendRoleExpander,
+        localCVReader: LocalCVTextReading = LocalCVTextReader()
     ) {
         self.profileReader = profileReader
         self.profileWriter = profileWriter
         self.profileExtractor = profileExtractor
         self.roleExpander = roleExpander
+        self.localCVReader = localCVReader
     }
 
     func loadProfile() async {
@@ -60,6 +63,11 @@ final class ProfileEditorViewModel: ObservableObject {
             return
         }
 
+        guard CVEligibility.isLikelyCV(trimmed) else {
+            errorMessage = AppStrings.profileCvRejected
+            return
+        }
+
         isExtracting = true
         errorMessage = nil
 
@@ -76,6 +84,11 @@ final class ProfileEditorViewModel: ObservableObject {
                 locations: extraction.locations,
                 summary: extraction.summary
             )
+
+            if draft.municipality.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                let inferred = extraction.locations.first { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                draft.municipality = inferred ?? AppStrings.profileDefaultLocation
+            }
 
             try await profileWriter.saveState(ProfileLocalState(
                 draft: draft,
@@ -127,8 +140,39 @@ final class ProfileEditorViewModel: ObservableObject {
         }
     }
 
+    func importFromPhotos(_ photoData: [Data]) async {
+        do {
+            let text = try await localCVReader.extractText(from: photoData)
+            await applyCV(text: text)
+        } catch {
+            errorMessage = mapImportError(error)
+        }
+    }
+
+    func importFromFiles(_ urls: [URL]) async {
+        do {
+            let limited = Array(urls.prefix(2))
+            let text = try await localCVReader.extractText(from: limited)
+            await applyCV(text: text)
+        } catch {
+            errorMessage = mapImportError(error)
+        }
+    }
+
     func setErrorMessage(_ message: String) {
         errorMessage = message
+    }
+
+    private func mapImportError(_ error: Error) -> String {
+        if let error = error as? LocalCVTextReaderError {
+            switch error {
+            case .noInput:
+                return AppStrings.profileImportNoInput
+            case .noReadableText:
+                return AppStrings.profileImportNoText
+            }
+        }
+        return AppStrings.profileImportFailed
     }
 
     private func applyState(_ state: ProfileLocalState) {

@@ -45,6 +45,12 @@ enum AppStrings {
     static var profileReplaceConfirmAction: String { localized("profile.replace.confirm") }
     static var profileReplaceCancel: String { localized("profile.replace.cancel") }
     static var profileMatch: String { localized("profile.action.match") }
+    static var profileImportPhotos: String { localized("profile.action.importPhotos") }
+    static var profileImportFiles: String { localized("profile.action.importFiles") }
+    static var profileImportNoInput: String { localized("profile.import.noInput") }
+    static var profileImportNoText: String { localized("profile.import.noText") }
+    static var profileImportFailed: String { localized("profile.import.failed") }
+    static var profileCvRejected: String { localized("profile.cv.rejected") }
     static var profileAiSummary: String { localized("profile.ai.summary") }
     static var profileAiSeniority: String { localized("profile.ai.seniority") }
     static var profileAiLocations: String { localized("profile.ai.locations") }
@@ -52,6 +58,8 @@ enum AppStrings {
     static var profileAiInferredRoles: String { localized("profile.ai.inferredRoles") }
     static var profileAiKeywords: String { localized("profile.ai.keywords") }
     static var profileAiNone: String { localized("profile.ai.none") }
+    static var profileLocationPreference: String { localized("profile.field.locationPreference") }
+    static var profileDefaultLocation: String { localized("profile.field.locationDefault") }
 
     static func employmentTypeLabel(for key: String) -> String {
         switch key {

@@ -110,7 +110,7 @@ If it doesn’t:
 
 9. Known Misleading Logs (Ignore)
 
-This log is NOT the root cause:
+This log is NOT the root cause in this project:
 
 “Using kCFPreferencesAnyUser with a container is only allowed for System Containers”
 
@@ -123,8 +123,8 @@ The real failure mode is Info.plist structure.
 Final Rule
 
 If the Share Extension does not appear:
-    •    Assume configuration is wrong
-    •    Do NOT debug code
+    •    Check configuration first
     •    Recheck Info.plist structure first
+    •    Only then debug code paths
 
 This bug was caused by incorrect nesting of NSExtensionActivationRule.
