@@ -59,7 +59,6 @@ enum AppStrings {
     static var profileAiKeywords: String { localized("profile.ai.keywords") }
     static var profileAiNone: String { localized("profile.ai.none") }
     static var profileLocationPreference: String { localized("profile.field.locationPreference") }
-    static var profileDefaultLocation: String { localized("profile.field.locationDefault") }
 
     static func employmentTypeLabel(for key: String) -> String {
         switch key {

@@ -3,6 +3,7 @@ const { listJobs } = require('./jobs');
 const { updateProfile } = require('./profile');
 const { extractProfile } = require('./profileExtract');
 const { expandProfileRoles } = require('./expandRoles');
+const { createEmbeddings } = require('./embeddings');
 const { getMatches } = require('./matches');
 const { getSemanticMatches } = require('./match');
 
@@ -62,6 +63,15 @@ function apiRoutes(db) {
   router.post('/match', async (req, res) => {
     try {
       const result = await getSemanticMatches(db, req.body);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  router.post('/embeddings', async (req, res) => {
+    try {
+      const result = await createEmbeddings(req.body);
       res.status(200).json(result);
     } catch (error) {
       res.status(400).json({ error: error.message });

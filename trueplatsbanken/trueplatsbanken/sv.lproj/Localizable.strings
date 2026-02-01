@@ -23,7 +23,6 @@
 "profile.field.municipality" = "Kommun";
 "profile.field.employmentType" = "Anställningsform";
 "profile.field.locationPreference" = "Platsönskemål";
-"profile.field.locationDefault" = "Sverige";
 "profile.field.skillsPlaceholder" = "Kompetenser separerade med komma";
 "profile.action.save" = "Spara profil";
 "profile.action.extract" = "Skapa profil";

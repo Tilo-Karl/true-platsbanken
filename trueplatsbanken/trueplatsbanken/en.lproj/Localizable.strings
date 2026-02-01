@@ -23,7 +23,6 @@
 "profile.field.municipality" = "Municipality";
 "profile.field.employmentType" = "Employment type";
 "profile.field.locationPreference" = "Location preference";
-"profile.field.locationDefault" = "Sweden";
 "profile.field.skillsPlaceholder" = "Comma-separated skills";
 "profile.action.save" = "Save profile";
 "profile.action.extract" = "Extract profile";

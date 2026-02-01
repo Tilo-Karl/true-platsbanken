@@ -15,19 +15,25 @@ final class ProfileEditorViewModel: ObservableObject {
     private let profileExtractor: BackendProfileExtractor
     private let roleExpander: BackendRoleExpander
     private let localCVReader: LocalCVTextReading
+    private let embeddingReader: BackendEmbeddingReader
+    private let embeddingCache: EmbeddingCaching
 
     init(
         profileReader: ProfileStateReading,
         profileWriter: ProfileStateWriting,
         profileExtractor: BackendProfileExtractor,
         roleExpander: BackendRoleExpander,
-        localCVReader: LocalCVTextReading = LocalCVTextReader()
+        localCVReader: LocalCVTextReading = LocalCVTextReader(),
+        embeddingReader: BackendEmbeddingReader = BackendEmbeddingReader(),
+        embeddingCache: EmbeddingCaching = EmbeddingCacheStore()
     ) {
         self.profileReader = profileReader
         self.profileWriter = profileWriter
         self.profileExtractor = profileExtractor
         self.roleExpander = roleExpander
         self.localCVReader = localCVReader
+        self.embeddingReader = embeddingReader
+        self.embeddingCache = embeddingCache
     }
 
     func loadProfile() async {
@@ -87,7 +93,15 @@ final class ProfileEditorViewModel: ObservableObject {
 
             if draft.municipality.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 let inferred = extraction.locations.first { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-                draft.municipality = inferred ?? AppStrings.profileDefaultLocation
+                if let inferred {
+                    draft.municipality = inferred
+                }
+            }
+
+            if let payload = matchPayload() {
+                if let embedding = try? await embeddingReader.fetchProfileEmbedding(for: payload) {
+                    try? embeddingCache.saveEmbedding(embedding, for: payload)
+                }
             }
 
             try await profileWriter.saveState(ProfileLocalState(

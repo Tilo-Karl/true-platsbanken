@@ -7,9 +7,11 @@ final class MatchResultsViewModel: ObservableObject {
     @Published private(set) var errorMessage: String?
 
     private let matchReader: MatchReading
+    private let embeddingCache: EmbeddingCaching
 
-    init(matchReader: MatchReading) {
+    init(matchReader: MatchReading, embeddingCache: EmbeddingCaching = EmbeddingCacheStore()) {
         self.matchReader = matchReader
+        self.embeddingCache = embeddingCache
     }
 
     func loadMatches(payload: ProfileMatchPayload) async {
@@ -17,7 +19,8 @@ final class MatchResultsViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            matches = try await matchReader.fetchMatches(for: payload)
+            let embedding = try? embeddingCache.loadEmbedding(for: payload)
+            matches = try await matchReader.fetchMatches(for: payload, profileEmbedding: embedding)
         } catch {
             errorMessage = error.localizedDescription
             matches = []

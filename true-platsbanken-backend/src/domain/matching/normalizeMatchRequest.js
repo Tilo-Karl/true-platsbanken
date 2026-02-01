@@ -5,7 +5,8 @@ function normalizeMatchRequest(request = {}) {
   return {
     profileId: request.profileId,
     profile: request.profile,
-    limit
+    limit,
+    profileEmbedding: request.profileEmbedding
   };
 }
 

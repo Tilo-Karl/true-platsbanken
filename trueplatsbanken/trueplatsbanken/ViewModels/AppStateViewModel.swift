@@ -13,6 +13,7 @@ final class AppStateViewModel: ObservableObject {
     let jobListViewModel: JobListViewModel
     let profileEditorViewModel: ProfileEditorViewModel
     let matchResultsViewModel: MatchResultsViewModel
+    private let embeddingCache: EmbeddingCaching
 
     init(
         jobReader: JobReading = BackendJobReader(),
@@ -21,14 +22,19 @@ final class AppStateViewModel: ObservableObject {
         profileExtractor: BackendProfileExtractor = BackendProfileExtractor(),
         roleExpander: BackendRoleExpander = BackendRoleExpander()
     ) {
+        self.embeddingCache = EmbeddingCacheStore()
         self.jobListViewModel = JobListViewModel(jobReader: jobReader)
         self.profileEditorViewModel = ProfileEditorViewModel(
             profileReader: profileStore,
             profileWriter: profileStore,
             profileExtractor: profileExtractor,
-            roleExpander: roleExpander
+            roleExpander: roleExpander,
+            embeddingCache: embeddingCache
         )
-        self.matchResultsViewModel = MatchResultsViewModel(matchReader: matchReader)
+        self.matchResultsViewModel = MatchResultsViewModel(
+            matchReader: matchReader,
+            embeddingCache: embeddingCache
+        )
     }
 
     func bootstrap() async {
