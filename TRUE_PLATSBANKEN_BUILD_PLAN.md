@@ -1,182 +1,205 @@
-True Platsbanken — Build Plan (Stateless Backend)
+True Platsbanken — Build Plan (v2, Paid CV Match)
+
+Product framing (important)
+
+This app has two different products inside it:
+	1.	Jobs browser (free, live, Platsbanken replacement)
+	2.	CV Match (paid, frozen snapshot, AI-powered)
+
+They are intentionally separate.
 
 ⸻
 
 Phase 0 — Architecture ✅ DONE
 
-Goal: sane foundation
-Status: ✔ Complete
-	•	Backend split into readers / domain / orchestrators
-	•	Frontend split into Views / ViewModels / Services
-	•	External adapters isolated (JobTech, OpenAI, Backend API)
-	•	Clean-code rules enforced and audited
-	•	Single OpenAI transport reader
-	•	Prompts treated as data, owned by domain
-	•	No duplicate invariants across files
-
-This is solid and stays.
+No change.
+	•	Stateless backend
+	•	Clean separation (readers / domain / orchestrators)
+	•	Single OpenAI transport
+	•	Frontend = thin client
+	•	Local-only persistence
+	•	No accounts yet
 
 ⸻
 
 Phase 1 — Job data correctness ✅ DONE
 
-Goal: users trust the app immediately
-Status: ✔ Complete
-	•	Job model aligned with JobTech
-	•	Correct:
-	•	vacancies
-	•	employment type
-	•	duration
-	•	scope of work
-	•	deadline
-	•	occupation label
-	•	Reader-only mapping
-	•	UI mirrors Platsbanken
-	•	Employer field fixed
-	•	“Ny” badge + timestamps correct
-	•	Europe/Stockholm day handling correct
-	•	Localization:
-	•	Central AppStrings
-	•	sv / en
-	•	Language toggle works
+No change.
 
-Trust achieved. Move on.
+Trust layer is solid.
 
 ⸻
 
-Phase 2 — Profile signals (Deterministic) ✅ DONE
+Phase 2 — Profile signals (deterministic) ✅ DONE
 
-Goal: structure before intelligence
-Status: ✔ Complete
+No change.
 
-What exists and is used:
-	•	Input:
-	•	CV text (raw)
-	•	skills text
-	•	employment preferences
-	•	Output:
-	•	keywords
-	•	occupations
-	•	locations
-	•	seniority hints
-	•	constraints
-	•	Implementation:
-	•	extractProfileSignals
-	•	deterministic
-	•	no AI
-	•	Used by:
-	•	embedding text construction
-	•	match explanations
-	•	constraints
-	•	fallback structure
-
-This is not a fallback for AI.
-It is signal scaffolding.
-
-Mark done.
+Used as scaffolding for AI and explanations.
 
 ⸻
 
-Phase 3 — AI v1: Profile understanding ✅ DONE
+Phase 3 — AI: Profile understanding ✅ DONE
 
-Goal: turn CV → structured profile
-Status: ✔ Complete
-	•	/api/profile/extract
-	•	AI extracts:
-	•	keywords
-	•	roles
-	•	seniority
-	•	locations
-	•	summary
-	•	/api/profile/expand-roles
-	•	AI infers adjacent roles
-	•	rationale included
-	•	Strict JSON enforced
-	•	Stateless
-	•	Backend-only
-	•	No frontend changes required
-
-AI is alive.
+No change.
+	•	CV → structured profile
+	•	Role expansion
+	•	Strict JSON
+	•	Backend only
 
 ⸻
 
-Phase 4 — AI v1: Semantic matching ✅ DONE (backend)
+Phase 4 — AI: Semantic matching (backend) ✅ DONE
 
-Goal: real matching, not filters
-Status: ✔ Backend complete
-	•	Embeddings:
-	•	profile text
-	•	job text
+No change.
+	•	Embeddings
 	•	Cosine similarity
-	•	Deterministic ranking layer
-	•	Explainability hooks (“matched on”)
-	•	No heuristics in UI
-	•	Backend owns intelligence
-
-What’s missing is frontend wiring, not logic.
+	•	Ranking
+	•	Explainability hooks
 
 ⸻
 
-Phase 5 — Frontend ↔ Backend wiring (no persistence) 🔜 NEXT
+Phase 5 — Frontend ↔ Backend wiring ✅ DONE
 
-Goal: frontend becomes a thin client
-Status: 🚧 Next
-
-Required changes (no AI changes):
-	•	Frontend stops:
-	•	fetching JobTech directly
-	•	calling Firestore
-	•	Frontend starts:
-	•	GET /api/jobs
-	•	POST CV → /api/profile/extract
-	•	POST profile → /api/profile/expand-roles
-	•	POST profile + jobs → /api/match
-	•	Persist profile locally only (UserDefaults / file)
-	•	ViewModels updated to consume:
-	•	MatchResult { job, score, reasons }
-
-This is now the critical path.
+Includes:
+	•	Jobs fetch via backend
+	•	Profile extraction
+	•	Role expansion
+	•	Match endpoint
+	•	Profile embedding cache (Option B)
 
 ⸻
 
-Phase 6 — UX that sells the AI 🔜 NEXT+
+Phase 6 — Jobs Listing (Free, Default View) 🔜
 
-Goal: user understands why
-Status: Planned
-	•	Match score indicator
-	•	“Why this job?” view
-	•	Show inferred roles (toggleable)
-	•	Profile improvement hints
-	•	No new intelligence — just surfacing what exists
+What this view is
+	•	The first screen users see
+	•	Free
+	•	Always up to date
+	•	Platsbanken replacement
+
+Features
+	•	Job list (latest first)
+	•	Client-side filters only (no JobTech query filters):
+	•	Location
+	•	Occupation
+	•	Employment type
+	•	Scope
+	•	“Ny” badge
+	•	Pull-to-refresh
+
+CV awareness
+	•	If CV exists:
+	•	Show CTA: “Visa CV-matchade jobb”
+	•	If CV does not exist:
+	•	Show CTA: “Matcha jobb med ditt CV” (teaser, locked)
+
+No AI cost here. Ever.
 
 ⸻
 
-Phase 7 — Hardening & cleanup 🔜 LATER
+Phase 7 — CV Match (Paid, Separate View) 🔜
 
-Goal: remove scaffolding
-Status: Planned
-	•	Remove dev paths
-	•	Lock prod config
-	•	Rate limiting
-	•	Caching
-	•	Pagination
+What this view is
+	•	A separate listing
+	•	Based on a paid match run
+	•	Frozen in time
+	•	Sorted by match score
+
+Entry points
+	•	CTA from Jobs view
+	•	Dedicated tab / segment (“CV-match”)
+
+First-time flow (PAY POINT #1)
+	1.	User uploads/imports CV
+	2.	Profile extraction + role expansion
+	3.	Profile embedding
+	4.	One full CV match run against current jobs
+	5.	Results shown immediately
+
+Payment covers:
+profile AI + role expansion + one CV match run
+
+View behavior
+	•	Shows:
+	•	Match score per job
+	•	“Why this job?” (later)
+	•	Timestamp: “Matchad 30 jan”
+	•	Does not auto-refresh
+	•	New jobs do NOT appear here
+
+Snapshot persistence
+	•	Saved locally only
+	•	Includes matches, scores, reasons, timestamp
 
 ⸻
 
-Phase 8 — Ship 🚀
+Phase 8 — Updating CV Match (Paid Action) 🔜
 
-Goal: real users
-Status: Planned
+When payment is required again
+	•	User explicitly taps “Uppdatera CV-match”
+
+Triggers:
+	•	Re-run embeddings for jobs
+	•	Re-rank
+	•	Replace CV Match snapshot
+
+This is PAY POINT #2.
+
+No background costs. No surprises.
+
+⸻
+
+Phase 9 — UX that sells the AI 🔜
+
+Only surfacing, no new intelligence:
+	•	Match score badges
+	•	“Matched because…” bullets
+	•	Show inferred roles (collapsed)
+	•	Clear separation:
+	•	“Live jobs”
+	•	“CV-matched jobs”
+
+⸻
+
+Phase 10 — Accounts 🔜 LATER
+
+Required before Phase 11.
+This is not just UI prep.
+
+Notes:
+	•	Account tab placeholder can be introduced earlier (Phase 6) for layout validation.
+	•	Backend persistence is still deferred until this phase.
+
+⸻
+
+Phase 11 — Payments 🔜 LATER
+
+Requires Phase 10.
+
+Notes:
+	•	Payment touchpoints can be surfaced earlier as UI-only affordances.
+	•	Payments gated before:
+	•	CV import
+	•	CV match update
+	•	Backend persistence is still deferred until this phase.
+	•	Payment implementation (planned):
+	•	iOS In-App Purchase (StoreKit 2)
+	•	Non-consumable or subscription TBD (start with single CV-match run as consumable)
+	•	Client-side gating first, receipt validation added when backend persistence is introduced
+
+⸻
+
+Phase 12 — Ship 🚀
 	•	App Store copy
-	•	Analytics after value is proven
-	•	Iterate based on usage, not theory
+	•	Pricing clarity
+	•	Iterate based on usage
 
 ⸻
 
-Clarified architecture (v1)
-	•	Backend is stateless
-	•	No Firestore
-	•	No accounts/auth/consent/payments
-	•	No schedulers
-	•	Backend owns JobTech fetching + normalization
-	•	Frontend stores profile locally only
+Key decisions locked (important)
+	•	❌ One combined job list → rejected
+	•	✅ Two lists → required
+	•	❌ Auto-matching new jobs → never
+	•	✅ Explicit paid match runs only
+	•	✅ CV match is a product, not a filter
+	•	✅ Client-side filters only for job lists

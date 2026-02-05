@@ -80,7 +80,8 @@ enum AppStrings {
     }
 
     static func vacanciesLabel(_ count: Int) -> String {
-        String(format: localized("jobs.vacanciesLabel"), locale: Locale.current, count)
+        let key = count == 1 ? "jobs.vacanciesLabel.one" : "jobs.vacanciesLabel.other"
+        return String(format: localized(key), locale: Locale.current, count)
     }
 
     static func employerLine(workplace: String, municipality: String) -> String {
@@ -108,7 +109,8 @@ enum AppStrings {
     }
 
     static func applicationDeadline(_ date: String, days: Int) -> String {
-        String(format: localized("jobs.applicationDeadlineWithDays"), locale: Locale.current, date, days)
+        let key = days == 1 ? "jobs.applicationDeadlineWithDays.one" : "jobs.applicationDeadlineWithDays.other"
+        return String(format: localized(key), locale: Locale.current, date, days)
     }
 
     static var viewListing: String { localized("jobs.viewListing") }

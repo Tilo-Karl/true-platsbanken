@@ -51,7 +51,8 @@
 "employmentType.partTime" = "Deltid";
 "employmentType.contract" = "Kontrakt";
 "jobs.headlineWithVacancies" = "%@ (%d jobb)";
-"jobs.vacanciesLabel" = "Antal jobb: %d";
+"jobs.vacanciesLabel.one" = "Antal jobb: %d";
+"jobs.vacanciesLabel.other" = "Antal jobb: %d";
 "jobs.employerLine" = "%@ - %@";
 "jobs.scopeOfWork.single" = "%d%%";
 "jobs.scopeOfWork.range" = "%d-%d%%";
@@ -59,7 +60,8 @@
 "jobs.publishedToday" = "Publicerad idag, kl %@";
 "jobs.publishedOn" = "Publicerad %@";
 "jobs.applicationDeadline" = "Sista ansökningsdag: %@";
-"jobs.applicationDeadlineWithDays" = "Sista ansökningsdag: %@ (om %d dagar)";
+"jobs.applicationDeadlineWithDays.one" = "Sista ansökningsdag: %@ (om %d dag)";
+"jobs.applicationDeadlineWithDays.other" = "Sista ansökningsdag: %@ (om %d dagar)";
 "jobs.viewListing" = "Visa annons";
 "common.unknown" = "Okänd";
 "language.button.sv" = "🇸🇪";

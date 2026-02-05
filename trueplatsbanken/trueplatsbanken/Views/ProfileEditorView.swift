@@ -181,7 +181,7 @@ struct ProfileEditorView: View {
                 Task {
                     await viewModel.importFromFiles(urls)
                 }
-            case .failure(let error):
+            case .failure:
                 viewModel.setErrorMessage(AppStrings.profileImportFailed)
             }
         }

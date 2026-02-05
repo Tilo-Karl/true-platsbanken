@@ -55,8 +55,13 @@ struct RootView: View {
             }
         }
         .task {
-            await appState.bootstrap()
+            await appState.bootstrap(language: languageStore.language)
             await appState.consumeSharedCVIfAvailable()
+        }
+        .onChange(of: languageStore.language) { _, newValue in
+            Task {
+                await appState.refreshTaxonomy(language: newValue)
+            }
         }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }

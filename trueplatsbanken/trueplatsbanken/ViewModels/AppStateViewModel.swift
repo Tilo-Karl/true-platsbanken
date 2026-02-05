@@ -13,6 +13,7 @@ final class AppStateViewModel: ObservableObject {
     let jobListViewModel: JobListViewModel
     let profileEditorViewModel: ProfileEditorViewModel
     let matchResultsViewModel: MatchResultsViewModel
+    let taxonomyViewModel: TaxonomyViewModel
     private let embeddingCache: EmbeddingCaching
 
     init(
@@ -20,7 +21,9 @@ final class AppStateViewModel: ObservableObject {
         profileStore: ProfileStateReading & ProfileStateWriting = ProfileLocalStore(),
         matchReader: MatchReading = BackendMatchReader(),
         profileExtractor: BackendProfileExtractor = BackendProfileExtractor(),
-        roleExpander: BackendRoleExpander = BackendRoleExpander()
+        roleExpander: BackendRoleExpander = BackendRoleExpander(),
+        taxonomyReader: TaxonomyReading = JobTechTaxonomyReader(),
+        taxonomyCache: TaxonomyCaching = TaxonomyCacheStore()
     ) {
         self.embeddingCache = EmbeddingCacheStore()
         self.jobListViewModel = JobListViewModel(jobReader: jobReader)
@@ -35,11 +38,16 @@ final class AppStateViewModel: ObservableObject {
             matchReader: matchReader,
             embeddingCache: embeddingCache
         )
+        self.taxonomyViewModel = TaxonomyViewModel(
+            reader: taxonomyReader,
+            cache: taxonomyCache
+        )
     }
 
-    func bootstrap() async {
+    func bootstrap(language: AppLanguageStore.Language) async {
         await jobListViewModel.loadJobs()
         await profileEditorViewModel.loadProfile()
+        await taxonomyViewModel.loadIfNeeded(languageCode: language.rawValue)
     }
 
     func consumeSharedCVIfAvailable() async {
@@ -56,5 +64,9 @@ final class AppStateViewModel: ObservableObject {
             return
         }
         await matchResultsViewModel.loadMatches(payload: payload)
+    }
+
+    func refreshTaxonomy(language: AppLanguageStore.Language) async {
+        await taxonomyViewModel.loadIfNeeded(languageCode: language.rawValue)
     }
 }

@@ -51,7 +51,8 @@
 "employmentType.partTime" = "Part time";
 "employmentType.contract" = "Contract";
 "jobs.headlineWithVacancies" = "%@ (%d jobs)";
-"jobs.vacanciesLabel" = "Vacancies: %d";
+"jobs.vacanciesLabel.one" = "Vacancy: %d";
+"jobs.vacanciesLabel.other" = "Vacancies: %d";
 "jobs.employerLine" = "%@ - %@";
 "jobs.scopeOfWork.single" = "%d%%";
 "jobs.scopeOfWork.range" = "%d-%d%%";
@@ -59,7 +60,8 @@
 "jobs.publishedToday" = "Published today, %@";
 "jobs.publishedOn" = "Published %@";
 "jobs.applicationDeadline" = "Application deadline: %@";
-"jobs.applicationDeadlineWithDays" = "Application deadline: %@ (in %d days)";
+"jobs.applicationDeadlineWithDays.one" = "Application deadline: %@ (in %d day)";
+"jobs.applicationDeadlineWithDays.other" = "Application deadline: %@ (in %d days)";
 "jobs.viewListing" = "View listing";
 "common.unknown" = "Unknown";
 "language.button.sv" = "🇸🇪";
