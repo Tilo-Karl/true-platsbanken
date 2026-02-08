@@ -7,34 +7,37 @@ struct JobWorkingHoursPickerView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        List {
-            Button {
-                onSelect(nil)
-                dismiss()
-            } label: {
-                HStack {
-                    Text(AppStrings.filterScopeAny)
-                    Spacer()
-                    if selectedWorkingHoursType == nil {
-                        Image(systemName: "checkmark")
-                    }
-                }
-            }
-
-            ForEach(workingHoursTypes) { type in
+        NavigationView {
+            List {
                 Button {
-                    onSelect(type)
+                    onSelect(nil)
                     dismiss()
                 } label: {
                     HStack {
-                        Text(type.label)
+                        Text(AppStrings.filterScopeAny)
                         Spacer()
-                        if selectedWorkingHoursType == type {
+                        if selectedWorkingHoursType == nil {
                             Image(systemName: "checkmark")
                         }
                     }
                 }
+
+                ForEach(workingHoursTypes) { type in
+                    Button {
+                        onSelect(type)
+                        dismiss()
+                    } label: {
+                        HStack {
+                            Text(type.label)
+                            Spacer()
+                            if selectedWorkingHoursType == type {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
             }
+            .navigationTitle(AppStrings.filterScopeTitle)
         }
     }
 }
