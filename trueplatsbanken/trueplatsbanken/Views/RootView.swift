@@ -11,7 +11,10 @@ struct RootView: View {
         NavigationStack {
             ZStack(alignment: .topTrailing) {
                 TabView(selection: $appState.selectedTab) {
-                    JobListView(viewModel: appState.jobListViewModel)
+                    JobListView(
+                        viewModel: appState.jobListViewModel,
+                        taxonomyViewModel: appState.taxonomyViewModel
+                    )
                         .tabItem {
                             Label(AppStrings.jobsTitle, systemImage: "briefcase")
                         }

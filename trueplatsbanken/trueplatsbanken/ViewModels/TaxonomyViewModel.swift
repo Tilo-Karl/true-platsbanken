@@ -21,8 +21,10 @@ final class TaxonomyViewModel: ObservableObject {
 
     func loadIfNeeded(languageCode: String) async {
         if let cached = loadCachedSnapshot(languageCode: languageCode), isCacheFresh(cached) {
+            if cachedHasEmploymentAndWorkingHours(cached) {
             snapshot = cached
             return
+            }
         }
 
         await refresh(languageCode: languageCode)
@@ -52,5 +54,9 @@ final class TaxonomyViewModel: ObservableObject {
     private func isCacheFresh(_ snapshot: TaxonomySnapshot) -> Bool {
         let age = Date().timeIntervalSince(snapshot.fetchedAt)
         return age >= 0 && age < maxCacheAge
+    }
+
+    private func cachedHasEmploymentAndWorkingHours(_ snapshot: TaxonomySnapshot) -> Bool {
+        !snapshot.employmentTypes.isEmpty && !snapshot.workingHoursTypes.isEmpty
     }
 }

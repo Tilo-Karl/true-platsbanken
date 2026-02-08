@@ -45,9 +45,9 @@ final class AppStateViewModel: ObservableObject {
     }
 
     func bootstrap(language: AppLanguageStore.Language) async {
+        await taxonomyViewModel.loadIfNeeded(languageCode: language.rawValue)
         await jobListViewModel.loadJobs()
         await profileEditorViewModel.loadProfile()
-        await taxonomyViewModel.loadIfNeeded(languageCode: language.rawValue)
     }
 
     func consumeSharedCVIfAvailable() async {

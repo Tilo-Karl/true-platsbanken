@@ -20,6 +20,33 @@ enum AppStrings {
     static var noMatches: String { localized("matches.none") }
     static var refreshToCheck: String { localized("matches.refreshToCheck") }
     static var refresh: String { localized("common.refresh") }
+    static var filtersTitle: String { localized("filters.title") }
+    static var filtersRecent: String { localized("filters.recent") }
+    static var filtersClear: String { localized("filters.clear") }
+    static var filterNoRecent: String { localized("filters.recent.none") }
+    static var filterOccupationTitle: String { localized("filters.occupation.title") }
+    static var filterOccupationAny: String { localized("filters.occupation.any") }
+    static var filterLocationTitle: String { localized("filters.location.title") }
+    static var filterLocationAny: String { localized("filters.location.any") }
+    static func filterLocationMultiple(_ count: Int) -> String {
+        String(format: localized("filters.location.multiple"), locale: Locale.current, count)
+    }
+    static var filterEmploymentTypeTitle: String { localized("filters.employmentType.title") }
+    static var filterEmploymentTypeAny: String { localized("filters.employmentType.any") }
+    static var filterScopeTitle: String { localized("filters.scope.title") }
+    static var filterScopeAny: String { localized("filters.scope.any") }
+    static func filterOccupationMultiple(_ count: Int) -> String {
+        String(format: localized("filters.occupation.multiple"), locale: Locale.current, count)
+    }
+    static var filterFieldsTitle: String { localized("filters.fields.title") }
+    static var filterOccupationsTitle: String { localized("filters.occupations.title") }
+    static var filterLocationsTitle: String { localized("filters.locations.title") }
+    static var filterSearchOccupations: String { localized("filters.occupations.search") }
+    static var filterSearchLocations: String { localized("filters.locations.search") }
+    static var filterSummaryAny: String { localized("filters.summary.any") }
+    static var filterSummarySeparator: String { localized("filters.summary.separator") }
+    static var filterLoading: String { localized("filters.loading") }
+    static var filterDone: String { localized("filters.done") }
 
     static func scoreLabel(_ score: Int) -> String {
         String(format: localized("matches.score"), locale: Locale.current, score)
