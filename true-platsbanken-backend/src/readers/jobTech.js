@@ -10,6 +10,9 @@ async function fetchJobTechJobs(options = {}) {
   const url = new URL(`${JOBTECH_CONFIG.BASE_URL}${JOBTECH_CONFIG.SEARCH_PATH}`);
   url.searchParams.set('offset', String(offset));
   url.searchParams.set('limit', String(limit));
+  appendFilterParams(url.searchParams, options);
+
+  console.log('[jobtech] request', url.toString());
 
   const response = await fetch(url.toString(), {
     headers: JOBTECH_CONFIG.DEFAULT_HEADERS
@@ -23,6 +26,44 @@ async function fetchJobTechJobs(options = {}) {
   const hits = Array.isArray(payload?.hits) ? payload.hits : [];
 
   return { hits, offset, limit };
+}
+
+function appendFilterParams(params, options = {}) {
+  const occupationFieldId = normalizeId(options.occupationFieldId);
+  const occupationIds = normalizeIdArray(options.occupationIds);
+  const municipalityIds = normalizeIdArray(options.municipalityIds);
+  const employmentTypeId = normalizeId(options.employmentTypeId);
+  const workingHoursTypeId = normalizeId(options.workingHoursTypeId);
+
+  if (occupationFieldId) {
+    params.append('occupation-field', occupationFieldId);
+  } else {
+    occupationIds.forEach((id) => params.append('occupation-name', id));
+  }
+
+  municipalityIds.forEach((id) => params.append('municipality', id));
+
+  if (employmentTypeId) {
+    params.append('employment-type', employmentTypeId);
+  }
+
+  if (workingHoursTypeId) {
+    params.append('worktime-extent', workingHoursTypeId);
+  }
+}
+
+function normalizeId(value) {
+  if (!value) return null;
+  const resolved = String(value).trim();
+  return resolved.length ? resolved : null;
+}
+
+function normalizeIdArray(value) {
+  if (!value) return [];
+  const list = Array.isArray(value) ? value : [value];
+  return list
+    .map((item) => String(item).trim())
+    .filter((item) => item.length > 0);
 }
 
 module.exports = { fetchJobTechJobs };
