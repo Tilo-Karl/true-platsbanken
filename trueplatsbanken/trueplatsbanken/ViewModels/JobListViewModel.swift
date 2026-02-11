@@ -7,14 +7,16 @@ final class JobListViewModel: ObservableObject {
     @Published private(set) var errorMessage: String?
     @Published var filters: JobFilterState = .empty {
         didSet {
-            applyCurrentFilters()
+            scheduleFilteredFetch()
         }
     }
     @Published private(set) var recentFilters: [JobFilterState] = []
 
     private let jobReader: JobReading
     private let recentStore: RecentJobFiltersReading & RecentJobFiltersWriting
-    private var allJobs: [Job] = []
+    private var filterTask: Task<Void, Never>?
+    private let debounceNanoseconds: UInt64 = 350_000_000
+    private var requestCounter: Int = 0
 
     init(
         jobReader: JobReading,
@@ -26,19 +28,7 @@ final class JobListViewModel: ObservableObject {
     }
 
     func loadJobs() async {
-        isLoading = true
-        errorMessage = nil
-
-        do {
-            allJobs = try await jobReader.fetchJobs()
-            applyCurrentFilters()
-        } catch {
-            errorMessage = error.localizedDescription
-            allJobs = []
-            jobs = []
-        }
-
-        isLoading = false
+        await fetchJobs(for: filters, showLoading: true)
     }
 
     func updateFilters(_ newFilters: JobFilterState) {
@@ -123,7 +113,41 @@ final class JobListViewModel: ObservableObject {
         try? recentStore.saveRecentFilters(updated)
     }
 
-    private func applyCurrentFilters() {
-        jobs = JobFiltering.apply(allJobs, filters: filters)
+    private func scheduleFilteredFetch() {
+        filterTask?.cancel()
+        let snapshot = filters
+        filterTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: debounceNanoseconds)
+            guard let self else { return }
+            await self.fetchJobs(for: snapshot, showLoading: false)
+        }
+    }
+
+    private func fetchJobs(for filters: JobFilterState, showLoading: Bool) async {
+        requestCounter += 1
+        let requestId = requestCounter
+        print("[jobs] fetch start", requestId, "filters empty:", filters.isEmpty)
+        if showLoading {
+            isLoading = true
+        }
+        errorMessage = nil
+
+        do {
+            let queryFilters: JobFilterState? = filters.isEmpty ? nil : filters
+            let fetched = try await jobReader.fetchJobs(filters: queryFilters)
+            if requestId != requestCounter {
+                print("[jobs] stale response ignored", requestId)
+                return
+            }
+            jobs = fetched
+        } catch {
+            errorMessage = error.localizedDescription
+            jobs = []
+        }
+
+        if showLoading {
+            isLoading = false
+        }
+        print("[jobs] fetch done", requestId, "count:", jobs.count)
     }
 }

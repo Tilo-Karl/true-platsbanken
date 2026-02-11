@@ -10,14 +10,18 @@ struct JobFilterChip: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppColors.brandWhite.opacity(0.9))
                 Text(value)
                     .font(.caption)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(AppColors.brandWhite)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(.thinMaterial)
+            .background(AppColors.brandBlue.opacity(0.85))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(AppColors.brandGreen.opacity(0.6), lineWidth: 0.5)
+            )
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }

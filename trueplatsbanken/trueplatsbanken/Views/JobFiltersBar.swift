@@ -13,8 +13,10 @@ struct JobFiltersBar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(AppStrings.filtersTitle)
-                    .font(.headline)
+                Text(AppStrings.appTitle)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(AppColors.brandGreen)
                 Spacer()
                 Menu {
                     if recentFilters.isEmpty {
@@ -29,6 +31,7 @@ struct JobFiltersBar: View {
                 } label: {
                     Text(AppStrings.filtersRecent)
                         .font(.subheadline)
+                        .foregroundStyle(AppColors.brandWhite.opacity(0.9))
                 }
 
                 if !filters.isEmpty {
@@ -36,6 +39,7 @@ struct JobFiltersBar: View {
                         onClear()
                     }
                     .font(.subheadline)
+                    .foregroundStyle(AppColors.brandWhite)
                 }
             }
 

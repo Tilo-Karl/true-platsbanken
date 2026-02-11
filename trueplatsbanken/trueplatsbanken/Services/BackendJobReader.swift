@@ -12,13 +12,17 @@ final class BackendJobReader: JobReading {
         self.session = session
     }
 
-    func fetchJobs() async throws -> [Job] {
+    func fetchJobs(filters: JobFilterState?) async throws -> [Job] {
         var url = baseURL
         url.appendPathComponent("api")
         url.appendPathComponent("jobs")
-        url.append(queryItems: [
-            URLQueryItem(name: "limit", value: "50")
-        ])
+        var queryItems: [URLQueryItem] = [
+            URLQueryItem(name: "limit", value: "100")
+        ]
+        if let filters {
+            queryItems.append(contentsOf: BackendJobQueryBuilder.queryItems(for: filters))
+        }
+        url.append(queryItems: queryItems)
 
         print("BackendJobReader URL: \(url.absoluteString)")
 
@@ -33,6 +37,36 @@ final class BackendJobReader: JobReading {
         let decoder = JSONDecoder()
         let payload = try decoder.decode(JobListResponseDTO.self, from: data)
         return payload.jobs.map { $0.asJob() }
+    }
+}
+
+private enum BackendJobQueryBuilder {
+    static func queryItems(for filters: JobFilterState) -> [URLQueryItem] {
+        var items: [URLQueryItem] = []
+
+        if let occupationField = filters.occupationField?.id {
+            items.append(URLQueryItem(name: "occupation_field_id", value: occupationField))
+        } else if !filters.occupations.isEmpty {
+            items.append(contentsOf: filters.occupations.map {
+                URLQueryItem(name: "occupation_ids[]", value: $0.id)
+            })
+        }
+
+        if !filters.municipalities.isEmpty {
+            items.append(contentsOf: filters.municipalities.map {
+                URLQueryItem(name: "municipality_ids[]", value: $0.id)
+            })
+        }
+
+        if let employmentType = filters.employmentType?.id {
+            items.append(URLQueryItem(name: "employment_type_id", value: employmentType))
+        }
+
+        if let workingHoursType = filters.workingHoursType?.id {
+            items.append(URLQueryItem(name: "working_hours_type_id", value: workingHoursType))
+        }
+
+        return items
     }
 }
 

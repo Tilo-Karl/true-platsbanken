@@ -13,7 +13,11 @@ struct ProfileEditorView: View {
     var body: some View {
         let _ = languageStore.language
 
-        Form {
+        ZStack {
+            AppColors.brandWhite
+                .ignoresSafeArea()
+
+            Form {
             Section(AppStrings.profileAiRoles) {
                 if let roles = viewModel.aiResult?.roles, !roles.isEmpty {
                     Text(roles.joined(separator: ", "))
@@ -148,8 +152,30 @@ struct ProfileEditorView: View {
                 }
             }
             */
+            }
+            .scrollContentBackground(.hidden)
         }
-        .navigationTitle(AppStrings.profileTitle)
+        .safeAreaInset(edge: .top) {
+            HStack {
+                Text(AppStrings.appTitle)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(AppColors.brandGreen)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
+            .padding(.top, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                LinearGradient(
+                    colors: [AppColors.brandBlueDark, AppColors.brandBlue],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea(edges: .top)
+            )
+        }
         .confirmationDialog(
             AppStrings.profileReplaceConfirmTitle,
             isPresented: $viewModel.shouldConfirmReplacement

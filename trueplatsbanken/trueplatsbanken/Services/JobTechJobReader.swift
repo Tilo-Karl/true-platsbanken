@@ -26,13 +26,17 @@ final class JobTechJobReader: JobReading {
         self.session = session
     }
 
-    func fetchJobs() async throws -> [Job] {
+    func fetchJobs(filters: JobFilterState?) async throws -> [Job] {
         var url = configuration.baseURL
         url.append(path: configuration.searchPath)
-        url.append(queryItems: [
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "offset", value: "0"),
             URLQueryItem(name: "limit", value: String(configuration.limit))
-        ])
+        ]
+        if let filters {
+            queryItems.append(contentsOf: jobTechQueryItems(for: filters))
+        }
+        url.append(queryItems: queryItems)
 
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -84,6 +88,29 @@ final class JobTechJobReader: JobReading {
             )
         }
     }
+}
+
+private func jobTechQueryItems(for filters: JobFilterState) -> [URLQueryItem] {
+    var items: [URLQueryItem] = []
+    if let occupationField = filters.occupationField?.id {
+        items.append(URLQueryItem(name: "occupation-field", value: occupationField))
+    } else if !filters.occupations.isEmpty {
+        items.append(contentsOf: filters.occupations.map {
+            URLQueryItem(name: "occupation-name", value: $0.id)
+        })
+    }
+    if !filters.municipalities.isEmpty {
+        items.append(contentsOf: filters.municipalities.map {
+            URLQueryItem(name: "municipality", value: $0.id)
+        })
+    }
+    if let employmentType = filters.employmentType?.id {
+        items.append(URLQueryItem(name: "employment-type", value: employmentType))
+    }
+    if let workingHoursType = filters.workingHoursType?.id {
+        items.append(URLQueryItem(name: "worktime-extent", value: workingHoursType))
+    }
+    return items
 }
 
 private struct JobTechSearchResponse: Decodable {

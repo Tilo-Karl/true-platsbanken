@@ -13,6 +13,7 @@
 "common.refresh" = "Refresh";
 "matches.score" = "Score: %d";
 "filters.title" = "Filters";
+"app.title" = "true platsbanken";
 "filters.recent" = "Recent filters";
 "filters.recent.none" = "No recent filters";
 "filters.clear" = "Clear";

@@ -21,6 +21,7 @@ enum AppStrings {
     static var refreshToCheck: String { localized("matches.refreshToCheck") }
     static var refresh: String { localized("common.refresh") }
     static var filtersTitle: String { localized("filters.title") }
+    static var appTitle: String { localized("app.title") }
     static var filtersRecent: String { localized("filters.recent") }
     static var filtersClear: String { localized("filters.clear") }
     static var filterNoRecent: String { localized("filters.recent.none") }

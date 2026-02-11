@@ -12,8 +12,22 @@ struct JobListView: View {
     var body: some View {
         let _ = languageStore.language
 
-        List {
-            Section {
+        ZStack {
+            AppColors.brandWhite
+                .ignoresSafeArea()
+
+            List {
+                ForEach(viewModel.jobs) { job in
+                    NavigationLink(value: job) {
+                        JobListRow(job: job)
+                    }
+                }
+            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .safeAreaInset(edge: .top) {
+            VStack(alignment: .leading, spacing: 12) {
                 if let snapshot = taxonomyViewModel.snapshot {
                     JobFiltersBar(
                         filters: viewModel.filters,
@@ -38,59 +52,25 @@ struct JobListView: View {
                             showWorkingHoursSheet = true
                         }
                     )
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                    .sheet(isPresented: $showOccupationSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
-                        JobOccupationPickerView(
-                            occupationFields: snapshot.occupationFields,
-                            occupations: snapshot.occupations,
-                            selectedField: viewModel.filters.occupationField,
-                            selectedOccupations: viewModel.filters.occupations,
-                            onSelectField: viewModel.setOccupationField,
-                            onToggleOccupation: viewModel.toggleOccupation,
-                            onClear: viewModel.clearOccupationFilters
-                        )
-                    }
-                    .sheet(isPresented: $showLocationSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
-                        JobLocationPickerView(
-                            municipalities: snapshot.municipalities,
-                            selectedMunicipalities: viewModel.filters.municipalities,
-                            onToggle: viewModel.toggleMunicipality,
-                            onClear: viewModel.clearMunicipalityFilters
-                        )
-                    }
-                    .sheet(isPresented: $showEmploymentTypeSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
-                        JobEmploymentTypePickerView(
-                            employmentTypes: snapshot.employmentTypes,
-                            selectedEmploymentType: viewModel.filters.employmentType,
-                            onSelect: viewModel.setEmploymentType
-                        )
-                    }
-                    .sheet(isPresented: $showWorkingHoursSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
-                        JobWorkingHoursPickerView(
-                            workingHoursTypes: snapshot.workingHoursTypes,
-                            selectedWorkingHoursType: viewModel.filters.workingHoursType,
-                            onSelect: viewModel.setWorkingHoursType
-                        )
-                    }
                 } else {
                     Text(AppStrings.filterLoading)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
+                        .foregroundStyle(AppColors.brandWhite.opacity(0.9))
                 }
             }
-
-            Section {
-                ForEach(viewModel.jobs) { job in
-                    NavigationLink(value: job) {
-                        JobListRow(job: job)
-                    }
-                }
-            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
+            .padding(.top, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                LinearGradient(
+                    colors: [AppColors.brandBlueDark, AppColors.brandBlue],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea(edges: .top)
+            )
         }
-        .listStyle(.plain)
         .overlay {
             if viewModel.isLoading && viewModel.jobs.isEmpty {
                 ProgressView(AppStrings.jobsLoading)
@@ -100,9 +80,50 @@ struct JobListView: View {
                 ContentUnavailableView(AppStrings.noJobs, systemImage: "tray", description: Text(AppStrings.checkBackLater))
             }
         }
-        .navigationTitle(AppStrings.jobsTitle)
+        .navigationBarHidden(true)
         .refreshable {
             await viewModel.loadJobs()
+        }
+        .sheet(isPresented: $showOccupationSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
+            if let snapshot = taxonomyViewModel.snapshot {
+                JobOccupationPickerView(
+                    occupationFields: snapshot.occupationFields,
+                    occupations: snapshot.occupations,
+                    selectedField: viewModel.filters.occupationField,
+                    selectedOccupations: viewModel.filters.occupations,
+                    onSelectField: viewModel.setOccupationField,
+                    onToggleOccupation: viewModel.toggleOccupation,
+                    onClear: viewModel.clearOccupationFilters
+                )
+            }
+        }
+        .sheet(isPresented: $showLocationSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
+            if let snapshot = taxonomyViewModel.snapshot {
+                JobLocationPickerView(
+                    municipalities: snapshot.municipalities,
+                    selectedMunicipalities: viewModel.filters.municipalities,
+                    onToggle: viewModel.toggleMunicipality,
+                    onClear: viewModel.clearMunicipalityFilters
+                )
+            }
+        }
+        .sheet(isPresented: $showEmploymentTypeSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
+            if let snapshot = taxonomyViewModel.snapshot {
+                JobEmploymentTypePickerView(
+                    employmentTypes: snapshot.employmentTypes,
+                    selectedEmploymentType: viewModel.filters.employmentType,
+                    onSelect: viewModel.setEmploymentType
+                )
+            }
+        }
+        .sheet(isPresented: $showWorkingHoursSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
+            if let snapshot = taxonomyViewModel.snapshot {
+                JobWorkingHoursPickerView(
+                    workingHoursTypes: snapshot.workingHoursTypes,
+                    selectedWorkingHoursType: viewModel.filters.workingHoursType,
+                    onSelect: viewModel.setWorkingHoursType
+                )
+            }
         }
     }
 }
