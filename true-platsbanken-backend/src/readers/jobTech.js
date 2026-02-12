@@ -15,8 +15,6 @@ async function fetchJobTechJobs(options = {}) {
   }
   appendFilterParams(url.searchParams, options);
 
-  console.log('[jobtech] request', url.toString());
-
   const response = await fetch(url.toString(), {
     headers: JOBTECH_CONFIG.DEFAULT_HEADERS
   });
@@ -76,8 +74,6 @@ async function fetchJobTechSuggestions(options = {}) {
   const url = new URL(`${JOBTECH_CONFIG.BASE_URL}${JOBTECH_CONFIG.COMPLETE_PATH}`);
   url.searchParams.set('q', q);
   url.searchParams.set('limit', String(limit));
-
-  console.log('[jobtech] complete request', url.toString());
 
   const response = await fetch(url.toString(), {
     headers: JOBTECH_CONFIG.DEFAULT_HEADERS

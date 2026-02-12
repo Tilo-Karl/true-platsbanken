@@ -7,6 +7,8 @@
 "jobs.none" = "No jobs yet";
 "jobs.checkBackLater" = "Check back later.";
 "jobs.search.placeholder" = "Search jobs";
+"jobs.search.suggestions.none" = "No suggestions";
+"jobs.search.recent.title" = "Recent searches";
 "matches.loading" = "Loading matches...";
 "matches.unavailable" = "Matches unavailable";
 "matches.none" = "No matches yet";

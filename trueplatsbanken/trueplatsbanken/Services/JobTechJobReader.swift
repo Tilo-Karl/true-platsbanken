@@ -26,11 +26,12 @@ final class JobTechJobReader: JobReading {
         self.session = session
     }
 
-    func fetchJobs(filters: JobFilterState?, query: String?) async throws -> [Job] {
+    func fetchJobs(filters: JobFilterState?, query: String?, cursor: String?) async throws -> JobPage {
         var url = configuration.baseURL
         url.append(path: configuration.searchPath)
+        let offset = max(Int(cursor ?? "0") ?? 0, 0)
         var queryItems: [URLQueryItem] = [
-            URLQueryItem(name: "offset", value: "0"),
+            URLQueryItem(name: "offset", value: String(offset)),
             URLQueryItem(name: "limit", value: String(configuration.limit))
         ]
         if let query, !query.isEmpty {
@@ -50,7 +51,7 @@ final class JobTechJobReader: JobReading {
         }
 
         let payload = try JSONDecoder().decode(JobTechSearchResponse.self, from: data)
-        return payload.hits.compactMap { hit in
+        let jobs: [Job] = payload.hits.compactMap { hit in
             let id = String(hit.id ?? "")
             if id.isEmpty {
                 return nil
@@ -90,6 +91,8 @@ final class JobTechJobReader: JobReading {
                 url: URL(string: hit.webpageURL ?? "")
             )
         }
+        let nextCursor = payload.hits.count >= configuration.limit ? String(offset + configuration.limit) : nil
+        return JobPage(jobs: jobs, nextCursor: nextCursor)
     }
 }
 

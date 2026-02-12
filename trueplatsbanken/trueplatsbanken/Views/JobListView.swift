@@ -22,6 +22,19 @@ struct JobListView: View {
                     NavigationLink(value: job) {
                         JobListRow(job: job)
                     }
+                    .onAppear {
+                        Task {
+                            await viewModel.loadMoreIfNeeded(currentJob: job)
+                        }
+                    }
+                }
+                if viewModel.isLoadingMore {
+                    HStack {
+                        Spacer()
+                        ProgressView()
+                        Spacer()
+                    }
+                    .listRowSeparator(.hidden)
                 }
             }
             .overlay {
@@ -99,7 +112,41 @@ struct JobListView: View {
                     .background(AppColors.brandWhite.opacity(0.95))
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-                    if !viewModel.searchSuggestions.isEmpty {
+                    let trimmedQuery = viewModel.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if isSearchFocused && trimmedQuery.count < 3 && !viewModel.recentSearches.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(AppStrings.searchRecentTitle)
+                                .font(.footnote)
+                                .foregroundStyle(AppColors.brandBlueDark.opacity(0.8))
+                                .padding(.horizontal, 12)
+                                .padding(.top, 8)
+
+                            VStack(spacing: 0) {
+                                ForEach(viewModel.recentSearches, id: \.self) { recent in
+                                    Button {
+                                        viewModel.searchQuery = recent
+                                        viewModel.commitSearchQuery()
+                                        isSearchFocused = false
+                                    } label: {
+                                        HStack {
+                                            Text(recent)
+                                                .foregroundStyle(AppColors.brandBlack)
+                                            Spacer()
+                                        }
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 10)
+                                    }
+                                    .buttonStyle(.plain)
+
+                                    if recent != viewModel.recentSearches.last {
+                                        Divider()
+                                    }
+                                }
+                            }
+                        }
+                        .background(AppColors.brandWhite)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    } else if !viewModel.searchSuggestions.isEmpty {
                         let suggestions = Array(viewModel.searchSuggestions.prefix(5))
                         VStack(spacing: 0) {
                             ForEach(suggestions, id: \.self) { suggestion in
@@ -125,6 +172,19 @@ struct JobListView: View {
                         }
                         .background(AppColors.brandWhite)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    } else if isSearchFocused {
+                        if trimmedQuery.count >= 2 && !viewModel.isSuggesting {
+                            HStack {
+                                Text(AppStrings.searchSuggestionsNone)
+                                    .font(.footnote)
+                                    .foregroundStyle(AppColors.brandBlueDark.opacity(0.8))
+                                Spacer()
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            .background(AppColors.brandWhite)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        }
                     }
                 }
                 .onChange(of: isSearchFocused) { _, focused in
@@ -173,15 +233,15 @@ struct JobListView: View {
                 )
             }
         }
-                    .sheet(isPresented: $showEmploymentTypeSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
-                        if let snapshot = taxonomyViewModel.snapshot {
-                            JobEmploymentTypePickerView(
-                                employmentTypes: snapshot.employmentTypes,
-                                selectedEmploymentType: viewModel.filters.employmentType,
-                                onSelect: viewModel.setEmploymentType
-                            )
-                        }
-                    }
+        .sheet(isPresented: $showEmploymentTypeSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
+            if let snapshot = taxonomyViewModel.snapshot {
+                JobEmploymentTypePickerView(
+                    employmentTypes: snapshot.employmentTypes,
+                    selectedEmploymentType: viewModel.filters.employmentType,
+                    onSelect: viewModel.setEmploymentType
+                )
+            }
+        }
         .sheet(isPresented: $showWorkingHoursSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
             if let snapshot = taxonomyViewModel.snapshot {
                 JobWorkingHoursPickerView(

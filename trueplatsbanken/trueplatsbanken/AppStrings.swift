@@ -15,6 +15,8 @@ enum AppStrings {
     static var noJobs: String { localized("jobs.none") }
     static var checkBackLater: String { localized("jobs.checkBackLater") }
     static var jobsSearchPlaceholder: String { localized("jobs.search.placeholder") }
+    static var searchSuggestionsNone: String { localized("jobs.search.suggestions.none") }
+    static var searchRecentTitle: String { localized("jobs.search.recent.title") }
 
     static var matchesLoading: String { localized("matches.loading") }
     static var matchesUnavailable: String { localized("matches.unavailable") }

@@ -7,6 +7,8 @@
 "jobs.none" = "Inga jobb än";
 "jobs.checkBackLater" = "Försök igen senare.";
 "jobs.search.placeholder" = "Sök jobb";
+"jobs.search.suggestions.none" = "Inga förslag";
+"jobs.search.recent.title" = "Senaste sökningar";
 "matches.loading" = "Laddar matchningar...";
 "matches.unavailable" = "Matchningar kunde inte laddas";
 "matches.none" = "Inga matchningar än";

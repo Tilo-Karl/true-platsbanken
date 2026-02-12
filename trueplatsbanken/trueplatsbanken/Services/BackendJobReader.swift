@@ -12,13 +12,16 @@ final class BackendJobReader: JobReading {
         self.session = session
     }
 
-    func fetchJobs(filters: JobFilterState?, query: String?) async throws -> [Job] {
+    func fetchJobs(filters: JobFilterState?, query: String?, cursor: String?) async throws -> JobPage {
         var url = baseURL
         url.appendPathComponent("api")
         url.appendPathComponent("jobs")
         var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "limit", value: "100")
         ]
+        if let cursor, !cursor.isEmpty {
+            queryItems.append(URLQueryItem(name: "offset", value: cursor))
+        }
         if let query, !query.isEmpty {
             queryItems.append(URLQueryItem(name: "q", value: query))
         }
@@ -26,8 +29,6 @@ final class BackendJobReader: JobReading {
             queryItems.append(contentsOf: BackendJobQueryBuilder.queryItems(for: filters))
         }
         url.append(queryItems: queryItems)
-
-        print("BackendJobReader URL: \(url.absoluteString)")
 
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -39,7 +40,7 @@ final class BackendJobReader: JobReading {
 
         let decoder = JSONDecoder()
         let payload = try decoder.decode(JobListResponseDTO.self, from: data)
-        return payload.jobs.map { $0.asJob() }
+        return JobPage(jobs: payload.jobs.map { $0.asJob() }, nextCursor: payload.nextCursor)
     }
 }
 
