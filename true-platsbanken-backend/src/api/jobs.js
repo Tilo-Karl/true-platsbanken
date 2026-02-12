@@ -6,6 +6,7 @@ async function listJobs(db, query = {}) {
   const occupationFieldId = readSingleParam(query, 'occupation_field_id');
   const employmentTypeId = readSingleParam(query, 'employment_type_id');
   const workingHoursTypeId = readSingleParam(query, 'working_hours_type_id');
+  const textQuery = readSingleParam(query, 'q');
 
   console.log('[jobs] query', {
     occupationIds,
@@ -13,6 +14,7 @@ async function listJobs(db, query = {}) {
     occupationFieldId,
     employmentTypeId,
     workingHoursTypeId,
+    q: textQuery,
     offset: query.offset ?? query.cursor ?? null,
     limit: query.limit ?? null
   });
@@ -24,7 +26,8 @@ async function listJobs(db, query = {}) {
     municipalityIds,
     occupationFieldId,
     employmentTypeId,
-    workingHoursTypeId
+    workingHoursTypeId,
+    q: textQuery
   });
 }
 

@@ -10,6 +10,9 @@ async function fetchJobTechJobs(options = {}) {
   const url = new URL(`${JOBTECH_CONFIG.BASE_URL}${JOBTECH_CONFIG.SEARCH_PATH}`);
   url.searchParams.set('offset', String(offset));
   url.searchParams.set('limit', String(limit));
+  if (options.q) {
+    url.searchParams.set('q', String(options.q));
+  }
   appendFilterParams(url.searchParams, options);
 
   console.log('[jobtech] request', url.toString());
@@ -66,4 +69,25 @@ function normalizeIdArray(value) {
     .filter((item) => item.length > 0);
 }
 
-module.exports = { fetchJobTechJobs };
+async function fetchJobTechSuggestions(options = {}) {
+  const limit = Math.min(Math.max(Number(options.limit) || 5, 1), 10);
+  const q = options.q ? String(options.q).trim() : '';
+
+  const url = new URL(`${JOBTECH_CONFIG.BASE_URL}${JOBTECH_CONFIG.COMPLETE_PATH}`);
+  url.searchParams.set('q', q);
+  url.searchParams.set('limit', String(limit));
+
+  console.log('[jobtech] complete request', url.toString());
+
+  const response = await fetch(url.toString(), {
+    headers: JOBTECH_CONFIG.DEFAULT_HEADERS
+  });
+
+  if (!response.ok) {
+    throw new Error(`JobTech API error: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+module.exports = { fetchJobTechJobs, fetchJobTechSuggestions };

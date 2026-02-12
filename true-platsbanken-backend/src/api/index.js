@@ -1,5 +1,6 @@
 const express = require('express');
 const { listJobs } = require('./jobs');
+const { listSuggestions } = require('./suggest');
 const { updateProfile } = require('./profile');
 const { extractProfile } = require('./profileExtract');
 const { expandProfileRoles } = require('./expandRoles');
@@ -13,6 +14,15 @@ function apiRoutes(db) {
   router.get('/jobs', async (req, res) => {
     try {
       const result = await listJobs(db, req.query);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  router.get('/suggest', async (req, res) => {
+    try {
+      const result = await listSuggestions(req.query);
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });

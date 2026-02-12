@@ -12,13 +12,16 @@ final class BackendJobReader: JobReading {
         self.session = session
     }
 
-    func fetchJobs(filters: JobFilterState?) async throws -> [Job] {
+    func fetchJobs(filters: JobFilterState?, query: String?) async throws -> [Job] {
         var url = baseURL
         url.appendPathComponent("api")
         url.appendPathComponent("jobs")
         var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "limit", value: "100")
         ]
+        if let query, !query.isEmpty {
+            queryItems.append(URLQueryItem(name: "q", value: query))
+        }
         if let filters {
             queryItems.append(contentsOf: BackendJobQueryBuilder.queryItems(for: filters))
         }
@@ -40,6 +43,44 @@ final class BackendJobReader: JobReading {
     }
 }
 
+final class BackendJobSuggester: JobSuggesting {
+    private let baseURL: URL
+    private let session: URLSession
+
+    init(
+        baseURL: URL? = nil,
+        session: URLSession = .shared
+    ) {
+        self.baseURL = baseURL ?? BackendServiceURLProvider.baseURL()
+        self.session = session
+    }
+
+    func fetchSuggestions(query: String, limit: Int) async throws -> [String] {
+        var url = baseURL
+        url.appendPathComponent("api")
+        url.appendPathComponent("suggest")
+        url.append(queryItems: [
+            URLQueryItem(name: "q", value: query),
+            URLQueryItem(name: "limit", value: String(limit))
+        ])
+
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+
+        let decoder = JSONDecoder()
+        let payload = try decoder.decode(JobSuggestResponseDTO.self, from: data)
+        return payload.suggestions
+    }
+}
+
+private struct JobSuggestResponseDTO: Decodable {
+    let suggestions: [String]
+}
 private enum BackendJobQueryBuilder {
     static func queryItems(for filters: JobFilterState) -> [URLQueryItem] {
         var items: [URLQueryItem] = []

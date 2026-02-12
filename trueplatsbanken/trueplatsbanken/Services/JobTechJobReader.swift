@@ -26,13 +26,16 @@ final class JobTechJobReader: JobReading {
         self.session = session
     }
 
-    func fetchJobs(filters: JobFilterState?) async throws -> [Job] {
+    func fetchJobs(filters: JobFilterState?, query: String?) async throws -> [Job] {
         var url = configuration.baseURL
         url.append(path: configuration.searchPath)
         var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "offset", value: "0"),
             URLQueryItem(name: "limit", value: String(configuration.limit))
         ]
+        if let query, !query.isEmpty {
+            queryItems.append(URLQueryItem(name: "q", value: query))
+        }
         if let filters {
             queryItems.append(contentsOf: jobTechQueryItems(for: filters))
         }

@@ -14,6 +14,7 @@ enum AppStrings {
     static var jobsUnavailable: String { localized("jobs.unavailable") }
     static var noJobs: String { localized("jobs.none") }
     static var checkBackLater: String { localized("jobs.checkBackLater") }
+    static var jobsSearchPlaceholder: String { localized("jobs.search.placeholder") }
 
     static var matchesLoading: String { localized("matches.loading") }
     static var matchesUnavailable: String { localized("matches.unavailable") }
@@ -102,6 +103,7 @@ enum AppStrings {
             return key.replacingOccurrences(of: "_", with: " ")
         }
     }
+
 
     static func headlineWithVacancies(_ title: String, _ count: Int) -> String {
         String(format: localized("jobs.headlineWithVacancies"), locale: Locale.current, title, count)

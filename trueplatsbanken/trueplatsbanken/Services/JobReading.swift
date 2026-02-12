@@ -1,5 +1,5 @@
 import Foundation
 
 protocol JobReading {
-    func fetchJobs(filters: JobFilterState?) async throws -> [Job]
+    func fetchJobs(filters: JobFilterState?, query: String?) async throws -> [Job]
 }

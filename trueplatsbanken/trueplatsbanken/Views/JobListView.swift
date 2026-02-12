@@ -8,6 +8,7 @@ struct JobListView: View {
     @State private var showLocationSheet = false
     @State private var showEmploymentTypeSheet = false
     @State private var showWorkingHoursSheet = false
+    @FocusState private var isSearchFocused: Bool
 
     var body: some View {
         let _ = languageStore.language
@@ -21,6 +22,15 @@ struct JobListView: View {
                     NavigationLink(value: job) {
                         JobListRow(job: job)
                     }
+                }
+            }
+            .overlay {
+                if viewModel.isLoading && viewModel.jobs.isEmpty {
+                    ProgressView(AppStrings.jobsLoading)
+                } else if let error = viewModel.errorMessage {
+                    ContentUnavailableView(AppStrings.jobsUnavailable, systemImage: "exclamationmark.triangle", description: Text(error))
+                } else if viewModel.jobs.isEmpty {
+                    ContentUnavailableView(AppStrings.noJobs, systemImage: "tray", description: Text(AppStrings.checkBackLater))
                 }
             }
         }
@@ -57,6 +67,71 @@ struct JobListView: View {
                         .font(.subheadline)
                         .foregroundStyle(AppColors.brandWhite.opacity(0.9))
                 }
+
+                VStack(spacing: 6) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(AppColors.brandBlueDark)
+                        TextField(AppStrings.jobsSearchPlaceholder, text: $viewModel.searchQuery)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
+                            .foregroundStyle(AppColors.brandBlack)
+                            .submitLabel(.search)
+                            .focused($isSearchFocused)
+                            .onSubmit {
+                                viewModel.commitSearchQuery()
+                                isSearchFocused = false
+                            }
+                        if !viewModel.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Button {
+                                viewModel.searchQuery = ""
+                                viewModel.clearSuggestions()
+                                isSearchFocused = false
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(AppColors.brandBlueDark.opacity(0.7))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(AppColors.brandWhite.opacity(0.95))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                    if !viewModel.searchSuggestions.isEmpty {
+                        let suggestions = Array(viewModel.searchSuggestions.prefix(5))
+                        VStack(spacing: 0) {
+                            ForEach(suggestions, id: \.self) { suggestion in
+                                Button {
+                                    viewModel.searchQuery = suggestion
+                                    viewModel.commitSearchQuery()
+                                    isSearchFocused = false
+                                } label: {
+                                    HStack {
+                                        Text(suggestion)
+                                            .foregroundStyle(AppColors.brandBlack)
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 10)
+                                }
+                                .buttonStyle(.plain)
+
+                                if suggestion != suggestions.last {
+                                    Divider()
+                                }
+                            }
+                        }
+                        .background(AppColors.brandWhite)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                }
+                .onChange(of: isSearchFocused) { _, focused in
+                    if !focused {
+                        viewModel.clearSuggestions()
+                    }
+                }
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 12)
@@ -70,15 +145,6 @@ struct JobListView: View {
                 )
                 .ignoresSafeArea(edges: .top)
             )
-        }
-        .overlay {
-            if viewModel.isLoading && viewModel.jobs.isEmpty {
-                ProgressView(AppStrings.jobsLoading)
-            } else if let error = viewModel.errorMessage {
-                ContentUnavailableView(AppStrings.jobsUnavailable, systemImage: "exclamationmark.triangle", description: Text(error))
-            } else if viewModel.jobs.isEmpty {
-                ContentUnavailableView(AppStrings.noJobs, systemImage: "tray", description: Text(AppStrings.checkBackLater))
-            }
         }
         .navigationBarHidden(true)
         .refreshable {
@@ -107,15 +173,15 @@ struct JobListView: View {
                 )
             }
         }
-        .sheet(isPresented: $showEmploymentTypeSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
-            if let snapshot = taxonomyViewModel.snapshot {
-                JobEmploymentTypePickerView(
-                    employmentTypes: snapshot.employmentTypes,
-                    selectedEmploymentType: viewModel.filters.employmentType,
-                    onSelect: viewModel.setEmploymentType
-                )
-            }
-        }
+                    .sheet(isPresented: $showEmploymentTypeSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
+                        if let snapshot = taxonomyViewModel.snapshot {
+                            JobEmploymentTypePickerView(
+                                employmentTypes: snapshot.employmentTypes,
+                                selectedEmploymentType: viewModel.filters.employmentType,
+                                onSelect: viewModel.setEmploymentType
+                            )
+                        }
+                    }
         .sheet(isPresented: $showWorkingHoursSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
             if let snapshot = taxonomyViewModel.snapshot {
                 JobWorkingHoursPickerView(

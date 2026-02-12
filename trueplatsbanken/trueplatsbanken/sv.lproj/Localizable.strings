@@ -6,6 +6,7 @@
 "jobs.unavailable" = "Jobb kunde inte laddas";
 "jobs.none" = "Inga jobb än";
 "jobs.checkBackLater" = "Försök igen senare.";
+"jobs.search.placeholder" = "Sök jobb";
 "matches.loading" = "Laddar matchningar...";
 "matches.unavailable" = "Matchningar kunde inte laddas";
 "matches.none" = "Inga matchningar än";
@@ -17,7 +18,7 @@
 "filters.recent" = "Senaste filter";
 "filters.recent.none" = "Inga senaste filter";
 "filters.clear" = "Rensa";
-"filters.occupation.title" = "Yrke";
+"filters.occupation.title" = "Yrkesområde";
 "filters.occupation.any" = "Alla yrken";
 "filters.occupation.multiple" = "%d yrken";
 "filters.location.title" = "Plats";

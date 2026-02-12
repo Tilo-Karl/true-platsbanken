@@ -10,20 +10,34 @@ final class JobListViewModel: ObservableObject {
             scheduleFilteredFetch()
         }
     }
+    @Published var searchQuery: String = "" {
+        didSet {
+            scheduleFilteredFetch()
+            scheduleSuggestionFetch()
+        }
+    }
+    @Published private(set) var searchSuggestions: [String] = []
     @Published private(set) var recentFilters: [JobFilterState] = []
 
     private let jobReader: JobReading
+    private let suggester: JobSuggesting
     private let recentStore: RecentJobFiltersReading & RecentJobFiltersWriting
     private var filterTask: Task<Void, Never>?
+    private var suggestionTask: Task<Void, Never>?
     private let debounceNanoseconds: UInt64 = 350_000_000
+    private let suggestionDebounceNanoseconds: UInt64 = 250_000_000
+    private let suggestionLimit: Int = 5
     private var requestCounter: Int = 0
+    private var lastCommittedQuery: String?
 
     init(
         jobReader: JobReading,
-        recentStore: RecentJobFiltersReading & RecentJobFiltersWriting = RecentJobFiltersStore()
+        recentStore: RecentJobFiltersReading & RecentJobFiltersWriting = RecentJobFiltersStore(),
+        suggester: JobSuggesting = BackendJobSuggester()
     ) {
         self.jobReader = jobReader
         self.recentStore = recentStore
+        self.suggester = suggester
         self.recentFilters = (try? recentStore.loadRecentFilters()) ?? []
     }
 
@@ -123,10 +137,57 @@ final class JobListViewModel: ObservableObject {
         }
     }
 
+    func clearSuggestions() {
+        searchSuggestions = []
+    }
+
+    func commitSearchQuery() {
+        let trimmed = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        lastCommittedQuery = trimmed.isEmpty ? nil : trimmed
+        clearSuggestions()
+    }
+
+    private func scheduleSuggestionFetch() {
+        suggestionTask?.cancel()
+        let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let lastCommittedQuery, !lastCommittedQuery.isEmpty, query == lastCommittedQuery {
+            searchSuggestions = []
+            return
+        }
+        if query.count < 2 {
+            searchSuggestions = []
+            return
+        }
+        suggestionTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: suggestionDebounceNanoseconds)
+            guard let self else { return }
+            await self.fetchSuggestions(query: query)
+        }
+    }
+
+    private func fetchSuggestions(query: String) async {
+        do {
+            let suggestions = try await suggester.fetchSuggestions(query: query, limit: suggestionLimit)
+            if query != searchQuery.trimmingCharacters(in: .whitespacesAndNewlines) {
+                return
+            }
+            let unique = Array(NSOrderedSet(array: suggestions)) as? [String] ?? suggestions
+            searchSuggestions = Array(unique.prefix(suggestionLimit))
+        } catch {
+            searchSuggestions = []
+        }
+    }
+
     private func fetchJobs(for filters: JobFilterState, showLoading: Bool) async {
         requestCounter += 1
         let requestId = requestCounter
-        print("[jobs] fetch start", requestId, "filters empty:", filters.isEmpty)
+        let trimmedQuery = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        let effectiveQuery = trimmedQuery.count >= 3 ? trimmedQuery : nil
+        print("[jobs] fetch start", requestId, "filters empty:", filters.isEmpty, "query:", effectiveQuery ?? "nil")
+        if effectiveQuery == nil && !trimmedQuery.isEmpty && filters.isEmpty {
+            print("[jobs] skip fetch for short query", requestId)
+            return
+        }
         if showLoading {
             isLoading = true
         }
@@ -134,7 +195,7 @@ final class JobListViewModel: ObservableObject {
 
         do {
             let queryFilters: JobFilterState? = filters.isEmpty ? nil : filters
-            let fetched = try await jobReader.fetchJobs(filters: queryFilters)
+            let fetched = try await jobReader.fetchJobs(filters: queryFilters, query: effectiveQuery)
             if requestId != requestCounter {
                 print("[jobs] stale response ignored", requestId)
                 return

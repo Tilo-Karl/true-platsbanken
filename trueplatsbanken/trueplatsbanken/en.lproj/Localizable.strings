@@ -6,6 +6,7 @@
 "jobs.unavailable" = "Jobs unavailable";
 "jobs.none" = "No jobs yet";
 "jobs.checkBackLater" = "Check back later.";
+"jobs.search.placeholder" = "Search jobs";
 "matches.loading" = "Loading matches...";
 "matches.unavailable" = "Matches unavailable";
 "matches.none" = "No matches yet";
@@ -17,7 +18,7 @@
 "filters.recent" = "Recent filters";
 "filters.recent.none" = "No recent filters";
 "filters.clear" = "Clear";
-"filters.occupation.title" = "Occupation";
+"filters.occupation.title" = "Occupation field";
 "filters.occupation.any" = "All occupations";
 "filters.occupation.multiple" = "%d occupations";
 "filters.location.title" = "Location";
