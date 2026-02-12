@@ -17,8 +17,6 @@
 "matches.score" = "Score: %d";
 "filters.title" = "Filters";
 "app.title" = "true platsbanken";
-"filters.recent" = "Recent filters";
-"filters.recent.none" = "No recent filters";
 "filters.clear" = "Clear";
 "filters.occupation.title" = "Occupation field";
 "filters.occupation.any" = "All occupations";

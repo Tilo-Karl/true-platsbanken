@@ -54,11 +54,6 @@ struct JobListView: View {
                 if let snapshot = taxonomyViewModel.snapshot {
                     JobFiltersBar(
                         filters: viewModel.filters,
-                        recentFilters: viewModel.recentFilters,
-                        onSelectRecent: { filter in
-                            viewModel.updateFilters(filter)
-                            viewModel.persistFiltersIfNeeded()
-                        },
                         onClear: {
                             viewModel.clearFilters()
                         },
@@ -210,7 +205,7 @@ struct JobListView: View {
         .refreshable {
             await viewModel.loadJobs()
         }
-        .sheet(isPresented: $showOccupationSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
+        .sheet(isPresented: $showOccupationSheet) {
             if let snapshot = taxonomyViewModel.snapshot {
                 JobOccupationPickerView(
                     occupationFields: snapshot.occupationFields,
@@ -223,7 +218,7 @@ struct JobListView: View {
                 )
             }
         }
-        .sheet(isPresented: $showLocationSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
+        .sheet(isPresented: $showLocationSheet) {
             if let snapshot = taxonomyViewModel.snapshot {
                 JobLocationPickerView(
                     municipalities: snapshot.municipalities,
@@ -233,7 +228,7 @@ struct JobListView: View {
                 )
             }
         }
-        .sheet(isPresented: $showEmploymentTypeSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
+        .sheet(isPresented: $showEmploymentTypeSheet) {
             if let snapshot = taxonomyViewModel.snapshot {
                 JobEmploymentTypePickerView(
                     employmentTypes: snapshot.employmentTypes,
@@ -242,7 +237,7 @@ struct JobListView: View {
                 )
             }
         }
-        .sheet(isPresented: $showWorkingHoursSheet, onDismiss: viewModel.persistFiltersIfNeeded) {
+        .sheet(isPresented: $showWorkingHoursSheet) {
             if let snapshot = taxonomyViewModel.snapshot {
                 JobWorkingHoursPickerView(
                     workingHoursTypes: snapshot.workingHoursTypes,

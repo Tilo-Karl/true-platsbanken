@@ -2,8 +2,6 @@ import SwiftUI
 
 struct JobFiltersBar: View {
     let filters: JobFilterState
-    let recentFilters: [JobFilterState]
-    let onSelectRecent: (JobFilterState) -> Void
     let onClear: () -> Void
     let onOccupationTap: () -> Void
     let onLocationTap: () -> Void
@@ -18,33 +16,18 @@ struct JobFiltersBar: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(AppColors.brandGreen)
                 Spacer()
-                Menu {
-                    if recentFilters.isEmpty {
-                        Text(AppStrings.filterNoRecent)
-                    } else {
-                        ForEach(recentFilters, id: \.self) { filter in
-                            Button(JobFilterPresentation.summary(for: filter)) {
-                                onSelectRecent(filter)
-                            }
-                        }
-                    }
-                } label: {
-                    Text(AppStrings.filtersRecent)
-                        .font(.subheadline)
-                        .foregroundStyle(AppColors.brandWhite.opacity(0.9))
-                }
-
-                if !filters.isEmpty {
-                    Button(AppStrings.filtersClear) {
-                        onClear()
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(AppColors.brandWhite)
-                }
             }
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
+                    if !filters.isEmpty {
+                        JobFilterChip(
+                            title: AppStrings.filtersClear,
+                            value: "",
+                            action: onClear,
+                            isEmphasized: true
+                        )
+                    }
                     JobFilterChip(
                         title: AppStrings.filterOccupationTitle,
                         value: JobFilterPresentation.occupationLabel(for: filters),

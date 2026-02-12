@@ -17,8 +17,6 @@
 "matches.score" = "Poäng: %d";
 "filters.title" = "Filter";
 "app.title" = "true platsbanken";
-"filters.recent" = "Senaste filter";
-"filters.recent.none" = "Inga senaste filter";
 "filters.clear" = "Rensa";
 "filters.occupation.title" = "Yrkesområde";
 "filters.occupation.any" = "Alla yrken";

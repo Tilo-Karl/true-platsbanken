@@ -20,11 +20,9 @@ final class JobListViewModel: ObservableObject {
     @Published private(set) var searchSuggestions: [String] = []
     @Published private(set) var recentSearches: [String] = []
     @Published private(set) var isSuggesting = false
-    @Published private(set) var recentFilters: [JobFilterState] = []
 
     private let jobReader: JobReading
     private let suggester: JobSuggesting
-    private let recentStore: RecentJobFiltersReading & RecentJobFiltersWriting
     private var filterTask: Task<Void, Never>?
     private var suggestionTask: Task<Void, Never>?
     private let debounceNanoseconds: UInt64 = 350_000_000
@@ -38,13 +36,10 @@ final class JobListViewModel: ObservableObject {
 
     init(
         jobReader: JobReading,
-        recentStore: RecentJobFiltersReading & RecentJobFiltersWriting = RecentJobFiltersStore(),
         suggester: JobSuggesting = BackendJobSuggester()
     ) {
         self.jobReader = jobReader
-        self.recentStore = recentStore
         self.suggester = suggester
-        self.recentFilters = (try? recentStore.loadRecentFilters()) ?? []
         self.recentSearches = loadRecentSearches()
     }
 
@@ -128,17 +123,6 @@ final class JobListViewModel: ObservableObject {
         var updated = filters
         updated.workingHoursType = workingHoursType
         updateFilters(updated)
-    }
-
-    func persistFiltersIfNeeded() {
-        let updated = JobFilterHistory.updatedHistory(
-            current: recentFilters,
-            newFilter: filters,
-            limit: 5
-        )
-        guard updated != recentFilters else { return }
-        recentFilters = updated
-        try? recentStore.saveRecentFilters(updated)
     }
 
     private func scheduleFilteredFetch() {
