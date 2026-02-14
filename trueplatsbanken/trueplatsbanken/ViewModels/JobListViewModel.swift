@@ -23,24 +23,53 @@ final class JobListViewModel: ObservableObject {
 
     private let jobReader: JobReading
     private let suggester: JobSuggesting
+    private let policy: JobSearchPolicy
     private var filterTask: Task<Void, Never>?
     private var suggestionTask: Task<Void, Never>?
     private let debounceNanoseconds: UInt64 = 350_000_000
     private let suggestionDebounceNanoseconds: UInt64 = 250_000_000
-    private let suggestionLimit: Int = 5
     private var requestCounter: Int = 0
     private var lastCommittedQuery: String?
     private var nextCursor: String?
     private var lastSignature: String = ""
-    private let recentSearchesKey = "jobs.search.recent"
+    private let recentSearchesStore: RecentSearchesReading & RecentSearchesWriting
 
     init(
         jobReader: JobReading,
-        suggester: JobSuggesting = BackendJobSuggester()
+        suggester: JobSuggesting = BackendJobSuggester(),
+        recentSearchesStore: RecentSearchesReading & RecentSearchesWriting = RecentSearchesStore(),
+        policy: JobSearchPolicy = JobSearchPolicy()
     ) {
         self.jobReader = jobReader
         self.suggester = suggester
-        self.recentSearches = loadRecentSearches()
+        self.recentSearchesStore = recentSearchesStore
+        self.policy = policy
+        self.recentSearches = recentSearchesStore.loadRecentSearches()
+    }
+
+    var visibleSuggestions: [String] {
+        policy.limitedSuggestions(searchSuggestions)
+    }
+
+    var hasSearchQuery: Bool {
+        !policy.normalized(searchQuery).isEmpty
+    }
+
+    func shouldShowRecentSearches(isFocused: Bool) -> Bool {
+        policy.shouldShowRecentSearches(
+            isFocused: isFocused,
+            query: searchQuery,
+            recentSearches: recentSearches
+        )
+    }
+
+    func shouldShowEmptySuggestions(isFocused: Bool) -> Bool {
+        policy.shouldShowEmptySuggestions(
+            isFocused: isFocused,
+            query: searchQuery,
+            isSuggesting: isSuggesting,
+            suggestions: searchSuggestions
+        )
     }
 
     func loadJobs() async {
@@ -140,42 +169,38 @@ final class JobListViewModel: ObservableObject {
     }
 
     func commitSearchQuery() {
-        let trimmed = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        lastCommittedQuery = trimmed.isEmpty ? nil : trimmed
-        if trimmed.count >= 3 {
-            addRecentSearch(trimmed)
+        let normalizedQuery = policy.normalized(searchQuery)
+        lastCommittedQuery = normalizedQuery.isEmpty ? nil : normalizedQuery
+        if normalizedQuery.count >= policy.fetchMinimumLength {
+            addRecentSearch(normalizedQuery)
         }
         clearSuggestions()
     }
 
     private func scheduleSuggestionFetch() {
         suggestionTask?.cancel()
-        let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let lastCommittedQuery, !lastCommittedQuery.isEmpty, query == lastCommittedQuery {
-            searchSuggestions = []
-            return
-        }
-        if query.count < 2 {
+        let normalizedQuery = policy.normalized(searchQuery)
+        if !policy.shouldSuggest(query: searchQuery, lastCommittedQuery: lastCommittedQuery) {
             searchSuggestions = []
             return
         }
         suggestionTask = Task { [weak self] in
             try? await Task.sleep(nanoseconds: suggestionDebounceNanoseconds)
             guard let self else { return }
-            await self.fetchSuggestions(query: query)
+            await self.fetchSuggestions(query: normalizedQuery)
         }
     }
 
     private func fetchSuggestions(query: String) async {
         isSuggesting = true
         do {
-            let suggestions = try await suggester.fetchSuggestions(query: query, limit: suggestionLimit)
-            if query != searchQuery.trimmingCharacters(in: .whitespacesAndNewlines) {
+            let suggestions = try await suggester.fetchSuggestions(query: query, limit: policy.suggestionLimit)
+            if query != policy.normalized(searchQuery) {
                 isSuggesting = false
                 return
             }
             let unique = Array(NSOrderedSet(array: suggestions)) as? [String] ?? suggestions
-            searchSuggestions = Array(unique.prefix(suggestionLimit))
+            searchSuggestions = Array(unique.prefix(policy.suggestionLimit))
         } catch {
             searchSuggestions = []
         }
@@ -185,9 +210,8 @@ final class JobListViewModel: ObservableObject {
     private func fetchJobs(for filters: JobFilterState, showLoading: Bool) async {
         requestCounter += 1
         let requestId = requestCounter
-        let trimmedQuery = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        let effectiveQuery = trimmedQuery.count >= 3 ? trimmedQuery : nil
-        if effectiveQuery == nil && !trimmedQuery.isEmpty && filters.isEmpty {
+        let effectiveQuery = policy.effectiveQuery(from: searchQuery)
+        if !policy.shouldFetchJobs(query: searchQuery, filtersEmpty: filters.isEmpty) {
             return
         }
         if showLoading {
@@ -218,8 +242,7 @@ final class JobListViewModel: ObservableObject {
 
     private func fetchNextPage(cursor: String) async {
         guard !isLoadingMore else { return }
-        let trimmedQuery = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        let effectiveQuery = trimmedQuery.count >= 3 ? trimmedQuery : nil
+        let effectiveQuery = policy.effectiveQuery(from: searchQuery)
         let signature = signature(for: filters, query: effectiveQuery)
         guard signature == lastSignature else { return }
 
@@ -245,20 +268,8 @@ final class JobListViewModel: ObservableObject {
     }
 
     private func addRecentSearch(_ query: String) {
-        var updated = recentSearches.filter { $0.caseInsensitiveCompare(query) != .orderedSame }
-        updated.insert(query, at: 0)
-        if updated.count > 3 {
-            updated = Array(updated.prefix(3))
-        }
+        let updated = policy.updatedRecentSearches(current: recentSearches, newQuery: query)
         recentSearches = updated
-        saveRecentSearches(updated)
-    }
-
-    private func loadRecentSearches() -> [String] {
-        UserDefaults.standard.stringArray(forKey: recentSearchesKey) ?? []
-    }
-
-    private func saveRecentSearches(_ searches: [String]) {
-        UserDefaults.standard.set(searches, forKey: recentSearchesKey)
+        recentSearchesStore.saveRecentSearches(updated)
     }
 }

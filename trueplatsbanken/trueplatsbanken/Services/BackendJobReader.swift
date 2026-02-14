@@ -26,7 +26,8 @@ final class BackendJobReader: JobReading {
             queryItems.append(URLQueryItem(name: "q", value: query))
         }
         if let filters {
-            queryItems.append(contentsOf: BackendJobQueryBuilder.queryItems(for: filters))
+            let query = JobFilterQueryMapper.map(filters)
+            queryItems.append(contentsOf: BackendJobQueryBuilder.queryItems(for: query))
         }
         url.append(queryItems: queryItems)
 
@@ -43,69 +44,30 @@ final class BackendJobReader: JobReading {
         return JobPage(jobs: payload.jobs.map { $0.asJob() }, nextCursor: payload.nextCursor)
     }
 }
-
-final class BackendJobSuggester: JobSuggesting {
-    private let baseURL: URL
-    private let session: URLSession
-
-    init(
-        baseURL: URL? = nil,
-        session: URLSession = .shared
-    ) {
-        self.baseURL = baseURL ?? BackendServiceURLProvider.baseURL()
-        self.session = session
-    }
-
-    func fetchSuggestions(query: String, limit: Int) async throws -> [String] {
-        var url = baseURL
-        url.appendPathComponent("api")
-        url.appendPathComponent("suggest")
-        url.append(queryItems: [
-            URLQueryItem(name: "q", value: query),
-            URLQueryItem(name: "limit", value: String(limit))
-        ])
-
-        var request = URLRequest(url: url)
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-
-        let (data, response) = try await session.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw URLError(.badServerResponse)
-        }
-
-        let decoder = JSONDecoder()
-        let payload = try decoder.decode(JobSuggestResponseDTO.self, from: data)
-        return payload.suggestions
-    }
-}
-
-private struct JobSuggestResponseDTO: Decodable {
-    let suggestions: [String]
-}
 private enum BackendJobQueryBuilder {
-    static func queryItems(for filters: JobFilterState) -> [URLQueryItem] {
+    static func queryItems(for query: JobFilterQuery) -> [URLQueryItem] {
         var items: [URLQueryItem] = []
 
-        if let occupationField = filters.occupationField?.id {
-            items.append(URLQueryItem(name: "occupation_field_id", value: occupationField))
-        } else if !filters.occupations.isEmpty {
-            items.append(contentsOf: filters.occupations.map {
-                URLQueryItem(name: "occupation_ids[]", value: $0.id)
+        if let occupationFieldId = query.occupationFieldId {
+            items.append(URLQueryItem(name: "occupation_field_id", value: occupationFieldId))
+        } else if !query.occupationIds.isEmpty {
+            items.append(contentsOf: query.occupationIds.map {
+                URLQueryItem(name: "occupation_ids[]", value: $0)
             })
         }
 
-        if !filters.municipalities.isEmpty {
-            items.append(contentsOf: filters.municipalities.map {
-                URLQueryItem(name: "municipality_ids[]", value: $0.id)
+        if !query.municipalityIds.isEmpty {
+            items.append(contentsOf: query.municipalityIds.map {
+                URLQueryItem(name: "municipality_ids[]", value: $0)
             })
         }
 
-        if let employmentType = filters.employmentType?.id {
-            items.append(URLQueryItem(name: "employment_type_id", value: employmentType))
+        if let employmentTypeId = query.employmentTypeId {
+            items.append(URLQueryItem(name: "employment_type_id", value: employmentTypeId))
         }
 
-        if let workingHoursType = filters.workingHoursType?.id {
-            items.append(URLQueryItem(name: "working_hours_type_id", value: workingHoursType))
+        if let workingHoursTypeId = query.workingHoursTypeId {
+            items.append(URLQueryItem(name: "working_hours_type_id", value: workingHoursTypeId))
         }
 
         return items

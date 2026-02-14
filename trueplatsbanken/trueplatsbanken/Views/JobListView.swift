@@ -90,7 +90,7 @@ struct JobListView: View {
                                 viewModel.commitSearchQuery()
                                 isSearchFocused = false
                             }
-                        if !viewModel.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        if viewModel.hasSearchQuery {
                             Button {
                                 viewModel.searchQuery = ""
                                 viewModel.clearSuggestions()
@@ -107,8 +107,7 @@ struct JobListView: View {
                     .background(AppColors.brandWhite.opacity(0.95))
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-                    let trimmedQuery = viewModel.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if isSearchFocused && trimmedQuery.count < 3 && !viewModel.recentSearches.isEmpty {
+                    if viewModel.shouldShowRecentSearches(isFocused: isSearchFocused) {
                         VStack(alignment: .leading, spacing: 6) {
                             Text(AppStrings.searchRecentTitle)
                                 .font(.footnote)
@@ -141,8 +140,8 @@ struct JobListView: View {
                         }
                         .background(AppColors.brandWhite)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    } else if !viewModel.searchSuggestions.isEmpty {
-                        let suggestions = Array(viewModel.searchSuggestions.prefix(5))
+                    } else if !viewModel.visibleSuggestions.isEmpty {
+                        let suggestions = viewModel.visibleSuggestions
                         VStack(spacing: 0) {
                             ForEach(suggestions, id: \.self) { suggestion in
                                 Button {
@@ -167,19 +166,17 @@ struct JobListView: View {
                         }
                         .background(AppColors.brandWhite)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    } else if isSearchFocused {
-                        if trimmedQuery.count >= 2 && !viewModel.isSuggesting {
-                            HStack {
-                                Text(AppStrings.searchSuggestionsNone)
-                                    .font(.footnote)
-                                    .foregroundStyle(AppColors.brandBlueDark.opacity(0.8))
-                                Spacer()
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 10)
-                            .background(AppColors.brandWhite)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    } else if viewModel.shouldShowEmptySuggestions(isFocused: isSearchFocused) {
+                        HStack {
+                            Text(AppStrings.searchSuggestionsNone)
+                                .font(.footnote)
+                                .foregroundStyle(AppColors.brandBlueDark.opacity(0.8))
+                            Spacer()
                         }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .background(AppColors.brandWhite)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
                 }
                 .onChange(of: isSearchFocused) { _, focused in

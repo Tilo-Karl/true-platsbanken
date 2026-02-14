@@ -7,13 +7,10 @@ struct JobLocationPickerView: View {
     let onClear: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
+    private let searchPolicy = TaxonomySearchPolicy()
 
     private var filteredMunicipalities: [TaxonomyItem] {
-        guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return municipalities
-        }
-        let normalized = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        return municipalities.filter { $0.label.lowercased().contains(normalized) }
+        searchPolicy.filter(items: municipalities, query: query)
     }
 
     private var bottomMunicipalityId: String? {

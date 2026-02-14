@@ -69,7 +69,7 @@ Includes:
 
 ⸻
 
-Phase 6 — Jobs Listing (Free, Default View) 🔜
+Phase 6 — Jobs Listing (Free, Default View) ✅ DONE
 
 What this view is
 	•	The first screen users see
@@ -77,15 +77,15 @@ What this view is
 	•	Always up to date
 	•	Platsbanken replacement
 
-Features
+Features (updated)
 	•	Job list (latest first)
-	•	Client-side filters only (no JobTech query filters):
-	•	Location
-	•	Occupation
-	•	Employment type
-	•	Scope
-	•	“Ny” badge
+	•	Server-side search + filters via JobTech:
+	•	Free-text search (q=) with autocomplete suggestions
+	•	Filters (ID-based): location, occupation field, employment type, scope
+	•	OR within filter type, AND across filter types
 	•	Pull-to-refresh
+	•	Infinite scroll pagination (offset/limit)
+	•	Recent searches (last 3)
 
 CV awareness
 	•	If CV exists:
@@ -97,7 +97,7 @@ No AI cost here. Ever.
 
 ⸻
 
-Phase 7 — CV Match (Paid, Separate View) 🔜
+Phase 7 — CV Match (Paid, Separate View) 🔜 IN PROGRESS
 
 What this view is
 	•	A separate listing
@@ -202,4 +202,4 @@ Key decisions locked (important)
 	•	❌ Auto-matching new jobs → never
 	•	✅ Explicit paid match runs only
 	•	✅ CV match is a product, not a filter
-	•	✅ Client-side filters only for job lists
+	•	✅ Server-side search + filters for job lists (JobTech queries)
