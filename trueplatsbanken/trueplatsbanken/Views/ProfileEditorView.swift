@@ -36,6 +36,29 @@ struct ProfileEditorView: View {
                 }
             }
 
+            if viewModel.hasCvText {
+                Section {
+                    if viewModel.isDemoProfile {
+                        HStack {
+                            Text(AppStrings.profileDemoCvBadge)
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(AppColors.brandGreen)
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 8)
+                                .background(AppColors.brandBlueDark.opacity(0.12))
+                                .clipShape(Capsule())
+                            Spacer()
+                        }
+                    }
+                    TextEditor(text: $viewModel.draft.cvText)
+                        .frame(minHeight: 140)
+                        .disabled(true)
+                } header: {
+                    Text(AppStrings.profileSectionCv)
+                }
+            }
+
             Section {
                 TextField(AppStrings.profileLocationPreference, text: $viewModel.draft.municipality)
             }

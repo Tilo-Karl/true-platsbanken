@@ -1,6 +1,6 @@
 import Foundation
 
-struct MatchResult: Identifiable, Hashable {
+struct MatchResult: Identifiable, Hashable, Codable {
     let id: String
     let job: Job
     let score: Double?

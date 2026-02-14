@@ -15,6 +15,10 @@
 "matches.refreshToCheck" = "Refresh to check again.";
 "common.refresh" = "Refresh";
 "matches.score" = "Score: %d";
+"matches.demoBadge" = "Demo matches";
+"matches.overlay.title" = "Unlock your best matches";
+"matches.overlay.body" = "We analyze your CV and preferences to surface the most relevant roles. Start matching to see full details.";
+"matches.overlay.dismiss" = "Continue";
 "filters.title" = "Filters";
 "app.title" = "true platsbanken";
 "filters.clear" = "Clear";
@@ -71,6 +75,7 @@
 "profile.ai.inferredRoles" = "Inferred roles";
 "profile.ai.keywords" = "Keywords";
 "profile.ai.none" = "None";
+"profile.demoCvBadge" = "Demo CV";
 "employmentType.any" = "Any";
 "employmentType.fullTime" = "Full time";
 "employmentType.partTime" = "Part time";

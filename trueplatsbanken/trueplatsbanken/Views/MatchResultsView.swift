@@ -3,7 +3,9 @@ import SwiftUI
 struct MatchResultsView: View {
     @ObservedObject var viewModel: MatchResultsViewModel
     @EnvironmentObject private var languageStore: AppLanguageStore
+    let isDemo: Bool
     let onRefresh: () async -> Void
+    @State private var showMarketingOverlay = true
 
     var body: some View {
         let _ = languageStore.language
@@ -21,30 +23,55 @@ struct MatchResultsView: View {
                     ContentUnavailableView(AppStrings.noMatches, systemImage: "sparkles", description: Text(AppStrings.refreshToCheck))
                 } else {
                     List(viewModel.matches) { match in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(match.job.title)
-                                .font(.headline)
-                            Text(match.job.employerName)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            if let score = match.score {
-                                Text(AppStrings.scoreLabel(Int(score * 100)))
-                                    .font(.caption)
+                        Button {
+                            showMarketingOverlay = true
+                        } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(match.job.title)
+                                    .font(.headline)
+                                Text(match.job.employerName)
+                                    .font(.subheadline)
                                     .foregroundStyle(.secondary)
+                                if let score = match.score {
+                                    Text(AppStrings.scoreLabel(Int(score * 100)))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
+                        .buttonStyle(.plain)
                     }
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
                 }
             }
         }
+        .overlay {
+            if showMarketingOverlay && !viewModel.matches.isEmpty && !viewModel.isLoading {
+                MatchMarketingOverlayView {
+                    showMarketingOverlay = false
+                }
+            }
+        }
         .safeAreaInset(edge: .top) {
             HStack {
-                Text(AppStrings.appTitle)
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(AppColors.brandGreen)
+                HStack(spacing: 8) {
+                    Text(AppStrings.appTitle)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(AppColors.brandGreen)
+                    if isDemo {
+                        Text(AppStrings.matchesDemoBadge)
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(AppColors.brandWhite)
+                            .padding(.vertical, 4)
+                            .padding(.horizontal, 8)
+                            .background(AppColors.brandGreen.opacity(0.35))
+                            .clipShape(Capsule())
+                    }
+                }
                 Spacer()
                 Button(AppStrings.refresh) {
                     Task {

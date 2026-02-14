@@ -53,6 +53,10 @@ enum AppStrings {
     static func scoreLabel(_ score: Int) -> String {
         String(format: localized("matches.score"), locale: Locale.current, score)
     }
+    static var matchesDemoBadge: String { localized("matches.demoBadge") }
+    static var matchesOverlayTitle: String { localized("matches.overlay.title") }
+    static var matchesOverlayBody: String { localized("matches.overlay.body") }
+    static var matchesOverlayDismiss: String { localized("matches.overlay.dismiss") }
 
     static var profileSectionIdentity: String { localized("profile.section.identity") }
     static var profileSectionPreferences: String { localized("profile.section.preferences") }
@@ -88,6 +92,7 @@ enum AppStrings {
     static var profileAiKeywords: String { localized("profile.ai.keywords") }
     static var profileAiNone: String { localized("profile.ai.none") }
     static var profileLocationPreference: String { localized("profile.field.locationPreference") }
+    static var profileDemoCvBadge: String { localized("profile.demoCvBadge") }
 
     static func employmentTypeLabel(for key: String) -> String {
         switch key {

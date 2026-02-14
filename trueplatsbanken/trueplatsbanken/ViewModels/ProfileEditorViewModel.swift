@@ -7,6 +7,7 @@ final class ProfileEditorViewModel: ObservableObject {
     @Published private(set) var isSaving = false
     @Published private(set) var isExtracting = false
     @Published private(set) var errorMessage: String?
+    @Published private(set) var isDemoProfile = false
     @Published var pendingReplacementText: String?
     @Published var shouldConfirmReplacement = false
 
@@ -46,6 +47,12 @@ final class ProfileEditorViewModel: ObservableObject {
         }
     }
 
+    func loadDemoProfile() {
+        draft = DemoProfileSnapshot.draft
+        aiResult = DemoProfileSnapshot.aiResult
+        isDemoProfile = true
+    }
+
     func saveProfile() async {
         isSaving = true
         errorMessage = nil
@@ -64,6 +71,7 @@ final class ProfileEditorViewModel: ObservableObject {
     }
 
     func applyCV(text: String) async {
+        isDemoProfile = false
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             return
@@ -136,7 +144,12 @@ final class ProfileEditorViewModel: ObservableObject {
         aiResult != nil
     }
 
+    var hasCvText: Bool {
+        !draft.cvText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     func scheduleReplacement(with text: String) {
+        isDemoProfile = false
         pendingReplacementText = text
         shouldConfirmReplacement = true
     }
@@ -192,5 +205,6 @@ final class ProfileEditorViewModel: ObservableObject {
     private func applyState(_ state: ProfileLocalState) {
         draft = state.draft
         aiResult = state.aiResult
+        isDemoProfile = false
     }
 }

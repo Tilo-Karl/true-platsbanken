@@ -8,7 +8,13 @@ final class AppStateViewModel: ObservableObject {
         case profile
     }
 
-    @Published var selectedTab: Tab = .jobs
+    enum MatchMode {
+        case demo
+        case live
+    }
+
+    @Published var selectedTab: Tab = .matches
+    @Published var matchMode: MatchMode = .demo
 
     let jobListViewModel: JobListViewModel
     let profileEditorViewModel: ProfileEditorViewModel
@@ -20,6 +26,7 @@ final class AppStateViewModel: ObservableObject {
         jobReader: JobReading = BackendJobReader(),
         profileStore: ProfileStateReading & ProfileStateWriting = ProfileLocalStore(),
         matchReader: MatchReading = BackendMatchReader(),
+        demoMatchReader: MatchReading = DemoMatchReader(),
         profileExtractor: BackendProfileExtractor = BackendProfileExtractor(),
         roleExpander: BackendRoleExpander = BackendRoleExpander(),
         taxonomyReader: TaxonomyReading = JobTechTaxonomyReader(),
@@ -36,6 +43,7 @@ final class AppStateViewModel: ObservableObject {
         )
         self.matchResultsViewModel = MatchResultsViewModel(
             matchReader: matchReader,
+            demoReader: demoMatchReader,
             embeddingCache: embeddingCache
         )
         self.taxonomyViewModel = TaxonomyViewModel(
@@ -48,6 +56,10 @@ final class AppStateViewModel: ObservableObject {
         await taxonomyViewModel.loadIfNeeded(languageCode: language.rawValue)
         await jobListViewModel.loadJobs()
         await profileEditorViewModel.loadProfile()
+        if matchMode == .demo {
+            profileEditorViewModel.loadDemoProfile()
+        }
+        await refreshMatches()
     }
 
     func consumeSharedCVIfAvailable() async {
@@ -60,10 +72,15 @@ final class AppStateViewModel: ObservableObject {
     }
 
     func refreshMatches() async {
-        guard let payload = profileEditorViewModel.matchPayload() else {
-            return
+        switch matchMode {
+        case .demo:
+            await matchResultsViewModel.loadDemoMatches()
+        case .live:
+            guard let payload = profileEditorViewModel.matchPayload() else {
+                return
+            }
+            await matchResultsViewModel.loadMatches(payload: payload)
         }
-        await matchResultsViewModel.loadMatches(payload: payload)
     }
 
     func refreshTaxonomy(language: AppLanguageStore.Language) async {

@@ -11,6 +11,16 @@ struct RootView: View {
         NavigationStack {
             ZStack(alignment: .topTrailing) {
                 TabView(selection: $appState.selectedTab) {
+                    MatchResultsView(
+                        viewModel: appState.matchResultsViewModel,
+                        isDemo: appState.matchMode == .demo,
+                        onRefresh: appState.refreshMatches
+                    )
+                    .tabItem {
+                        Label(AppStrings.matchesTitle, systemImage: "checkmark.seal")
+                    }
+                    .tag(AppStateViewModel.Tab.matches)
+
                     JobListView(
                         viewModel: appState.jobListViewModel,
                         taxonomyViewModel: appState.taxonomyViewModel
@@ -19,15 +29,6 @@ struct RootView: View {
                             Label(AppStrings.jobsTitle, systemImage: "briefcase")
                         }
                         .tag(AppStateViewModel.Tab.jobs)
-
-                    MatchResultsView(
-                        viewModel: appState.matchResultsViewModel,
-                        onRefresh: appState.refreshMatches
-                    )
-                    .tabItem {
-                        Label(AppStrings.matchesTitle, systemImage: "checkmark.seal")
-                    }
-                    .tag(AppStateViewModel.Tab.matches)
 
                     ProfileEditorView(
                         viewModel: appState.profileEditorViewModel,

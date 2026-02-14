@@ -15,6 +15,10 @@
 "matches.refreshToCheck" = "Uppdatera för att se igen.";
 "common.refresh" = "Uppdatera";
 "matches.score" = "Poäng: %d";
+"matches.demoBadge" = "Demomatchningar";
+"matches.overlay.title" = "Lås upp dina bästa matchningar";
+"matches.overlay.body" = "Vi analyserar ditt CV och dina preferenser för att hitta de mest relevanta rollerna. Börja matcha för att se fullständiga detaljer.";
+"matches.overlay.dismiss" = "Fortsätt";
 "filters.title" = "Filter";
 "app.title" = "true platsbanken";
 "filters.clear" = "Rensa";
@@ -71,6 +75,7 @@
 "profile.ai.inferredRoles" = "Härledda roller";
 "profile.ai.keywords" = "Nyckelord";
 "profile.ai.none" = "Ingen";
+"profile.demoCvBadge" = "Demo-CV";
 "employmentType.any" = "Valfri";
 "employmentType.fullTime" = "Heltid";
 "employmentType.partTime" = "Deltid";
