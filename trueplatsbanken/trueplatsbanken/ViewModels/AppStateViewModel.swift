@@ -21,6 +21,7 @@ final class AppStateViewModel: ObservableObject {
     let matchResultsViewModel: MatchResultsViewModel
     let taxonomyViewModel: TaxonomyViewModel
     private let embeddingCache: EmbeddingCaching
+    private let paymentProcessor: PaymentProcessing
 
     init(
         jobReader: JobReading = BackendJobReader(),
@@ -30,9 +31,11 @@ final class AppStateViewModel: ObservableObject {
         profileExtractor: BackendProfileExtractor = BackendProfileExtractor(),
         roleExpander: BackendRoleExpander = BackendRoleExpander(),
         taxonomyReader: TaxonomyReading = JobTechTaxonomyReader(),
-        taxonomyCache: TaxonomyCaching = TaxonomyCacheStore()
+        taxonomyCache: TaxonomyCaching = TaxonomyCacheStore(),
+        paymentProcessor: PaymentProcessing = StubPaymentProcessor()
     ) {
         self.embeddingCache = EmbeddingCacheStore()
+        self.paymentProcessor = paymentProcessor
         self.jobListViewModel = JobListViewModel(jobReader: jobReader)
         self.profileEditorViewModel = ProfileEditorViewModel(
             profileReader: profileStore,
@@ -55,8 +58,8 @@ final class AppStateViewModel: ObservableObject {
     func bootstrap(language: AppLanguageStore.Language) async {
         await taxonomyViewModel.loadIfNeeded(languageCode: language.rawValue)
         await jobListViewModel.loadJobs()
-        await profileEditorViewModel.loadProfile()
-        if matchMode == .demo {
+        let hasProfile = await profileEditorViewModel.loadProfile()
+        if matchMode == .demo && !hasProfile {
             profileEditorViewModel.loadDemoProfile()
         }
         await refreshMatches()
@@ -79,7 +82,32 @@ final class AppStateViewModel: ObservableObject {
             guard let payload = profileEditorViewModel.matchPayload() else {
                 return
             }
-            await matchResultsViewModel.loadMatches(payload: payload)
+            await matchResultsViewModel.loadMatches(payload: payload, persist: true)
+        }
+    }
+
+    func handleMatchUploadPhotos(_ data: [Data]) async {
+        guard !data.isEmpty else { return }
+        await profileEditorViewModel.importFromPhotos(data)
+        selectedTab = .profile
+    }
+
+    func handleMatchUploadFiles(_ urls: [URL]) async {
+        guard !urls.isEmpty else { return }
+        await profileEditorViewModel.importFromFiles(urls)
+        selectedTab = .profile
+    }
+
+    func runPaidMatch() async {
+        guard !profileEditorViewModel.isDemoProfile else { return }
+        guard let payload = profileEditorViewModel.matchPayload() else { return }
+        do {
+            try await paymentProcessor.charge(amount: MatchPricing.priceSek, currency: "SEK")
+            matchMode = .live
+            await matchResultsViewModel.loadMatches(payload: payload, persist: true)
+            selectedTab = .matches
+        } catch {
+            // TODO: surface payment failure to the user
         }
     }
 

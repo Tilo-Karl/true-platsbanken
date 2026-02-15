@@ -6,4 +6,5 @@ protocol ProfileStateReading {
 
 protocol ProfileStateWriting {
     func saveState(_ state: ProfileLocalState) async throws
+    func clearState() async throws
 }

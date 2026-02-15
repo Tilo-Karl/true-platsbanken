@@ -6,7 +6,7 @@ import UIKit
 struct ProfileEditorView: View {
     @ObservedObject var viewModel: ProfileEditorViewModel
     @EnvironmentObject private var languageStore: AppLanguageStore
-    let onMatch: () async -> Void
+    let onRunPaidMatch: () async -> Void
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var showFileImporter = false
 
@@ -74,12 +74,15 @@ struct ProfileEditorView: View {
             Section {
                 Button {
                     Task {
-                        await onMatch()
+                        await onRunPaidMatch()
                     }
                 } label: {
-                    Text(AppStrings.profileMatch)
+                    Text(AppStrings.profileRunMatch(MatchPricing.displayPrice))
+                        .frame(maxWidth: .infinity)
                 }
-                .disabled(!viewModel.canMatch)
+                .disabled(!viewModel.canRunPaidMatch)
+                .buttonStyle(.borderedProminent)
+                .tint(AppColors.brandBlueDark)
             }
 
             Section {

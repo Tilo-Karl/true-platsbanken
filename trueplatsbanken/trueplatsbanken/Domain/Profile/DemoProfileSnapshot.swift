@@ -40,4 +40,8 @@ enum DemoProfileSnapshot {
     static var matchPayload: ProfileMatchPayload {
         ProfileMatchPayload.build(from: draft, aiResult: aiResult)
     }
+
+    static func matches(_ state: ProfileLocalState) -> Bool {
+        state.draft.cvText == cvText
+    }
 }

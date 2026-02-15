@@ -23,4 +23,8 @@ final class ProfileLocalStore: ProfileStateReading, ProfileStateWriting {
         let data = try encoder.encode(state)
         storage.set(data, forKey: key)
     }
+
+    func clearState() async throws {
+        storage.removeObject(forKey: key)
+    }
 }

@@ -55,8 +55,12 @@ enum AppStrings {
     }
     static var matchesDemoBadge: String { localized("matches.demoBadge") }
     static var matchesOverlayTitle: String { localized("matches.overlay.title") }
-    static var matchesOverlayBody: String { localized("matches.overlay.body") }
-    static var matchesOverlayDismiss: String { localized("matches.overlay.dismiss") }
+    static var matchesOverlayUploadPhoto: String { localized("matches.overlay.uploadPhoto") }
+    static var matchesOverlayUploadFile: String { localized("matches.overlay.uploadFile") }
+    static var matchesOverlayBullet1: String { localized("matches.overlay.bullet1") }
+    static var matchesOverlayBullet2: String { localized("matches.overlay.bullet2") }
+    static var matchesOverlayBullet3: String { localized("matches.overlay.bullet3") }
+    static var matchesOverlaySubtitle: String { localized("matches.overlay.subtitle") }
 
     static var profileSectionIdentity: String { localized("profile.section.identity") }
     static var profileSectionPreferences: String { localized("profile.section.preferences") }
@@ -93,6 +97,9 @@ enum AppStrings {
     static var profileAiNone: String { localized("profile.ai.none") }
     static var profileLocationPreference: String { localized("profile.field.locationPreference") }
     static var profileDemoCvBadge: String { localized("profile.demoCvBadge") }
+    static func profileRunMatch(_ price: String) -> String {
+        String(format: localized("profile.action.runMatch"), locale: Locale.current, price)
+    }
 
     static func employmentTypeLabel(for key: String) -> String {
         switch key {

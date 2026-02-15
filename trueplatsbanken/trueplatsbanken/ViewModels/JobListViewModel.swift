@@ -158,7 +158,7 @@ final class JobListViewModel: ObservableObject {
         filterTask?.cancel()
         let snapshot = filters
         filterTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: debounceNanoseconds)
+            try? await Task.sleep(nanoseconds: self?.debounceNanoseconds ?? 0)
             guard let self else { return }
             await self.fetchJobs(for: snapshot, showLoading: false)
         }
@@ -185,7 +185,7 @@ final class JobListViewModel: ObservableObject {
             return
         }
         suggestionTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: suggestionDebounceNanoseconds)
+            try? await Task.sleep(nanoseconds: self?.suggestionDebounceNanoseconds ?? 0)
             guard let self else { return }
             await self.fetchSuggestions(query: normalizedQuery)
         }

@@ -16,9 +16,13 @@
 "common.refresh" = "Uppdatera";
 "matches.score" = "Poäng: %d";
 "matches.demoBadge" = "Demomatchningar";
-"matches.overlay.title" = "Lås upp dina bästa matchningar";
-"matches.overlay.body" = "Vi analyserar ditt CV och dina preferenser för att hitta de mest relevanta rollerna. Börja matcha för att se fullständiga detaljer.";
-"matches.overlay.dismiss" = "Fortsätt";
+"matches.overlay.title" = "Låt AI hitta dina bästa roller";
+"matches.overlay.uploadPhoto" = "Ladda upp foto";
+"matches.overlay.uploadFile" = "Ladda upp fil";
+"matches.overlay.bullet1" = "Omedelbar rollutvidgning";
+"matches.overlay.bullet2" = "Dolda karriärvägar";
+"matches.overlay.bullet3" = "Kontinuerliga AI-jobbaviseringar";
+"matches.overlay.subtitle" = "Ladda upp ditt CV och få rankade matchningar på några sekunder.";
 "filters.title" = "Filter";
 "app.title" = "true platsbanken";
 "filters.clear" = "Rensa";
@@ -76,6 +80,7 @@
 "profile.ai.keywords" = "Nyckelord";
 "profile.ai.none" = "Ingen";
 "profile.demoCvBadge" = "Demo-CV";
+"profile.action.runMatch" = "Kör AI-matchning – %@";
 "employmentType.any" = "Valfri";
 "employmentType.fullTime" = "Heltid";
 "employmentType.partTime" = "Deltid";

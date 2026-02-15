@@ -51,7 +51,7 @@ struct JobListView: View {
         .scrollContentBackground(.hidden)
         .safeAreaInset(edge: .top) {
             VStack(alignment: .leading, spacing: 12) {
-                if let snapshot = taxonomyViewModel.snapshot {
+                if taxonomyViewModel.snapshot != nil {
                     JobFiltersBar(
                         filters: viewModel.filters,
                         onClear: {

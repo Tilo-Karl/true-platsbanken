@@ -16,9 +16,13 @@
 "common.refresh" = "Refresh";
 "matches.score" = "Score: %d";
 "matches.demoBadge" = "Demo matches";
-"matches.overlay.title" = "Unlock your best matches";
-"matches.overlay.body" = "We analyze your CV and preferences to surface the most relevant roles. Start matching to see full details.";
-"matches.overlay.dismiss" = "Continue";
+"matches.overlay.title" = "Let AI find your best roles";
+"matches.overlay.uploadPhoto" = "Upload photo";
+"matches.overlay.uploadFile" = "Upload file";
+"matches.overlay.bullet1" = "Instant role expansion";
+"matches.overlay.bullet2" = "Hidden career paths";
+"matches.overlay.bullet3" = "Continuous AI job alerts";
+"matches.overlay.subtitle" = "Upload your CV and get ranked matches in seconds.";
 "filters.title" = "Filters";
 "app.title" = "true platsbanken";
 "filters.clear" = "Clear";
@@ -76,6 +80,7 @@
 "profile.ai.keywords" = "Keywords";
 "profile.ai.none" = "None";
 "profile.demoCvBadge" = "Demo CV";
+"profile.action.runMatch" = "Run AI Match – %@";
 "employmentType.any" = "Any";
 "employmentType.fullTime" = "Full time";
 "employmentType.partTime" = "Part time";

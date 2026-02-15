@@ -14,6 +14,8 @@ struct RootView: View {
                     MatchResultsView(
                         viewModel: appState.matchResultsViewModel,
                         isDemo: appState.matchMode == .demo,
+                        onUploadPhotos: appState.handleMatchUploadPhotos,
+                        onUploadFiles: appState.handleMatchUploadFiles,
                         onRefresh: appState.refreshMatches
                     )
                     .tabItem {
@@ -32,10 +34,7 @@ struct RootView: View {
 
                     ProfileEditorView(
                         viewModel: appState.profileEditorViewModel,
-                        onMatch: {
-                            await appState.refreshMatches()
-                            appState.selectedTab = .matches
-                        }
+                        onRunPaidMatch: appState.runPaidMatch
                     )
                     .tabItem {
                         Label(AppStrings.profileTitle, systemImage: "person")

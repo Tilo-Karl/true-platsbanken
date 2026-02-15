@@ -1,11 +1,18 @@
 import SwiftUI
+import PhotosUI
+import UniformTypeIdentifiers
 
 struct MatchResultsView: View {
     @ObservedObject var viewModel: MatchResultsViewModel
     @EnvironmentObject private var languageStore: AppLanguageStore
     let isDemo: Bool
+    let onUploadPhotos: ([Data]) async -> Void
+    let onUploadFiles: ([URL]) async -> Void
     let onRefresh: () async -> Void
     @State private var showMarketingOverlay = true
+    @State private var selectedPhotos: [PhotosPickerItem] = []
+    @State private var showFileImporter = false
+    @State private var overlayImageName = "CVMatch"
 
     var body: some View {
         let _ = languageStore.language
@@ -24,7 +31,7 @@ struct MatchResultsView: View {
                 } else {
                     List(viewModel.matches) { match in
                         Button {
-                            showMarketingOverlay = true
+                            presentOverlay()
                         } label: {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(match.job.title)
@@ -48,10 +55,44 @@ struct MatchResultsView: View {
             }
         }
         .overlay {
-            if showMarketingOverlay && !viewModel.matches.isEmpty && !viewModel.isLoading {
-                MatchMarketingOverlayView {
-                    showMarketingOverlay = false
+            if isDemo && showMarketingOverlay && !viewModel.matches.isEmpty && !viewModel.isLoading {
+                MatchMarketingOverlayView(
+                    imageName: overlayImageName,
+                    selectedPhotos: $selectedPhotos,
+                    onUploadFile: {
+                        showFileImporter = true
+                    },
+                    onDismiss: {
+                        showMarketingOverlay = false
+                    }
+                )
+            }
+        }
+        .onAppear {
+            if isDemo {
+                overlayImageName = randomOverlayImage()
+            }
+        }
+        .onChange(of: selectedPhotos) { _, items in
+            guard !items.isEmpty else { return }
+            Task {
+                let dataItems = await loadPhotoData(from: items)
+                await onUploadPhotos(dataItems)
+                selectedPhotos = []
+            }
+        }
+        .fileImporter(
+            isPresented: $showFileImporter,
+            allowedContentTypes: [.pdf, .image],
+            allowsMultipleSelection: true
+        ) { result in
+            switch result {
+            case .success(let urls):
+                Task {
+                    await onUploadFiles(urls)
                 }
+            case .failure:
+                break
             }
         }
         .safeAreaInset(edge: .top) {
@@ -97,5 +138,25 @@ struct MatchResultsView: View {
         .refreshable {
             await onRefresh()
         }
+    }
+
+    private func presentOverlay() {
+        overlayImageName = randomOverlayImage()
+        showMarketingOverlay = true
+    }
+
+    private func randomOverlayImage() -> String {
+        let options = ["CVMatch7", "CVMatch8", "CVMatch9", "CVMatch10"]
+        return options.randomElement() ?? "CVMatch7"
+    }
+
+    private func loadPhotoData(from items: [PhotosPickerItem]) async -> [Data] {
+        var results: [Data] = []
+        for item in items {
+            if let data = try? await item.loadTransferable(type: Data.self) {
+                results.append(data)
+            }
+        }
+        return results
     }
 }

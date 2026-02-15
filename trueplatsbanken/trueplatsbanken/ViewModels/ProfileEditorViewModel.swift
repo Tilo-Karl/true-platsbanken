@@ -37,14 +37,21 @@ final class ProfileEditorViewModel: ObservableObject {
         self.embeddingCache = embeddingCache
     }
 
-    func loadProfile() async {
+    @discardableResult
+    func loadProfile() async -> Bool {
         do {
             if let state = try await profileReader.loadState() {
+                if DemoProfileSnapshot.matches(state) {
+                    try? await profileWriter.clearState()
+                    return false
+                }
                 applyState(state)
+                return true
             }
         } catch {
             errorMessage = error.localizedDescription
         }
+        return false
     }
 
     func loadDemoProfile() {
@@ -54,6 +61,7 @@ final class ProfileEditorViewModel: ObservableObject {
     }
 
     func saveProfile() async {
+        guard !isDemoProfile else { return }
         isSaving = true
         errorMessage = nil
 
@@ -142,6 +150,10 @@ final class ProfileEditorViewModel: ObservableObject {
 
     var canMatch: Bool {
         aiResult != nil
+    }
+
+    var canRunPaidMatch: Bool {
+        canMatch && !isDemoProfile
     }
 
     var hasCvText: Bool {
