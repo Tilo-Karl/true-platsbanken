@@ -81,6 +81,10 @@
 "profile.ai.none" = "None";
 "profile.demoCvBadge" = "Demo CV";
 "profile.action.runMatch" = "Run AI Match – %@";
+"profile.hero.upload" = "Upload CV";
+"profile.matchesFound" = "%d matches found";
+"profile.viewMatches" = "View Matches";
+"profile.details.title" = "Profile details";
 "employmentType.any" = "Any";
 "employmentType.fullTime" = "Full time";
 "employmentType.partTime" = "Part time";

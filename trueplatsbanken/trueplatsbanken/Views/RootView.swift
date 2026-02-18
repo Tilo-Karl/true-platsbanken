@@ -11,6 +11,21 @@ struct RootView: View {
         NavigationStack {
             ZStack(alignment: .topTrailing) {
                 TabView(selection: $appState.selectedTab) {
+                    ProfileEditorView(
+                        viewModel: appState.profileEditorViewModel,
+                        matchesCount: appState.matchResultsViewModel.matches.count,
+                        isLiveMode: appState.matchMode == .live,
+                        onUploadPhotos: appState.handleHeroUploadPhotos,
+                        onUploadFiles: appState.handleHeroUploadFiles,
+                        onViewMatches: {
+                            appState.selectedTab = .matches
+                        }
+                    )
+                    .tabItem {
+                        Label(AppStrings.profileTitle, systemImage: "person")
+                    }
+                    .tag(AppStateViewModel.Tab.profile)
+
                     MatchResultsView(
                         viewModel: appState.matchResultsViewModel,
                         isDemo: appState.matchMode == .demo,
@@ -31,15 +46,6 @@ struct RootView: View {
                             Label(AppStrings.jobsTitle, systemImage: "briefcase")
                         }
                         .tag(AppStateViewModel.Tab.jobs)
-
-                    ProfileEditorView(
-                        viewModel: appState.profileEditorViewModel,
-                        onRunPaidMatch: appState.runPaidMatch
-                    )
-                    .tabItem {
-                        Label(AppStrings.profileTitle, systemImage: "person")
-                    }
-                    .tag(AppStateViewModel.Tab.profile)
                 }
 
                 Button(action: { languageStore.toggle() }) {

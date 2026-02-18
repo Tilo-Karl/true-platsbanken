@@ -13,7 +13,7 @@ final class AppStateViewModel: ObservableObject {
         case live
     }
 
-    @Published var selectedTab: Tab = .matches
+    @Published var selectedTab: Tab = .profile
     @Published var matchMode: MatchMode = .demo
 
     let jobListViewModel: JobListViewModel
@@ -96,6 +96,32 @@ final class AppStateViewModel: ObservableObject {
         guard !urls.isEmpty else { return }
         await profileEditorViewModel.importFromFiles(urls)
         selectedTab = .profile
+    }
+
+    func handleHeroUploadPhotos(_ data: [Data]) async {
+        guard !data.isEmpty else { return }
+        do {
+            try await paymentProcessor.charge(amount: MatchPricing.priceSek, currency: "SEK")
+            await profileEditorViewModel.importFromPhotos(data)
+            guard profileEditorViewModel.canMatch else { return }
+            matchMode = .live
+            await refreshMatches()
+        } catch {
+            // TODO: surface payment failure to the user
+        }
+    }
+
+    func handleHeroUploadFiles(_ urls: [URL]) async {
+        guard !urls.isEmpty else { return }
+        do {
+            try await paymentProcessor.charge(amount: MatchPricing.priceSek, currency: "SEK")
+            await profileEditorViewModel.importFromFiles(urls)
+            guard profileEditorViewModel.canMatch else { return }
+            matchMode = .live
+            await refreshMatches()
+        } catch {
+            // TODO: surface payment failure to the user
+        }
     }
 
     func runPaidMatch() async {

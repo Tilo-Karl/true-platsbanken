@@ -81,6 +81,10 @@
 "profile.ai.none" = "Ingen";
 "profile.demoCvBadge" = "Demo-CV";
 "profile.action.runMatch" = "Kör AI-matchning – %@";
+"profile.hero.upload" = "Ladda upp CV";
+"profile.matchesFound" = "%d matchningar hittade";
+"profile.viewMatches" = "Visa matchningar";
+"profile.details.title" = "Profiluppgifter";
 "employmentType.any" = "Valfri";
 "employmentType.fullTime" = "Heltid";
 "employmentType.partTime" = "Deltid";

@@ -100,6 +100,12 @@ enum AppStrings {
     static func profileRunMatch(_ price: String) -> String {
         String(format: localized("profile.action.runMatch"), locale: Locale.current, price)
     }
+    static var profileHeroUpload: String { localized("profile.hero.upload") }
+    static func profileMatchesFound(_ count: Int) -> String {
+        String(format: localized("profile.matchesFound"), locale: Locale.current, count)
+    }
+    static var profileViewMatches: String { localized("profile.viewMatches") }
+    static var profileDetailsTitle: String { localized("profile.details.title") }
 
     static func employmentTypeLabel(for key: String) -> String {
         switch key {
