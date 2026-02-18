@@ -21,7 +21,7 @@ final class BackendMatchReader: MatchReading {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let body = MatchRequest(profile: payload, limit: 20, profileEmbedding: profileEmbedding)
+        let body = MatchRequest(profile: payload, limit: 30, profileEmbedding: profileEmbedding)
         request.httpBody = try JSONEncoder().encode(body)
 
         let (data, response) = try await session.data(for: request)

@@ -6,6 +6,7 @@ struct MatchMarketingOverlayView: View {
     @Binding var selectedPhotos: [PhotosPickerItem]
     let onUploadFile: () -> Void
     let onDismiss: () -> Void
+    let errorMessage: String?
 
     var body: some View {
         ZStack {
@@ -69,6 +70,14 @@ struct MatchMarketingOverlayView: View {
                 }
                 .padding(.top, 12)
                 .padding(.horizontal, 20)
+                if let errorMessage {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 8)
+                        .padding(.horizontal, 20)
+                }
             }
             .padding(.bottom, 20)
             .frame(maxWidth: 290)

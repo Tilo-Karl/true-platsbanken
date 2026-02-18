@@ -97,55 +97,65 @@ No AI cost here. Ever.
 
 ⸻
 
-Phase 7 — CV Match (Paid, Separate View) 🔜 IN PROGRESS
+Phase 7 — CV Match (Paid, Separate View) ✅ DONE
 
 What this view is
-	•	A separate listing
+	•	A separate listing (Matches tab)
 	•	Based on a paid match run
 	•	Frozen in time
 	•	Sorted by match score
 
-Entry points
-	•	CTA from Jobs view
-	•	Dedicated tab / segment (“CV-match”)
+Entry points (updated)
+	•	Home/Profile tab is first
+	•	Hero marketing card at top with “Upload CV”
+	•	Demo overlay still exists in Matches tab
 
-First-time flow (PAY POINT #1)
-	1.	User uploads/imports CV
-	2.	Profile extraction + role expansion
-	3.	Profile embedding
-	4.	One full CV match run against current jobs
-	5.	Results shown immediately
+Paid flow (implemented)
+	1.	User uploads/imports CV (photo or file) from Home or overlay
+	2.	Local validation only (type + size + non-empty)
+	3.	Dedicated payment screen
+	4. AI pipeline runs only after payment:
+		•	OCR / text extraction
+		•	Profile extraction + role expansion
+		•	Profile embedding
+		•	Match run
+	5. Results saved + shown
 
-Payment covers:
-profile AI + role expansion + one CV match run
+Important constraints
+	•	No pre-extraction or pre-embedding
+	•	Raw CV never persisted
+	•	Payment validity is session-only
+	•	Failure view allows retry without re-paying (same session)
+	•	Payment is still stubbed (StoreKit later)
 
-View behavior
-	•	Shows:
-	•	Match score per job
-	•	“Why this job?” (later)
-	•	Timestamp: “Matchad 30 jan”
-	•	Does not auto-refresh
-	•	New jobs do NOT appear here
+View behavior (updated)
+	•	Demo: overlay blocks job details
+	•	Live: job details are tappable
+	•	Match count shown on Home
+	•	Match request limit currently 30
 
-Snapshot persistence
+Snapshot persistence (updated)
 	•	Saved locally only
-	•	Includes matches, scores, reasons, timestamp
+	•	Used to restore live mode after restart
+	•	Demo reader is not used once a live snapshot exists
 
 ⸻
 
-Phase 8 — Updating CV Match (Paid Action) 🔜
+Phase 8 — Match Quality (Job Pool Tailoring) 🔜
 
-When payment is required again
-	•	User explicitly taps “Uppdatera CV-match”
+Goal
+	•	Increase match quality by tailoring the job pool to the profile
+	•	Reduce irrelevant matches before embeddings
 
-Triggers:
-	•	Re-run embeddings for jobs
-	•	Re-rank
-	•	Replace CV Match snapshot
+Approach
+	•	Use profile roles/keywords/inferred roles to constrain JobTech search
+	•	Prefer targeted job pools over generic “latest jobs”
+	•	Then run embeddings + ranking on the tailored pool
 
-This is PAY POINT #2.
-
-No background costs. No surprises.
+Important rule
+	•	No auto-updating against new jobs
+	•	New paid run only happens on explicit upload/payment
+	• No background costs
 
 ⸻
 

@@ -13,6 +13,7 @@ struct MatchResultsView: View {
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var showFileImporter = false
     @State private var overlayImageName = "CVMatch"
+    @State private var uploadError: String?
 
     var body: some View {
         let _ = languageStore.language
@@ -30,24 +31,18 @@ struct MatchResultsView: View {
                     ContentUnavailableView(AppStrings.noMatches, systemImage: "sparkles", description: Text(AppStrings.refreshToCheck))
                 } else {
                     List(viewModel.matches) { match in
-                        Button {
-                            presentOverlay()
-                        } label: {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(match.job.title)
-                                    .font(.headline)
-                                Text(match.job.employerName)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                if let score = match.score {
-                                    Text(AppStrings.scoreLabel(Int(score * 100)))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
+                        if isDemo {
+                            Button {
+                                presentOverlay()
+                            } label: {
+                                matchRow(match)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .buttonStyle(.plain)
+                        } else {
+                            NavigationLink(value: match.job) {
+                                matchRow(match)
+                            }
                         }
-                        .buttonStyle(.plain)
                     }
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
@@ -64,7 +59,8 @@ struct MatchResultsView: View {
                     },
                     onDismiss: {
                         showMarketingOverlay = false
-                    }
+                    },
+                    errorMessage: uploadError
                 )
             }
         }
@@ -77,6 +73,13 @@ struct MatchResultsView: View {
             guard !items.isEmpty else { return }
             Task {
                 let dataItems = await loadPhotoData(from: items)
+                if let error = UploadValidation.validatePhotoData(dataItems) {
+                    uploadError = error
+                    selectedPhotos = []
+                    return
+                }
+                uploadError = nil
+                showMarketingOverlay = false
                 await onUploadPhotos(dataItems)
                 selectedPhotos = []
             }
@@ -89,10 +92,16 @@ struct MatchResultsView: View {
             switch result {
             case .success(let urls):
                 Task {
+                    if let error = UploadValidation.validateFileUrls(urls) {
+                        uploadError = error
+                        return
+                    }
+                    uploadError = nil
+                    showMarketingOverlay = false
                     await onUploadFiles(urls)
                 }
             case .failure:
-                break
+                uploadError = AppStrings.profileImportFailed
             }
         }
         .safeAreaInset(edge: .top) {
@@ -142,7 +151,24 @@ struct MatchResultsView: View {
 
     private func presentOverlay() {
         overlayImageName = randomOverlayImage()
+        uploadError = nil
         showMarketingOverlay = true
+    }
+
+    private func matchRow(_ match: MatchResult) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(match.job.title)
+                .font(.headline)
+            Text(match.job.employerName)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            if let score = match.score {
+                Text(AppStrings.scoreLabel(Int(score * 100)))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func randomOverlayImage() -> String {

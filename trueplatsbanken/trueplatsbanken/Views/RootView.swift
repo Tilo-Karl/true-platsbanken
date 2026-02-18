@@ -19,7 +19,8 @@ struct RootView: View {
                         onUploadFiles: appState.handleHeroUploadFiles,
                         onViewMatches: {
                             appState.selectedTab = .matches
-                        }
+                        },
+                        showUploadSheet: $appState.showUploadSheet
                     )
                     .tabItem {
                         Label(AppStrings.profileTitle, systemImage: "person")
@@ -58,6 +59,29 @@ struct RootView: View {
                 }
                 .padding(.top, 6)
                 .padding(.trailing, 12)
+            }
+            .overlay {
+                switch appState.matchFlowStep {
+                case .idle:
+                    EmptyView()
+                case .payment:
+                    MatchPaymentView(
+                        price: MatchPricing.displayPrice,
+                        uploadSummary: appState.pendingUploadSummary,
+                        onConfirm: {
+                            await appState.confirmPayment()
+                        },
+                        onCancel: {
+                            appState.cancelPayment()
+                        }
+                    )
+                case .processing:
+                    MatchProcessingView()
+                case .failure:
+                    MatchFailureView {
+                        appState.retryAfterFailure()
+                    }
+                }
             }
             .navigationDestination(for: Job.self) { job in
                 JobDetailView(job: job)

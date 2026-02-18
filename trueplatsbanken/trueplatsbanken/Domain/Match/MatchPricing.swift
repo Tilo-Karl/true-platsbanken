@@ -1,8 +1,9 @@
 import Foundation
 
 struct MatchPricing {
-    static let priceSek: Int = 9
+    static let amountCents: Int = 199
+    static let currency: String = "USD"
     static var displayPrice: String {
-        "\(priceSek) kr"
+        "$1.99"
     }
 }

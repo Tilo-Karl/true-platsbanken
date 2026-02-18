@@ -13,8 +13,17 @@ final class AppStateViewModel: ObservableObject {
         case live
     }
 
+    enum MatchFlowStep {
+        case idle
+        case payment
+        case processing
+        case failure
+    }
+
     @Published var selectedTab: Tab = .profile
     @Published var matchMode: MatchMode = .demo
+    @Published var matchFlowStep: MatchFlowStep = .idle
+    @Published var showUploadSheet = false
 
     let jobListViewModel: JobListViewModel
     let profileEditorViewModel: ProfileEditorViewModel
@@ -22,6 +31,22 @@ final class AppStateViewModel: ObservableObject {
     let taxonomyViewModel: TaxonomyViewModel
     private let embeddingCache: EmbeddingCaching
     private let paymentProcessor: PaymentProcessing
+    private var pendingUpload: PendingUpload?
+    private var paidThisSessionForThisRun = false
+    var pendingUploadSummary: String? {
+        guard let pendingUpload else { return nil }
+        switch pendingUpload {
+        case .photos(let items):
+            return AppStrings.uploadSuccessPhotos(items.count)
+        case .files(let urls):
+            return AppStrings.uploadSuccessFiles(urls.count)
+        }
+    }
+
+    private enum PendingUpload {
+        case photos([Data])
+        case files([URL])
+    }
 
     init(
         jobReader: JobReading = BackendJobReader(),
@@ -62,7 +87,11 @@ final class AppStateViewModel: ObservableObject {
         if matchMode == .demo && !hasProfile {
             profileEditorViewModel.loadDemoProfile()
         }
-        await refreshMatches()
+        if matchResultsViewModel.loadSnapshot() {
+            matchMode = .live
+        } else {
+            await refreshMatches()
+        }
     }
 
     func consumeSharedCVIfAvailable() async {
@@ -88,53 +117,113 @@ final class AppStateViewModel: ObservableObject {
 
     func handleMatchUploadPhotos(_ data: [Data]) async {
         guard !data.isEmpty else { return }
-        await profileEditorViewModel.importFromPhotos(data)
-        selectedTab = .profile
+        queueUpload(.photos(data))
     }
 
     func handleMatchUploadFiles(_ urls: [URL]) async {
         guard !urls.isEmpty else { return }
-        await profileEditorViewModel.importFromFiles(urls)
-        selectedTab = .profile
+        queueUpload(.files(urls))
     }
 
     func handleHeroUploadPhotos(_ data: [Data]) async {
         guard !data.isEmpty else { return }
-        do {
-            try await paymentProcessor.charge(amount: MatchPricing.priceSek, currency: "SEK")
-            await profileEditorViewModel.importFromPhotos(data)
-            guard profileEditorViewModel.canMatch else { return }
-            matchMode = .live
-            await refreshMatches()
-        } catch {
-            // TODO: surface payment failure to the user
-        }
+        queueUpload(.photos(data))
     }
 
     func handleHeroUploadFiles(_ urls: [URL]) async {
         guard !urls.isEmpty else { return }
-        do {
-            try await paymentProcessor.charge(amount: MatchPricing.priceSek, currency: "SEK")
-            await profileEditorViewModel.importFromFiles(urls)
-            guard profileEditorViewModel.canMatch else { return }
-            matchMode = .live
-            await refreshMatches()
-        } catch {
-            // TODO: surface payment failure to the user
-        }
+        queueUpload(.files(urls))
     }
 
     func runPaidMatch() async {
         guard !profileEditorViewModel.isDemoProfile else { return }
         guard let payload = profileEditorViewModel.matchPayload() else { return }
         do {
-            try await paymentProcessor.charge(amount: MatchPricing.priceSek, currency: "SEK")
+            try await paymentProcessor.charge(amountCents: MatchPricing.amountCents, currency: MatchPricing.currency)
             matchMode = .live
             await matchResultsViewModel.loadMatches(payload: payload, persist: true)
             selectedTab = .matches
         } catch {
             // TODO: surface payment failure to the user
         }
+    }
+
+    func confirmPayment() async {
+        guard pendingUpload != nil else {
+            matchFlowStep = .idle
+            return
+        }
+        do {
+            try await paymentProcessor.charge(amountCents: MatchPricing.amountCents, currency: MatchPricing.currency)
+            paidThisSessionForThisRun = true
+            startProcessing()
+        } catch {
+            resetPendingUpload()
+            matchFlowStep = .idle
+            selectedTab = .profile
+        }
+    }
+
+    func cancelPayment() {
+        resetPendingUpload()
+        matchFlowStep = .idle
+        selectedTab = .profile
+    }
+
+    func retryAfterFailure() {
+        matchFlowStep = .idle
+        selectedTab = .profile
+        showUploadSheet = true
+    }
+
+    private func queueUpload(_ upload: PendingUpload) {
+        pendingUpload = upload
+        if paidThisSessionForThisRun {
+            startProcessing()
+        } else {
+            matchFlowStep = .payment
+        }
+    }
+
+    private func startProcessing() {
+        matchFlowStep = .processing
+        Task {
+            await runMatchPipeline()
+        }
+    }
+
+    private func runMatchPipeline() async {
+        guard let pendingUpload else {
+            matchFlowStep = .idle
+            return
+        }
+
+        profileEditorViewModel.clearErrorMessage()
+        profileEditorViewModel.prepareForNewUpload()
+
+        switch pendingUpload {
+        case .photos(let data):
+            await profileEditorViewModel.importFromPhotos(data)
+        case .files(let urls):
+            await profileEditorViewModel.importFromFiles(urls)
+        }
+
+        let success = profileEditorViewModel.canMatch
+        resetPendingUpload()
+
+        if success {
+            matchMode = .live
+            await refreshMatches()
+            selectedTab = .profile
+            paidThisSessionForThisRun = false
+            matchFlowStep = .idle
+        } else {
+            matchFlowStep = .failure
+        }
+    }
+
+    private func resetPendingUpload() {
+        pendingUpload = nil
     }
 
     func refreshTaxonomy(language: AppLanguageStore.Language) async {

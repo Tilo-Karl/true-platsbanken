@@ -202,6 +202,16 @@ final class ProfileEditorViewModel: ObservableObject {
         errorMessage = message
     }
 
+    func clearErrorMessage() {
+        errorMessage = nil
+    }
+
+    func prepareForNewUpload() {
+        aiResult = nil
+        draft.cvText = ""
+        isDemoProfile = false
+    }
+
     private func mapImportError(_ error: Error) -> String {
         if let error = error as? LocalCVTextReaderError {
             switch error {

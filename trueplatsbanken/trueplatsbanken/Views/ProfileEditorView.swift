@@ -11,11 +11,12 @@ struct ProfileEditorView: View {
     let onUploadPhotos: ([Data]) async -> Void
     let onUploadFiles: ([URL]) async -> Void
     let onViewMatches: () -> Void
+    @Binding var showUploadSheet: Bool
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var showFileImporter = false
-    @State private var showUploadSheet = false
     @State private var showProfileDetails = false
     @State private var heroIndex = 0
+    @State private var uploadError: String?
 
     private let heroImages = ["CVMatch7", "CVMatch8", "CVMatch9", "CVMatch10"]
     private let heroTimer = Timer.publish(every: 4.5, on: .main, in: .common).autoconnect()
@@ -277,8 +278,14 @@ struct ProfileEditorView: View {
             guard !items.isEmpty else { return }
             Task {
                 let dataItems = await loadPhotoData(from: items)
-                await onUploadPhotos(dataItems)
+                if let error = UploadValidation.validatePhotoData(dataItems) {
+                    uploadError = error
+                    selectedPhotos = []
+                    return
+                }
+                uploadError = nil
                 showUploadSheet = false
+                await onUploadPhotos(dataItems)
                 selectedPhotos = []
             }
         }
@@ -290,11 +297,16 @@ struct ProfileEditorView: View {
             switch result {
             case .success(let urls):
                 Task {
-                    await onUploadFiles(urls)
+                    if let error = UploadValidation.validateFileUrls(urls) {
+                        uploadError = error
+                        return
+                    }
+                    uploadError = nil
                     showUploadSheet = false
+                    await onUploadFiles(urls)
                 }
             case .failure:
-                viewModel.setErrorMessage(AppStrings.profileImportFailed)
+                uploadError = AppStrings.profileImportFailed
             }
         }
         .sheet(isPresented: $showUploadSheet) {
@@ -317,7 +329,6 @@ struct ProfileEditorView: View {
                 }
 
                 Button {
-                    showUploadSheet = false
                     showFileImporter = true
                 } label: {
                     Text(AppStrings.matchesOverlayUploadFile)
@@ -328,9 +339,20 @@ struct ProfileEditorView: View {
                         .background(AppColors.brandBlueDark.opacity(0.12))
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
+                if let uploadError {
+                    Text(uploadError)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                }
                 Spacer()
             }
             .padding(20)
+        }
+        .onChange(of: showUploadSheet) { _, isPresented in
+            if isPresented {
+                uploadError = nil
+            }
         }
         .onReceive(heroTimer) { _ in
             guard !heroImages.isEmpty else { return }

@@ -61,6 +61,25 @@ enum AppStrings {
     static var matchesOverlayBullet2: String { localized("matches.overlay.bullet2") }
     static var matchesOverlayBullet3: String { localized("matches.overlay.bullet3") }
     static var matchesOverlaySubtitle: String { localized("matches.overlay.subtitle") }
+    static var uploadEmptyError: String { localized("upload.error.empty") }
+    static var uploadTooLargeError: String { localized("upload.error.tooLarge") }
+    static func uploadSuccessPhotos(_ count: Int) -> String {
+        let key = count == 1 ? "upload.success.photos.one" : "upload.success.photos.other"
+        return String(format: localized(key), locale: Locale.current, count)
+    }
+    static func uploadSuccessFiles(_ count: Int) -> String {
+        let key = count == 1 ? "upload.success.files.one" : "upload.success.files.other"
+        return String(format: localized(key), locale: Locale.current, count)
+    }
+    static var paymentTitle: String { localized("payment.title") }
+    static var paymentSubtitle: String { localized("payment.subtitle") }
+    static var paymentContinue: String { localized("payment.continue") }
+    static var paymentCancel: String { localized("payment.cancel") }
+    static var processingTitle: String { localized("processing.title") }
+    static var processingSubtitle: String { localized("processing.subtitle") }
+    static var failureTitle: String { localized("failure.title") }
+    static var failureBody: String { localized("failure.body") }
+    static var failureRetry: String { localized("failure.retry") }
 
     static var profileSectionIdentity: String { localized("profile.section.identity") }
     static var profileSectionPreferences: String { localized("profile.section.preferences") }
