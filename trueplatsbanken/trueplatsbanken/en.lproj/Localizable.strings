@@ -10,6 +10,7 @@
 "jobs.search.suggestions.none" = "No suggestions";
 "jobs.search.recent.title" = "Recent searches";
 "matches.loading" = "Loading matches...";
+"matches.loading.live" = "Loading AI matches...";
 "matches.unavailable" = "Matches unavailable";
 "matches.none" = "No matches yet";
 "matches.refreshToCheck" = "Refresh to check again.";
@@ -97,6 +98,9 @@
 "profile.demoCvBadge" = "Demo CV";
 "profile.action.runMatch" = "Run AI Match – %@";
 "profile.hero.upload" = "Upload CV";
+"profile.upload.newCv" = "Upload new CV";
+"profile.ai.active" = "AI Profile Active";
+"profile.lastUpdated" = "Updated %@";
 "profile.matchesFound" = "%d matches found";
 "profile.viewMatches" = "View Matches";
 "profile.details.title" = "Profile details";

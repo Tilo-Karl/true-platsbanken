@@ -24,7 +24,7 @@ struct MatchResultsView: View {
 
             Group {
                 if viewModel.isLoading {
-                    ProgressView(AppStrings.matchesLoading)
+                    ProgressView(isDemo ? AppStrings.matchesLoading : AppStrings.matchesLoadingLive)
                 } else if let error = viewModel.errorMessage {
                     ContentUnavailableView(AppStrings.matchesUnavailable, systemImage: "exclamationmark.triangle", description: Text(error))
                 } else if viewModel.matches.isEmpty {
@@ -163,12 +163,28 @@ struct MatchResultsView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             if let score = match.score {
-                Text(AppStrings.scoreLabel(Int(score * 100)))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(scoreColor(score))
+                        .frame(width: 6, height: 6)
+                    Text(AppStrings.scoreLabel(Int(score * 100)))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func scoreColor(_ score: Double) -> Color {
+        switch score {
+        case 0.7...:
+            return .green
+        case 0.5..<0.7:
+            return .orange
+        default:
+            return .red
+        }
     }
 
     private func randomOverlayImage() -> String {

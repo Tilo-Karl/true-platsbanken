@@ -10,6 +10,7 @@
 "jobs.search.suggestions.none" = "Inga förslag";
 "jobs.search.recent.title" = "Senaste sökningar";
 "matches.loading" = "Laddar matchningar...";
+"matches.loading.live" = "Laddar AI-matchningar...";
 "matches.unavailable" = "Matchningar kunde inte laddas";
 "matches.none" = "Inga matchningar än";
 "matches.refreshToCheck" = "Uppdatera för att se igen.";
@@ -97,6 +98,9 @@
 "profile.demoCvBadge" = "Demo-CV";
 "profile.action.runMatch" = "Kör AI-matchning – %@";
 "profile.hero.upload" = "Ladda upp CV";
+"profile.upload.newCv" = "Ladda upp nytt CV";
+"profile.ai.active" = "AI-profil aktiv";
+"profile.lastUpdated" = "Uppdaterad %@";
 "profile.matchesFound" = "%d matchningar hittade";
 "profile.viewMatches" = "Visa matchningar";
 "profile.details.title" = "Profiluppgifter";

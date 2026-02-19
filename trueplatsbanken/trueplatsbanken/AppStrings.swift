@@ -19,6 +19,7 @@ enum AppStrings {
     static var searchRecentTitle: String { localized("jobs.search.recent.title") }
 
     static var matchesLoading: String { localized("matches.loading") }
+    static var matchesLoadingLive: String { localized("matches.loading.live") }
     static var matchesUnavailable: String { localized("matches.unavailable") }
     static var noMatches: String { localized("matches.none") }
     static var refreshToCheck: String { localized("matches.refreshToCheck") }
@@ -120,6 +121,11 @@ enum AppStrings {
         String(format: localized("profile.action.runMatch"), locale: Locale.current, price)
     }
     static var profileHeroUpload: String { localized("profile.hero.upload") }
+    static var profileUploadNewCv: String { localized("profile.upload.newCv") }
+    static var profileAiActive: String { localized("profile.ai.active") }
+    static func profileLastUpdated(_ value: String) -> String {
+        String(format: localized("profile.lastUpdated"), locale: Locale.current, value)
+    }
     static func profileMatchesFound(_ count: Int) -> String {
         String(format: localized("profile.matchesFound"), locale: Locale.current, count)
     }

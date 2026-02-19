@@ -8,6 +8,7 @@ final class ProfileEditorViewModel: ObservableObject {
     @Published private(set) var isExtracting = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var isDemoProfile = false
+    @Published private(set) var lastUpdated: Date?
     @Published var pendingReplacementText: String?
     @Published var shouldConfirmReplacement = false
 
@@ -58,6 +59,7 @@ final class ProfileEditorViewModel: ObservableObject {
         draft = DemoProfileSnapshot.draft
         aiResult = DemoProfileSnapshot.aiResult
         isDemoProfile = true
+        lastUpdated = nil
     }
 
     func saveProfile() async {
@@ -120,10 +122,12 @@ final class ProfileEditorViewModel: ObservableObject {
                 }
             }
 
+            let updated = Date()
+            lastUpdated = updated
             try await profileWriter.saveState(ProfileLocalState(
                 draft: draft,
                 aiResult: aiResult,
-                lastUpdated: Date()
+                lastUpdated: updated
             ))
         } catch {
             errorMessage = error.localizedDescription
@@ -210,6 +214,7 @@ final class ProfileEditorViewModel: ObservableObject {
         aiResult = nil
         draft.cvText = ""
         isDemoProfile = false
+        lastUpdated = nil
     }
 
     private func mapImportError(_ error: Error) -> String {
@@ -228,5 +233,6 @@ final class ProfileEditorViewModel: ObservableObject {
         draft = state.draft
         aiResult = state.aiResult
         isDemoProfile = false
+        lastUpdated = state.lastUpdated
     }
 }

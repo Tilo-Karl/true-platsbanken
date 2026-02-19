@@ -14,7 +14,7 @@ struct ProfileEditorView: View {
     @Binding var showUploadSheet: Bool
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var showFileImporter = false
-    @State private var showProfileDetails = false
+    @State private var showCvDetails = false
     @State private var heroIndex = 0
     @State private var uploadError: String?
 
@@ -30,133 +30,71 @@ struct ProfileEditorView: View {
 
             Form {
                 Section {
-                    VStack(spacing: 16) {
-                        VStack(spacing: 0) {
-                            Image(heroImages[heroIndex])
-                                .resizable()
-                                .scaledToFill()
-                                .frame(maxWidth: .infinity, minHeight: 150, maxHeight: 150)
-                                .clipped()
-                            VStack(spacing: 10) {
-                                Text(AppStrings.matchesOverlayTitle)
-                                    .font(.title3)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(AppColors.brandBlack.opacity(0.9))
-                                    .multilineTextAlignment(.center)
-                                Text(AppStrings.matchesOverlaySubtitle)
-                                    .font(.footnote)
-                                    .foregroundStyle(AppColors.brandBlack.opacity(0.6))
-                                    .multilineTextAlignment(.center)
-                                VStack(alignment: .leading, spacing: 8) {
-                                    heroBullet(AppStrings.matchesOverlayBullet2)
-                                    heroBullet(AppStrings.matchesOverlayBullet3)
-                                }
-                            }
-                            .padding(.top, 12)
-                            .padding(.horizontal, 20)
-
-                            Button {
-                                showUploadSheet = true
-                            } label: {
-                                Text(AppStrings.profileHeroUpload)
-                                    .font(.headline)
-                                    .foregroundStyle(AppColors.brandWhite)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
-                                    .background(AppColors.brandBlueDark)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.top, 12)
-                            .padding(.bottom, 16)
-                        }
-                        .background(AppColors.brandWhite)
-                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                        .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: 6)
+                    if isLiveMode {
+                        aiSummaryCard()
+                    } else {
+                        heroCard()
                     }
-                    .padding(.vertical, 8)
                 }
                 .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
 
                 Section {
-                    HStack {
-                        Text(AppStrings.profileMatchesFound(matchesCount))
-                            .font(.headline)
-                        Spacer()
-                        Button(AppStrings.profileViewMatches) {
-                            onViewMatches()
-                        }
-                    }
+                    infoCard(
+                        title: AppStrings.profileAiRoles,
+                        value: rolesSummary(viewModel.aiResult?.roles)
+                    )
                 }
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
 
                 Section {
-                    Button {
-                        showProfileDetails.toggle()
-                    } label: {
-                        HStack {
-                            Text(AppStrings.profileDetailsTitle)
-                                .font(.headline)
-                            Spacer()
-                            Image(systemName: showProfileDetails ? "chevron.up" : "chevron.down")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    infoCard(
+                        title: AppStrings.profileAiInferredRoles,
+                        value: rolesSummary(viewModel.aiResult?.inferredRoles)
+                    )
                 }
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
 
-                if showProfileDetails {
-                    Section(AppStrings.profileAiRoles) {
-                        if let roles = viewModel.aiResult?.roles, !roles.isEmpty {
-                            Text(roles.joined(separator: ", "))
-                        } else {
-                            Text(AppStrings.profileAiNone)
-                                .foregroundStyle(.secondary)
+                Section {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Button {
+                            showCvDetails.toggle()
+                        } label: {
+                            HStack {
+                                Text(AppStrings.profileSectionCv)
+                                    .font(.headline)
+                                    .foregroundStyle(AppColors.brandBlack.opacity(0.9))
+                                Spacer()
+                                Image(systemName: showCvDetails ? "chevron.up" : "chevron.down")
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                    }
 
-                    Section(AppStrings.profileAiInferredRoles) {
-                        if let roles = viewModel.aiResult?.inferredRoles, !roles.isEmpty {
-                            Text(roles.joined(separator: ", "))
-                        } else {
-                            Text(AppStrings.profileAiNone)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    if viewModel.hasCvText {
-                        Section {
+                        if showCvDetails {
                             if viewModel.isDemoProfile {
-                                HStack {
-                                    Text(AppStrings.profileDemoCvBadge)
-                                        .font(.caption)
-                                        .fontWeight(.semibold)
-                                        .foregroundStyle(AppColors.brandGreen)
-                                        .padding(.vertical, 4)
-                                        .padding(.horizontal, 8)
-                                        .background(AppColors.brandBlueDark.opacity(0.12))
-                                        .clipShape(Capsule())
-                                    Spacer()
-                                }
+                                Text(AppStrings.profileDemoCvBadge)
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(AppColors.brandGreen)
+                                    .padding(.vertical, 4)
+                                    .padding(.horizontal, 8)
+                                    .background(AppColors.brandBlueDark.opacity(0.12))
+                                    .clipShape(Capsule())
                             }
                             TextEditor(text: $viewModel.draft.cvText)
                                 .frame(minHeight: 140)
                                 .disabled(true)
-                        } header: {
-                            Text(AppStrings.profileSectionCv)
                         }
                     }
-
-                    Section {
-                        TextField(AppStrings.profileLocationPreference, text: $viewModel.draft.municipality)
-                    }
-
-                    Section {
-                        Picker(AppStrings.profileEmploymentType, selection: $viewModel.draft.employmentType) {
-                            ForEach(EmploymentTypeOptions.all, id: \.self) { type in
-                                Text(AppStrings.employmentTypeLabel(for: type))
-                            }
-                        }
-                    }
+                    .padding(16)
+                    .background(AppColors.brandWhite)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
                 }
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
 
             /*
             Section(AppStrings.profileSectionIdentity) {
@@ -379,5 +317,132 @@ struct ProfileEditorView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    private func rolesSummary(_ roles: [String]?) -> String {
+        guard let roles, !roles.isEmpty else {
+            return AppStrings.profileAiNone
+        }
+        return roles.prefix(3).joined(separator: ", ")
+    }
+
+    private func heroCard() -> some View {
+        VStack(spacing: 0) {
+            Image(heroImages[heroIndex])
+                .resizable()
+                .scaledToFill()
+                .frame(maxWidth: .infinity, minHeight: 150, maxHeight: 150)
+                .clipped()
+            VStack(spacing: 10) {
+                Text(AppStrings.matchesOverlayTitle)
+                    .font(.title3)
+                    .fontWeight(.medium)
+                    .foregroundStyle(AppColors.brandBlack.opacity(0.9))
+                    .multilineTextAlignment(.center)
+                Text(AppStrings.matchesOverlaySubtitle)
+                    .font(.footnote)
+                    .foregroundStyle(AppColors.brandBlack.opacity(0.6))
+                    .multilineTextAlignment(.center)
+                VStack(alignment: .leading, spacing: 8) {
+                    heroBullet(AppStrings.matchesOverlayBullet2)
+                    heroBullet(AppStrings.matchesOverlayBullet3)
+                }
+            }
+            .padding(.top, 12)
+            .padding(.horizontal, 20)
+
+            Button {
+                showUploadSheet = true
+            } label: {
+                Text(AppStrings.profileHeroUpload)
+                    .font(.headline)
+                    .foregroundStyle(AppColors.brandWhite)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(AppColors.brandBlueDark)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 12)
+            .padding(.bottom, 16)
+        }
+        .background(AppColors.brandWhite)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: 6)
+        .padding(.vertical, 8)
+    }
+
+    private func aiSummaryCard() -> some View {
+        let primaryRoles = rolesSummary(viewModel.aiResult?.roles)
+        let updatedText = viewModel.lastUpdated.map { formatDate($0) }
+
+        return VStack(alignment: .leading, spacing: 12) {
+            Text(AppStrings.profileAiActive)
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(AppColors.brandGreen)
+                .padding(.vertical, 4)
+                .padding(.horizontal, 8)
+                .background(AppColors.brandBlueDark.opacity(0.12))
+                .clipShape(Capsule())
+
+            Text(primaryRoles)
+                .font(.headline)
+                .foregroundStyle(AppColors.brandBlack.opacity(0.9))
+
+            Text(AppStrings.profileMatchesFound(matchesCount))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            if let updatedText {
+                Text(AppStrings.profileLastUpdated(updatedText))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Button(AppStrings.profileViewMatches) {
+                onViewMatches()
+            }
+            .font(.headline)
+            .foregroundStyle(AppColors.brandWhite)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(AppColors.brandBlueDark)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .padding(.top, 4)
+
+            Button(AppStrings.profileUploadNewCv) {
+                showUploadSheet = true
+            }
+            .font(.subheadline)
+            .foregroundStyle(AppColors.brandBlueDark)
+        }
+        .padding(16)
+        .background(AppColors.brandWhite)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: 6)
+        .padding(.vertical, 8)
+    }
+
+    private func infoCard(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(AppColors.brandBlack.opacity(0.9))
+            Text(value)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(16)
+        .background(AppColors.brandWhite)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+    }
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }
