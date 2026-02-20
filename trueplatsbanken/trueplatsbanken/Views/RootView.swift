@@ -9,7 +9,7 @@ struct RootView: View {
         let _ = languageStore.language
 
         NavigationStack {
-            ZStack(alignment: .topTrailing) {
+            ZStack {
                 TabView(selection: $appState.selectedTab) {
                     ProfileEditorView(
                         viewModel: appState.profileEditorViewModel,
@@ -49,17 +49,8 @@ struct RootView: View {
                         .tag(AppStateViewModel.Tab.jobs)
                 }
 
-                Button(action: { languageStore.toggle() }) {
-                    Text(languageStore.buttonLabel)
-                        .font(.caption2)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(.thinMaterial)
-                        .clipShape(Capsule())
-                }
-                .padding(.top, 6)
-                .padding(.trailing, 12)
             }
+            .toolbar(.hidden, for: .navigationBar)
             .overlay {
                 switch appState.matchFlowStep {
                 case .idle:

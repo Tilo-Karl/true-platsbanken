@@ -15,11 +15,10 @@ struct ProfileEditorView: View {
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var showFileImporter = false
     @State private var showCvDetails = false
-    @State private var heroIndex = 0
+    @State private var heroImageName = "CVMatch11"
     @State private var uploadError: String?
 
-    private let heroImages = ["CVMatch7", "CVMatch8", "CVMatch9", "CVMatch10"]
-    private let heroTimer = Timer.publish(every: 4.5, on: .main, in: .common).autoconnect()
+    private let heroImages = ["CVMatch11", "CVMatch12"]
 
     var body: some View {
         let _ = languageStore.language
@@ -28,73 +27,13 @@ struct ProfileEditorView: View {
             AppColors.brandWhite
                 .ignoresSafeArea()
 
-            Form {
-                Section {
-                    if isLiveMode {
-                        aiSummaryCard()
-                    } else {
-                        heroCard()
-                    }
-                }
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
+            ScrollView {
+                VStack(spacing: 16) {
+                    heroSection()
+                        .ignoresSafeArea(edges: .top)
 
-                Section {
-                    infoCard(
-                        title: AppStrings.profileAiRoles,
-                        value: rolesSummary(viewModel.aiResult?.roles)
-                    )
-                }
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-
-                Section {
-                    infoCard(
-                        title: AppStrings.profileAiInferredRoles,
-                        value: rolesSummary(viewModel.aiResult?.inferredRoles)
-                    )
-                }
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-
-                Section {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Button {
-                            showCvDetails.toggle()
-                        } label: {
-                            HStack {
-                                Text(AppStrings.profileSectionCv)
-                                    .font(.headline)
-                                    .foregroundStyle(AppColors.brandBlack.opacity(0.9))
-                                Spacer()
-                                Image(systemName: showCvDetails ? "chevron.up" : "chevron.down")
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-
-                        if showCvDetails {
-                            if viewModel.isDemoProfile {
-                                Text(AppStrings.profileDemoCvBadge)
-                                    .font(.caption)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(AppColors.brandGreen)
-                                    .padding(.vertical, 4)
-                                    .padding(.horizontal, 8)
-                                    .background(AppColors.brandBlueDark.opacity(0.12))
-                                    .clipShape(Capsule())
-                            }
-                            TextEditor(text: $viewModel.draft.cvText)
-                                .frame(minHeight: 140)
-                                .disabled(true)
-                        }
-                    }
-                    .padding(16)
-                    .background(AppColors.brandWhite)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-                }
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
+                    profileCard()
+                        .padding(.horizontal, 16)
 
             /*
             Section(AppStrings.profileSectionIdentity) {
@@ -175,28 +114,39 @@ struct ProfileEditorView: View {
                 }
             }
             */
+                }
+                .padding(.bottom, 24)
             }
-            .scrollContentBackground(.hidden)
         }
-        .safeAreaInset(edge: .top) {
+        .overlay(alignment: .top) {
             HStack {
                 Text(AppStrings.appTitle)
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundStyle(AppColors.brandGreen)
                 Spacer()
+                Button(action: { languageStore.toggle() }) {
+                    Text(languageStore.buttonLabel)
+                        .font(.caption2)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(.thinMaterial)
+                        .clipShape(Capsule())
+                }
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, 12)
-            .padding(.top, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 10)
+            .padding(.bottom, 6)
             .background(
                 LinearGradient(
-                    colors: [AppColors.brandBlueDark, AppColors.brandBlue],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+                    colors: [
+                        AppColors.brandBlueDark.opacity(0.85),
+                        AppColors.brandBlueDark.opacity(0.3),
+                        .clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
                 )
-                .ignoresSafeArea(edges: .top)
             )
         }
         .confirmationDialog(
@@ -292,9 +242,8 @@ struct ProfileEditorView: View {
                 uploadError = nil
             }
         }
-        .onReceive(heroTimer) { _ in
-            guard !heroImages.isEmpty else { return }
-            heroIndex = (heroIndex + 1) % heroImages.count
+        .onAppear {
+            heroImageName = heroImages.randomElement() ?? heroImageName
         }
     }
 
@@ -308,100 +257,132 @@ struct ProfileEditorView: View {
         return results
     }
 
-    private func heroBullet(_ text: String) -> some View {
-        HStack(alignment: .center, spacing: 8) {
-            Circle()
-                .fill(AppColors.brandBlue.opacity(0.6))
-                .frame(width: 6, height: 6)
-            Text(text)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 
-    private func rolesSummary(_ roles: [String]?) -> String {
-        guard let roles, !roles.isEmpty else {
-            return AppStrings.profileAiNone
-        }
-        return roles.prefix(3).joined(separator: ", ")
-    }
+    private func heroSection() -> some View {
+        let title = isLiveMode ? AppStrings.profileAiActive : AppStrings.profileDemoActive
+        let updated = viewModel.lastUpdated ?? Date()
+        let subtitle = AppStrings.profileHeroSubtitle(matchesCount, formatDate(updated))
 
-    private func heroCard() -> some View {
-        VStack(spacing: 0) {
-            Image(heroImages[heroIndex])
+        return ZStack(alignment: .bottomLeading) {
+            Image(heroImageName)
                 .resizable()
                 .scaledToFill()
-                .frame(maxWidth: .infinity, minHeight: 150, maxHeight: 150)
+                .frame(maxWidth: .infinity, minHeight: 260, maxHeight: 260)
                 .clipped()
-            VStack(spacing: 10) {
-                Text(AppStrings.matchesOverlayTitle)
-                    .font(.title3)
-                    .fontWeight(.medium)
-                    .foregroundStyle(AppColors.brandBlack.opacity(0.9))
-                    .multilineTextAlignment(.center)
-                Text(AppStrings.matchesOverlaySubtitle)
-                    .font(.footnote)
-                    .foregroundStyle(AppColors.brandBlack.opacity(0.6))
-                    .multilineTextAlignment(.center)
-                VStack(alignment: .leading, spacing: 8) {
-                    heroBullet(AppStrings.matchesOverlayBullet2)
-                    heroBullet(AppStrings.matchesOverlayBullet3)
-                }
-            }
-            .padding(.top, 12)
-            .padding(.horizontal, 20)
 
-            Button {
-                showUploadSheet = true
-            } label: {
-                Text(AppStrings.profileHeroUpload)
-                    .font(.headline)
+            LinearGradient(
+                colors: [
+                    AppColors.brandBlueDark.opacity(0.15),
+                    AppColors.brandBlueDark.opacity(0.65),
+                    AppColors.brandWhite
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 200)
+            .frame(maxWidth: .infinity, alignment: .bottom)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text(title)
+                    .font(.title3)
+                    .fontWeight(.semibold)
                     .foregroundStyle(AppColors.brandWhite)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(AppColors.brandBlueDark)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .shadow(color: .black.opacity(0.25), radius: 3, x: 0, y: 1)
+                Text(subtitle)
+                    .font(.footnote)
+                    .foregroundStyle(AppColors.brandWhite.opacity(0.9))
+                    .shadow(color: .black.opacity(0.25), radius: 3, x: 0, y: 1)
+
+                Button(AppStrings.profileViewMatches) {
+                    onViewMatches()
+                }
+                .font(.headline)
+                .foregroundStyle(AppColors.brandWhite)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(AppColors.brandBlueDark)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 12)
-            .padding(.bottom, 16)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(AppColors.brandWhite)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: 6)
-        .padding(.vertical, 8)
     }
 
-    private func aiSummaryCard() -> some View {
-        let primaryRoles = rolesSummary(viewModel.aiResult?.roles)
-        let updatedText = viewModel.lastUpdated.map { formatDate($0) }
+    private func profileCard() -> some View {
+        let roles = normalizedRoles(viewModel.aiResult?.roles)
+        let inferred = normalizedRoles(viewModel.aiResult?.inferredRoles)
 
-        return VStack(alignment: .leading, spacing: 12) {
-            Text(AppStrings.profileAiActive)
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundStyle(AppColors.brandGreen)
-                .padding(.vertical, 4)
-                .padding(.horizontal, 8)
-                .background(AppColors.brandBlueDark.opacity(0.12))
-                .clipShape(Capsule())
-
-            Text(primaryRoles)
+        return VStack(alignment: .leading, spacing: 16) {
+            Text(AppStrings.profileCardTitle)
                 .font(.headline)
                 .foregroundStyle(AppColors.brandBlack.opacity(0.9))
 
-            Text(AppStrings.profileMatchesFound(matchesCount))
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            if let updatedText {
-                Text(AppStrings.profileLastUpdated(updatedText))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(AppStrings.profileAiRoles)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                if roles.isEmpty {
+                    Text(AppStrings.profileAiNone)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else {
+                    FlowLayout(spacing: 8) {
+                        ForEach(roles, id: \.self) { role in
+                            ChipView(text: role, style: .primary)
+                        }
+                    }
+                }
             }
 
-            Button(AppStrings.profileViewMatches) {
-                onViewMatches()
+            VStack(alignment: .leading, spacing: 8) {
+                Text(AppStrings.profileAiInferredRoles)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                if inferred.isEmpty {
+                    Text(AppStrings.profileAiNone)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else {
+                    FlowLayout(spacing: 8) {
+                        ForEach(inferred, id: \.self) { role in
+                            ChipView(text: role, style: .secondary)
+                        }
+                    }
+                }
+            }
+
+            DisclosureGroup(isExpanded: $showCvDetails) {
+                VStack(alignment: .leading, spacing: 12) {
+                    if viewModel.isDemoProfile {
+                        Text(AppStrings.profileDemoCvBadge)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(AppColors.brandGreen)
+                            .padding(.vertical, 4)
+                            .padding(.horizontal, 8)
+                            .background(AppColors.brandBlueDark.opacity(0.12))
+                            .clipShape(Capsule())
+                    }
+                    TextEditor(text: $viewModel.draft.cvText)
+                        .frame(minHeight: 140)
+                        .disabled(true)
+                }
+            } label: {
+                Text(AppStrings.profileSectionCv)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(AppColors.brandBlack.opacity(0.9))
+            }
+
+            Button(AppStrings.profileUploadNewCv) {
+                showUploadSheet = true
             }
             .font(.headline)
             .foregroundStyle(AppColors.brandWhite)
@@ -409,40 +390,103 @@ struct ProfileEditorView: View {
             .padding(.vertical, 12)
             .background(AppColors.brandBlueDark)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .padding(.top, 4)
-
-            Button(AppStrings.profileUploadNewCv) {
-                showUploadSheet = true
-            }
-            .font(.subheadline)
-            .foregroundStyle(AppColors.brandBlueDark)
         }
         .padding(16)
         .background(AppColors.brandWhite)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: 6)
-        .padding(.vertical, 8)
     }
 
-    private func infoCard(title: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.headline)
-                .foregroundStyle(AppColors.brandBlack.opacity(0.9))
-            Text(value)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+    private func normalizedRoles(_ roles: [String]?) -> [String] {
+        guard let roles else { return [] }
+        return roles
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+    }
+}
+
+private struct ChipView: View {
+    enum Style {
+        case primary
+        case secondary
+    }
+
+    let text: String
+    let style: Style
+
+    var body: some View {
+        Text(text)
+            .font(.caption2)
+            .foregroundStyle(style == .primary ? AppColors.brandBlueDark : AppColors.brandBlueDark.opacity(0.6))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(style == .primary ? AppColors.brandBlueDark.opacity(0.12) : AppColors.brandBlueDark.opacity(0.04))
+            .clipShape(Capsule())
+    }
+}
+
+private struct FlowLayout<Content: View>: View {
+    let spacing: CGFloat
+    let content: Content
+
+    init(spacing: CGFloat = 8, @ViewBuilder content: () -> Content) {
+        self.spacing = spacing
+        self.content = content()
+    }
+
+    var body: some View {
+        FlowLayoutContainer(spacing: spacing) {
+            content
         }
-        .padding(16)
-        .background(AppColors.brandWhite)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+    }
+}
+
+private struct FlowLayoutContainer: Layout {
+    let spacing: CGFloat
+
+    init(spacing: CGFloat) {
+        self.spacing = spacing
     }
 
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxWidth = proposal.width ?? 0
+        var rowWidth: CGFloat = 0
+        var rowHeight: CGFloat = 0
+        var totalHeight: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if rowWidth + size.width > maxWidth, rowWidth > 0 {
+                totalHeight += rowHeight + spacing
+                rowWidth = 0
+                rowHeight = 0
+            }
+            rowWidth += size.width + (rowWidth > 0 ? spacing : 0)
+            rowHeight = max(rowHeight, size.height)
+        }
+
+        totalHeight += rowHeight
+        return CGSize(width: maxWidth, height: totalHeight)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX
+        var y = bounds.minY
+        var rowHeight: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x + size.width > bounds.maxX, x > bounds.minX {
+                x = bounds.minX
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+            subview.place(
+                at: CGPoint(x: x, y: y),
+                proposal: ProposedViewSize(width: size.width, height: size.height)
+            )
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
     }
 }

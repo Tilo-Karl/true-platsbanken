@@ -100,6 +100,9 @@
 "profile.hero.upload" = "Upload CV";
 "profile.upload.newCv" = "Upload new CV";
 "profile.ai.active" = "AI Profile Active";
+"profile.demo.active" = "DEMO Profile Active";
+"profile.card.title" = "Your profile";
+"profile.hero.subtitle" = "%d matches • Updated %@";
 "profile.lastUpdated" = "Updated %@";
 "profile.matchesFound" = "%d matches found";
 "profile.viewMatches" = "View Matches";

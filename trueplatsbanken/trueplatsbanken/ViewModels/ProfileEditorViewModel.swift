@@ -59,7 +59,7 @@ final class ProfileEditorViewModel: ObservableObject {
         draft = DemoProfileSnapshot.draft
         aiResult = DemoProfileSnapshot.aiResult
         isDemoProfile = true
-        lastUpdated = nil
+        lastUpdated = Date()
     }
 
     func saveProfile() async {

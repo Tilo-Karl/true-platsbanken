@@ -123,6 +123,11 @@ enum AppStrings {
     static var profileHeroUpload: String { localized("profile.hero.upload") }
     static var profileUploadNewCv: String { localized("profile.upload.newCv") }
     static var profileAiActive: String { localized("profile.ai.active") }
+    static var profileDemoActive: String { localized("profile.demo.active") }
+    static var profileCardTitle: String { localized("profile.card.title") }
+    static func profileHeroSubtitle(_ count: Int, _ date: String) -> String {
+        String(format: localized("profile.hero.subtitle"), locale: Locale.current, count, date)
+    }
     static func profileLastUpdated(_ value: String) -> String {
         String(format: localized("profile.lastUpdated"), locale: Locale.current, value)
     }
