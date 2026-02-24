@@ -78,7 +78,7 @@ struct ProfileEditorView: View {
         HStack(alignment: .center) {
             Text(AppStrings.appTitle)
                 .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(AppColors.brandGreen)
+                .foregroundStyle(AppColors.brandWhite)
             
             Spacer()
             
@@ -310,6 +310,7 @@ struct ProfileEditorView: View {
         guard let roles else { return [] }
         return roles.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
     }
+
 }
 
 private struct ChipView: View {
