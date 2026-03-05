@@ -34,7 +34,8 @@ enum DemoProfileSnapshot {
         inferredRoles: ["service manager", "quality coordinator"],
         seniority: "mid",
         locations: ["Stockholm", "Gothenburg"],
-        summary: "Experienced leader focused on customer success and operational excellence."
+        summary: "Experienced leader focused on customer success and operational excellence.",
+        occupationIds: []
     )
 
     static var matchPayload: ProfileMatchPayload {

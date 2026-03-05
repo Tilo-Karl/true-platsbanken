@@ -4,6 +4,7 @@ struct ProfileMatchPayload: Hashable, Codable {
     let keywords: [String]
     let roles: [String]
     let inferredRoles: [String]
+    let occupationIds: [String]
     let seniority: String?
     let locations: [String]
     let summary: String
@@ -17,6 +18,7 @@ struct ProfileMatchPayload: Hashable, Codable {
             keywords: aiResult.keywords,
             roles: aiResult.roles,
             inferredRoles: aiResult.inferredRoles,
+            occupationIds: aiResult.occupationIds,
             seniority: aiResult.seniority,
             locations: aiResult.locations,
             summary: aiResult.summary,

@@ -57,6 +57,9 @@ struct ProfileEditorView: View {
             .ignoresSafeArea(edges: .top)
             .coordinateSpace(name: "SCROLL")
         }
+        .overlay(alignment: .top) {
+            headerOverlay()
+        }
         .confirmationDialog(
             AppStrings.profileReplaceConfirmTitle,
             isPresented: $viewModel.shouldConfirmReplacement
@@ -87,6 +90,44 @@ struct ProfileEditorView: View {
     }
 
     // MARK: - Sections
+
+    private func headerOverlay() -> some View {
+        GeometryReader { proxy in
+            let safeTop = proxy.safeAreaInsets.top
+            HStack {
+                Text(AppStrings.appTitle)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(AppColors.brandWhite)
+                Spacer()
+                Button(action: { languageStore.toggle() }) {
+                    Text(languageStore.buttonLabel)
+                        .font(.caption2)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(.thinMaterial)
+                        .clipShape(Capsule())
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 3)
+            //.padding(.top, safeTop + 6)
+            .padding(.bottom, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                LinearGradient(
+                    colors: [
+                        AppColors.brandBlueDark.opacity(0.75),
+                        AppColors.brandBlueDark.opacity(0.35),
+                        .clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea(edges: .top)
+            )
+        }
+        .frame(height: 80)
+    }
 
     private func heroSection() -> some View {
         GeometryReader { proxy in

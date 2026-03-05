@@ -156,12 +156,35 @@ struct MatchResultsView: View {
     }
 
     private func matchRow(_ match: MatchResult) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(match.job.title)
+        VStack(alignment: .leading, spacing: 4) {
+            Text(JobPresentation.headline(for: match.job))
                 .font(.headline)
-            Text(match.job.employerName)
+
+            Text(JobPresentation.employerLine(for: match.job))
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+
+            if let occupation = JobPresentation.occupationLabel(for: match.job) {
+                Text(occupation)
+                    .font(.subheadline)
+            }
+
+            if let published = JobPresentation.publishedPresentation(for: match.job, now: Date()) {
+                HStack(spacing: 8) {
+                    if let badgeText = published.badgeLabel {
+                        Text(badgeText)
+                            .font(.caption.bold())
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.yellow.opacity(0.25))
+                            .clipShape(Capsule())
+                    }
+
+                    Text(published.listLabel)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
             if let score = match.score {
                 HStack(spacing: 6) {
                     Circle()

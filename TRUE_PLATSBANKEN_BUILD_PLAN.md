@@ -147,15 +147,25 @@ Goal
 	•	Increase match quality by tailoring the job pool to the profile
 	•	Reduce irrelevant matches before embeddings
 
+Reference
+	•	See JOB_MATCH_EXPANSION_PLAN.md for the two-track plan (Phase 8 ship-now + graph-based upgrade).
+
 Approach
-	•	Use profile roles/keywords/inferred roles to constrain JobTech search
-	•	Prefer targeted job pools over generic “latest jobs”
-	•	Then run embeddings + ranking on the tailored pool
+	•	Resolve extracted roles and inferred roles to **JobTech occupation IDs** (canonical taxonomy)
+	•	Use those occupation IDs to fetch jobs from JobTech instead of relying primarily on free-text queries
+	•	Expand the pool slightly using **occupation neighbors** (similar occupations derived from taxonomy proximity)
+	•	Fallback to q= free-text search only when a role cannot be mapped to a JobTech occupation
+	•	Run embeddings + ranking only on this tailored job pool
+
+Notes
+	•	JobTech occupations become the canonical role representation in the backend
+	•	Role strings from AI are resolved to occupation IDs once and cached
+	•	Occupation expansion should stay limited (small neighbor set) to avoid noisy pools
 
 Important rule
 	•	No auto-updating against new jobs
 	•	New paid run only happens on explicit upload/payment
-	• No background costs
+	•	No background costs
 
 ⸻
 

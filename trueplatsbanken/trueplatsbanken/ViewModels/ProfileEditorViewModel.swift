@@ -106,7 +106,8 @@ final class ProfileEditorViewModel: ObservableObject {
                 inferredRoles: expansion.inferredRoles,
                 seniority: extraction.seniority,
                 locations: extraction.locations,
-                summary: extraction.summary
+                summary: extraction.summary,
+                occupationIds: expansion.occupationIds
             )
 
             if draft.municipality.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
