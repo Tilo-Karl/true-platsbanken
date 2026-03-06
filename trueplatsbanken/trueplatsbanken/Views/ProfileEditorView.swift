@@ -1,10 +1,15 @@
+import UniformTypeIdentifiers
 import SwiftUI
 import PhotosUI
-import UniformTypeIdentifiers
+import UIKit
+
+// Notch fix (same idea as StretchyHeaderContainer):
+// 1) Add safeAreaTopInset to the image height.
+// 2) Subtract safeAreaTopInset from the image offset.
+// This anchors the hero image to the physical screen top (0,0) while preserving the stretch/parallax via minY.
 
 struct ProfileEditorView: View {
     @ObservedObject var viewModel: ProfileEditorViewModel
-    @EnvironmentObject private var languageStore: AppLanguageStore
     let matchesCount: Int
     let isLiveMode: Bool
     let onUploadPhotos: ([Data]) async -> Void
@@ -20,67 +25,39 @@ struct ProfileEditorView: View {
 
     private let heroImages = ["CVMatch11", "CVMatch12"]
     private let heroHeight: CGFloat = 180
+    private let heroOverlap: CGFloat = 115 
 
     var body: some View {
-        ZStack {
-            // Background gradient: Slightly deeper at the top for better contrast
-            LinearGradient(
-                colors: [AppColors.brandBlueDark.opacity(0.25), .white],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+        ZStack(alignment: .top) {
+            // Background fills everything behind the scroll
+            AppBackground()
+                .ignoresSafeArea()
 
             ScrollView {
-                VStack(spacing: 32) {
-                    
-                    // 1. Hero & Status Card Bridge
+                VStack(spacing: 0) {
                     ZStack(alignment: .bottom) {
                         heroSection()
                         
                         statusCard()
-                            .padding(.horizontal, 16)
-                            .offset(y: 115)
+                            .padding(.horizontal, AppSpacing.screenPadding)
+                            .offset(y: heroOverlap)
                     }
-                    .padding(.bottom, 90)
-                    
-                    // 2. Your Profile (Roles) Card
-                    rolesCard()
-                        .padding(.horizontal, 16)
+                    .padding(.bottom, heroOverlap + AppSpacing.sectionGap)
 
-                    // 3. CV Management Card
+                    rolesCard()
+                        .padding(.horizontal, AppSpacing.screenPadding)
+                        .padding(.bottom, AppSpacing.sectionGap)
+
                     cvCard()
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, AppSpacing.screenPadding)
                 }
                 .padding(.bottom, 40)
             }
             .ignoresSafeArea(edges: .top)
             .coordinateSpace(name: "SCROLL")
+            
         }
-        .overlay(alignment: .top) {
-            headerOverlay()
-        }
-        .confirmationDialog(
-            AppStrings.profileReplaceConfirmTitle,
-            isPresented: $viewModel.shouldConfirmReplacement
-        ) {
-            Button(AppStrings.profileReplaceConfirmAction) {
-                Task { await viewModel.confirmReplace() }
-            }
-            Button(AppStrings.profileReplaceCancel, role: .cancel) {}
-        } message: {
-            Text(AppStrings.profileReplaceConfirmMessage)
-        }
-        .onChange(of: selectedPhotos) { _, items in
-            handlePhotoSelection(items)
-        }
-        .fileImporter(
-            isPresented: $showFileImporter,
-            allowedContentTypes: [.pdf, .image],
-            allowsMultipleSelection: true
-        ) { result in
-            handleFileImport(result)
-        }
+        .navigationBarHidden(true)
         .sheet(isPresented: $showUploadSheet) {
             uploadSheetContent()
         }
@@ -91,185 +68,125 @@ struct ProfileEditorView: View {
 
     // MARK: - Sections
 
-    private func headerOverlay() -> some View {
-        GeometryReader { proxy in
-            let safeTop = proxy.safeAreaInsets.top
-            HStack {
-                Text(AppStrings.appTitle)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(AppColors.brandWhite)
-                Spacer()
-                Button(action: { languageStore.toggle() }) {
-                    Text(languageStore.buttonLabel)
-                        .font(.caption2)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(.thinMaterial)
-                        .clipShape(Capsule())
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 3)
-            //.padding(.top, safeTop + 6)
-            .padding(.bottom, 10)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                LinearGradient(
-                    colors: [
-                        AppColors.brandBlueDark.opacity(0.75),
-                        AppColors.brandBlueDark.opacity(0.35),
-                        .clear
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea(edges: .top)
-            )
-        }
-        .frame(height: 80)
-    }
-
     private func heroSection() -> some View {
         GeometryReader { proxy in
             let minY = proxy.frame(in: .named("SCROLL")).minY
+            // Only stretch when pulling down.
+            let baseHeight = heroHeight + (minY > 0 ? minY : 0)
+            // Extend hero image into the notch area.
+            let height = baseHeight + safeAreaTopInset
+            
             Image(heroImageName)
                 .resizable()
                 .scaledToFill()
-                .frame(width: proxy.size.width, height: heroHeight + (minY > 0 ? minY : 0))
+                // Increase height to cover the notch.
+                .frame(width: proxy.size.width, height: height)
                 .clipped()
-                .offset(y: minY > 0 ? -minY : 0)
+                // Pin the image to the true top of the screen.
+                .offset(y: (minY > 0 ? -minY : 0) - safeAreaTopInset)
         }
         .frame(height: heroHeight)
     }
 
     private func statusCard() -> some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "checkmark.seal.fill")
-                    .foregroundStyle(AppColors.brandGreen)
-                    .font(.title3)
-                Text(isLiveMode ? AppStrings.profileAiActive : AppStrings.profileDemoActive)
-                    .font(.headline)
-                    .foregroundStyle(AppColors.brandBlueDark)
-            }
-            
-            Text("\(matchesCount) matches found today")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        GlassCard {
+            VStack(alignment: .leading, spacing: AppSpacing.cardGap) {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .foregroundStyle(AppColors.brandGreen)
+                    Text(isLiveMode ? AppStrings.profileAiActive : AppStrings.profileDemoActive)
+                        .font(AppFonts.sectionTitle)
+                        .foregroundStyle(AppColors.brandBlueDark)
+                }
 
-            Button(action: onViewMatches) {
-                Text(AppStrings.profileViewMatches)
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(AppColors.brandBlueDark)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                Text(AppStrings.profileMatchesFound(matchesCount))
+                    .font(AppFonts.meta)
+                    .foregroundStyle(AppColors.brandBlack.opacity(0.6))
+
+                Button(action: onViewMatches) {
+                    Text(AppStrings.profileViewMatches)
+                        .font(AppFonts.body.weight(.semibold))
+                        .foregroundStyle(AppColors.brandWhite)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(AppColors.brandBlueDark)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
             }
         }
-        .padding(20)
-        .background(.ultraThinMaterial.opacity(0.85)) // Glassy base
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay( // The "Inner Stroke" for definition
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(.white.opacity(0.5), lineWidth: 0.5)
-        )
-        .shadow(color: .black.opacity(0.08), radius: 15, x: 0, y: 8)
     }
 
     private func rolesCard() -> some View {
         let roles = normalizedRoles(viewModel.aiResult?.roles)
         let inferred = normalizedRoles(viewModel.aiResult?.inferredRoles)
 
-        return VStack(alignment: .leading, spacing: 24) {
-            Label(AppStrings.profileCardTitle, systemImage: "person.text.rectangle")
-                .font(.headline)
-                .foregroundStyle(AppColors.brandBlueDark)
-
-            if !roles.isEmpty {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(AppStrings.profileAiRoles)
-                        .font(.caption).bold()
-                        .foregroundStyle(.secondary)
-                    
-                    FlowLayout(spacing: 8) {
-                        ForEach(roles, id: \.self) { role in
-                            ChipView(text: role, style: .primary)
+        return SectionCard(title: AppStrings.profileCardTitle) {
+            VStack(alignment: .leading, spacing: 24) {
+                if !roles.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(AppStrings.profileAiRoles)
+                            .font(AppFonts.meta.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        FlowLayout(spacing: 8) {
+                            ForEach(roles, id: \.self) { role in
+                                ChipView(text: role, style: .primary)
+                            }
                         }
                     }
                 }
-            }
 
-            if !inferred.isEmpty {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(AppStrings.profileAiInferredRoles)
-                        .font(.caption).bold()
-                        .foregroundStyle(.secondary)
-                    
-                    FlowLayout(spacing: 8) {
-                        ForEach(inferred, id: \.self) { role in
-                            ChipView(text: role, style: .secondary)
+                if !inferred.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(AppStrings.profileAiInferredRoles)
+                            .font(AppFonts.meta.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        FlowLayout(spacing: 8) {
+                            ForEach(inferred, id: \.self) { role in
+                                ChipView(text: role, style: .secondary)
+                            }
                         }
                     }
                 }
             }
         }
-        .padding(24)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.ultraThinMaterial.opacity(0.8))
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(.white.opacity(0.4), lineWidth: 0.5)
-        )
     }
 
     private func cvCard() -> some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Label(AppStrings.profileSectionCv, systemImage: "doc.text.fill")
-                .font(.headline)
-                .foregroundStyle(AppColors.brandBlueDark)
-
-            DisclosureGroup(isExpanded: $showCvDetails) {
-                TextEditor(text: .constant(viewModel.draft.cvText))
-                    .frame(minHeight: 120)
-                    .font(.caption)
-                    .padding(10)
-                    .background(.white.opacity(0.4))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .disabled(true)
-                    .padding(.top, 10)
-            } label: {
-                Text("Tap to review analyzed text")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            Button { showUploadSheet = true } label: {
-                HStack {
-                    Image(systemName: "arrow.up.doc.fill")
-                    Text(AppStrings.profileUploadNewCv)
+        SectionCard(title: AppStrings.profileSectionCv) {
+            VStack(alignment: .leading, spacing: 20) {
+                DisclosureGroup(isExpanded: $showCvDetails) {
+                    TextEditor(text: .constant(viewModel.draft.cvText))
+                        .frame(minHeight: 120)
+                        .font(AppFonts.meta)
+                        .padding(10)
+                        .background(AppColors.brandWhite.opacity(0.6))
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .disabled(true)
+                        .padding(.top, 10)
+                } label: {
+                    Text(AppStrings.profileDetailsTitle)
+                        .font(AppFonts.body)
+                        .foregroundStyle(.secondary)
                 }
-                .font(.headline)
-                .foregroundStyle(AppColors.brandBlueDark)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(AppColors.brandBlueDark.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+                Button { showUploadSheet = true } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.up.doc.fill")
+                        Text(AppStrings.profileUploadNewCv)
+                    }
+                    .font(AppFonts.body.weight(.semibold))
+                    .foregroundStyle(AppColors.brandBlueDark)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(AppColors.brandBlueDark.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
             }
         }
-        .padding(24)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.ultraThinMaterial.opacity(0.8))
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(.white.opacity(0.4), lineWidth: 0.5)
-        )
     }
 
-    // MARK: - Handlers & Helpers
-
+    // MARK: - Helper Methods
+    
     private func handlePhotoSelection(_ items: [PhotosPickerItem]) {
         guard !items.isEmpty else { return }
         Task {
@@ -299,11 +216,12 @@ struct ProfileEditorView: View {
     private func uploadSheetContent() -> some View {
         VStack(spacing: 16) {
             Capsule().frame(width: 40, height: 5).foregroundStyle(.secondary).padding(.top, 10)
-            Text(AppStrings.profileHeroUpload).font(.headline).padding(.top, 12)
+            Text(AppStrings.profileHeroUpload).font(AppFonts.sectionTitle).padding(.top, 12)
             
             PhotosPicker(selection: $selectedPhotos, maxSelectionCount: 2, matching: .images) {
                 Text(AppStrings.matchesOverlayUploadPhoto)
-                    .font(.headline).foregroundStyle(.white)
+                    .font(AppFonts.body.weight(.semibold))
+                    .foregroundStyle(AppColors.brandWhite)
                     .frame(maxWidth: .infinity).padding(.vertical, 14)
                     .background(AppColors.brandBlueDark)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
@@ -311,14 +229,15 @@ struct ProfileEditorView: View {
 
             Button { showFileImporter = true } label: {
                 Text(AppStrings.matchesOverlayUploadFile)
-                    .font(.headline).foregroundStyle(AppColors.brandBlueDark)
+                    .font(AppFonts.body.weight(.semibold))
+                    .foregroundStyle(AppColors.brandBlueDark)
                     .frame(maxWidth: .infinity).padding(.vertical, 14)
                     .background(AppColors.brandBlueDark.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: 14))
             }
             
             if let uploadError {
-                Text(uploadError).font(.footnote).foregroundStyle(.red).padding(.top, 8)
+                Text(uploadError).font(AppFonts.meta).foregroundStyle(.red).padding(.top, 8)
             }
             Spacer()
         }
@@ -339,9 +258,18 @@ struct ProfileEditorView: View {
         guard let roles = roles else { return [] }
         return roles.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
     }
+
+    private var safeAreaTopInset: CGFloat {
+        // Window safe-area inset = notch height.
+        let window = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }
+        return window?.safeAreaInsets.top ?? 0
+    }
 }
 
-// MARK: - Reusable UI Components
+// MARK: - Reusable Components
 
 private struct ChipView: View {
     enum Style { case primary; case secondary }
@@ -350,12 +278,11 @@ private struct ChipView: View {
 
     var body: some View {
         Text(text)
-            .font(.caption)
-            .fontWeight(.bold)
-            .foregroundStyle(style == .primary ? AppColors.brandBlueDark : .primary.opacity(0.8))
+            .font(AppFonts.meta.weight(.semibold))
+            .foregroundStyle(style == .primary ? AppColors.brandBlueDark : AppColors.brandBlack.opacity(0.8))
             .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background(style == .primary ? AppColors.brandBlueDark.opacity(0.1) : .black.opacity(0.06))
+            .padding(.vertical, 8)
+            .background(style == .primary ? AppColors.brandBlueDark.opacity(0.12) : AppColors.brandBlack.opacity(0.05))
             .clipShape(Capsule())
     }
 }

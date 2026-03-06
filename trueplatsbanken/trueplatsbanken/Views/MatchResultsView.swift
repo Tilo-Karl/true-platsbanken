@@ -9,44 +9,65 @@ struct MatchResultsView: View {
     let onUploadPhotos: ([Data]) async -> Void
     let onUploadFiles: ([URL]) async -> Void
     let onRefresh: () async -> Void
+    
     @State private var showMarketingOverlay = true
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var showFileImporter = false
     @State private var overlayImageName = "CVMatch"
     @State private var uploadError: String?
+    
+    // Using a different hero image for this tab to distinguish it from Profile
+    private let heroImageName = "CVMatch12"
+    private let heroHeight: CGFloat = 140
 
     var body: some View {
         let _ = languageStore.language
 
         ZStack {
-            AppColors.brandWhite
-                .ignoresSafeArea()
+            AppBackground()
 
-            Group {
-                if viewModel.isLoading {
-                    ProgressView(isDemo ? AppStrings.matchesLoading : AppStrings.matchesLoadingLive)
-                } else if let error = viewModel.errorMessage {
-                    ContentUnavailableView(AppStrings.matchesUnavailable, systemImage: "exclamationmark.triangle", description: Text(error))
-                } else if viewModel.matches.isEmpty {
-                    ContentUnavailableView(AppStrings.noMatches, systemImage: "sparkles", description: Text(AppStrings.refreshToCheck))
-                } else {
-                    List(viewModel.matches) { match in
-                        if isDemo {
-                            Button {
-                                presentOverlay()
-                            } label: {
-                                matchRow(match)
+            ScrollView {
+                // Spacing 0 to ensure Header is flush at the top
+                VStack(spacing: 0) {
+                    StretchyHeaderContainer(
+                        heroImageName: heroImageName,
+                        heroHeight: heroHeight,
+                        topScrim: heroScrim
+                    ) {
+                        VStack(alignment: .leading, spacing: AppSpacing.cardGap / 2) {
+                            HStack {
+                                Text(AppStrings.matchesTitle)
+                                    .font(AppFonts.title)
+                                    .foregroundStyle(AppColors.brandWhite)
+                                Spacer()
+                                refreshButton
                             }
-                            .buttonStyle(.plain)
-                        } else {
-                            NavigationLink(value: match.job) {
-                                matchRow(match)
+
+                            if isDemo {
+                                Text(AppStrings.matchesDemoBadge)
+                                    .font(AppFonts.meta.weight(.bold))
+                                    .foregroundStyle(AppColors.brandWhite)
+                                    .padding(.vertical, AppSpacing.cardGap / 3)
+                                    .padding(.horizontal, AppSpacing.cardGap)
+                                    .background(AppColors.brandAccent.opacity(0.5))
+                                    .clipShape(Capsule())
                             }
                         }
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
+
+                    // The actual list content
+                    LazyVStack(spacing: AppSpacing.cardGap) {
+                        matchesSection
+                    }
+                    .padding(.horizontal, AppSpacing.screenPadding)
+                    .padding(.top, AppSpacing.sectionGap)
+                    .padding(.bottom, AppSpacing.sectionGap)
                 }
+            }
+            .coordinateSpace(name: "SCROLL")
+            .ignoresSafeArea(edges: .top) // Allows header to go behind notch
+            .refreshable {
+                await onRefresh()
             }
         }
         .overlay {
@@ -70,82 +91,97 @@ struct MatchResultsView: View {
             }
         }
         .onChange(of: selectedPhotos) { _, items in
-            guard !items.isEmpty else { return }
-            Task {
-                let dataItems = await loadPhotoData(from: items)
-                if let error = UploadValidation.validatePhotoData(dataItems) {
-                    uploadError = error
-                    selectedPhotos = []
-                    return
-                }
-                uploadError = nil
-                showMarketingOverlay = false
-                await onUploadPhotos(dataItems)
-                selectedPhotos = []
-            }
+            handlePhotoSelection(items)
         }
         .fileImporter(
             isPresented: $showFileImporter,
             allowedContentTypes: [.pdf, .image],
             allowsMultipleSelection: true
         ) { result in
-            switch result {
-            case .success(let urls):
-                Task {
-                    if let error = UploadValidation.validateFileUrls(urls) {
-                        uploadError = error
-                        return
-                    }
-                    uploadError = nil
-                    showMarketingOverlay = false
-                    await onUploadFiles(urls)
-                }
-            case .failure:
-                uploadError = AppStrings.profileImportFailed
-            }
+            handleFileImport(result)
         }
-        .safeAreaInset(edge: .top) {
-            HStack {
-                HStack(spacing: 8) {
-                    Text(AppStrings.appTitle)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(AppColors.brandGreen)
-                    if isDemo {
-                        Text(AppStrings.matchesDemoBadge)
-                            .font(.caption2)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(AppColors.brandWhite)
-                            .padding(.vertical, 4)
-                            .padding(.horizontal, 8)
-                            .background(AppColors.brandGreen.opacity(0.35))
-                            .clipShape(Capsule())
-                    }
-                }
-                Spacer()
-                Button(AppStrings.refresh) {
-                    Task {
-                        await onRefresh()
-                    }
-                }
+        .navigationBarHidden(true)
+    }
+
+    // MARK: - Subviews
+
+    private var refreshButton: some View {
+        Button(action: {
+            Task { await onRefresh() }
+        }) {
+            Image(systemName: "arrow.clockwise.circle.fill")
+                .font(.title2)
                 .foregroundStyle(AppColors.brandWhite)
-                .disabled(viewModel.isLoading)
-            }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 12)
-            .padding(.top, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                LinearGradient(
-                    colors: [AppColors.brandBlueDark, AppColors.brandBlue],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea(edges: .top)
-            )
         }
-        .refreshable {
-            await onRefresh()
+        .disabled(viewModel.isLoading)
+    }
+
+    @ViewBuilder
+    private var matchesSection: some View {
+        if viewModel.isLoading {
+            VStack {
+                ProgressView()
+                    .tint(AppColors.brandBlueDark)
+                Text(isDemo ? AppStrings.matchesLoading : AppStrings.matchesLoadingLive)
+                    .font(AppFonts.meta)
+                    .padding(.top, 8)
+            }
+            .frame(maxWidth: .infinity, minHeight: 200)
+        } else if let error = viewModel.errorMessage {
+            ContentUnavailableView(AppStrings.matchesUnavailable, systemImage: "exclamationmark.triangle", description: Text(error))
+        } else if viewModel.matches.isEmpty {
+            ContentUnavailableView(AppStrings.noMatches, systemImage: "sparkles", description: Text(AppStrings.refreshToCheck))
+        } else {
+            ForEach(viewModel.matches) { match in
+                if isDemo {
+                    Button {
+                        presentOverlay()
+                    } label: {
+                        MatchCard(match: match)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                } else {
+                    NavigationLink(value: match.job) {
+                        MatchCard(match: match)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+        }
+    }
+
+    // MARK: - Handlers
+
+    private func handlePhotoSelection(_ items: [PhotosPickerItem]) {
+        guard !items.isEmpty else { return }
+        Task {
+            let dataItems = await loadPhotoData(from: items)
+            if let error = UploadValidation.validatePhotoData(dataItems) {
+                uploadError = error
+                selectedPhotos = []
+                return
+            }
+            uploadError = nil
+            showMarketingOverlay = false
+            await onUploadPhotos(dataItems)
+            selectedPhotos = []
+        }
+    }
+
+    private func handleFileImport(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            Task {
+                if let error = UploadValidation.validateFileUrls(urls) {
+                    uploadError = error
+                    return
+                }
+                uploadError = nil
+                showMarketingOverlay = false
+                await onUploadFiles(urls)
+            }
+        case .failure:
+            uploadError = AppStrings.profileImportFailed
         }
     }
 
@@ -153,61 +189,6 @@ struct MatchResultsView: View {
         overlayImageName = randomOverlayImage()
         uploadError = nil
         showMarketingOverlay = true
-    }
-
-    private func matchRow(_ match: MatchResult) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(JobPresentation.headline(for: match.job))
-                .font(.headline)
-
-            Text(JobPresentation.employerLine(for: match.job))
-                .font(.subheadline)
-
-            if let occupation = JobPresentation.occupationLabel(for: match.job) {
-                Text(occupation)
-                    .font(.subheadline)
-            }
-
-            if let published = JobPresentation.publishedPresentation(for: match.job, now: Date()) {
-                HStack(spacing: 8) {
-                    if let badgeText = published.badgeLabel {
-                        Text(badgeText)
-                            .font(.caption.bold())
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.yellow.opacity(0.25))
-                            .clipShape(Capsule())
-                    }
-
-                    Text(published.listLabel)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            if let score = match.score {
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(scoreColor(score))
-                        .frame(width: 6, height: 6)
-                    Text(AppStrings.scoreLabel(Int(score * 100)))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func scoreColor(_ score: Double) -> Color {
-        switch score {
-        case 0.7...:
-            return .green
-        case 0.5..<0.7:
-            return .orange
-        default:
-            return .red
-        }
     }
 
     private func randomOverlayImage() -> String {
@@ -223,5 +204,13 @@ struct MatchResultsView: View {
             }
         }
         return results
+    }
+
+    private var heroScrim: LinearGradient {
+        LinearGradient(
+            colors: [AppColors.brandBlueDark.opacity(0.8), AppColors.brandBlueDark.opacity(0.3), .clear],
+            startPoint: .top,
+            endPoint: .bottom
+        )
     }
 }
