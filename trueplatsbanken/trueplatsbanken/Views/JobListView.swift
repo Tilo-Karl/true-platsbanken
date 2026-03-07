@@ -12,43 +12,23 @@ struct JobListView: View {
     
     // Consistent hero image for the Jobs tab
     private let heroImageName = "CVMatch11"
-    private let heroHeight: CGFloat = 140
+    private let heroHeight: CGFloat = 180
+    private let headerOverlapFraction: CGFloat = 1.0 / 3.0
 
     var body: some View {
         let _ = languageStore.language
 
-        ZStack {
-            AppBackground()
-
-            ScrollView {
-                VStack(spacing: 0) {
-                    // MARK: - Parallax Header
-                    StretchyHeaderContainer(
-                        heroImageName: heroImageName,
-                        heroHeight: heroHeight,
-                        topScrim: heroScrim
-                    ) {
-                        Text(AppStrings.jobsTitle)
-                            .font(AppFonts.title)
-                            .foregroundStyle(AppColors.brandWhite)
-                    }
-
-                    // MARK: - Content
-                    LazyVStack(spacing: AppSpacing.sectionGap) {
-                        filtersSection
-                        jobsSection
-                    }
-                    .padding(.horizontal, AppSpacing.screenPadding)
-                    .padding(.top, AppSpacing.sectionGap)
-                    .padding(.bottom, AppSpacing.sectionGap)
-                }
-            }
-            .coordinateSpace(name: "SCROLL")
-            // Match Profile behavior: allow hero to render into the notch.
-            .ignoresSafeArea(edges: .top)
-            .refreshable {
-                await viewModel.loadJobs()
-            }
+        HeroListScreen(
+            heroImageName: heroImageName,
+            heroHeight: heroHeight,
+            topScrim: heroScrim,
+            overlapFraction: headerOverlapFraction,
+            bottomSpacing: AppSpacing.sectionGap,
+            onRefresh: { await viewModel.loadJobs() }
+        ) {
+            jobsHeaderCard
+        } content: {
+            jobsSection
         }
         .navigationBarHidden(true)
         .sheet(isPresented: $showOccupationSheet) {
@@ -94,27 +74,28 @@ struct JobListView: View {
         }
     }
 
-    // MARK: - Filter Section
-    private var filtersSection: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: AppSpacing.cardGap) {
-                if taxonomyViewModel.snapshot != nil {
-                    JobFiltersBar(
-                        filters: viewModel.filters,
-                        onClear: { viewModel.clearFilters() },
-                        onOccupationTap: { showOccupationSheet = true },
-                        onLocationTap: { showLocationSheet = true },
-                        onEmploymentTypeTap: { showEmploymentTypeSheet = true },
-                        onWorkingHoursTap: { showWorkingHoursSheet = true }
-                    )
-                } else {
-                    Text(AppStrings.filterLoading)
-                        .font(AppFonts.meta)
-                        .foregroundStyle(AppColors.brandBlack.opacity(0.7))
-                }
-
-                searchSection
+    // MARK: - Jobs Header Card (Overlapping)
+    private var jobsHeaderCard: some View {
+        HeaderSummaryCard(
+            title: AppStrings.jobsTitle,
+            subtitle: AppStrings.vacanciesLabel(viewModel.jobs.count)
+        ) {
+            if taxonomyViewModel.snapshot != nil {
+                JobFiltersBar(
+                    filters: viewModel.filters,
+                    onClear: { viewModel.clearFilters() },
+                    onOccupationTap: { showOccupationSheet = true },
+                    onLocationTap: { showLocationSheet = true },
+                    onEmploymentTypeTap: { showEmploymentTypeSheet = true },
+                    onWorkingHoursTap: { showWorkingHoursSheet = true }
+                )
+            } else {
+                Text(AppStrings.filterLoading)
+                    .font(AppFonts.meta)
+                    .foregroundStyle(AppColors.brandBlack.opacity(0.7))
             }
+
+            searchSection
         }
     }
 

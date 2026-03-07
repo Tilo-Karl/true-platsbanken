@@ -18,58 +18,23 @@ struct MatchResultsView: View {
     
     // Using a different hero image for this tab to distinguish it from Profile
     private let heroImageName = "CVMatch12"
-    private let heroHeight: CGFloat = 140
+    private let heroHeight: CGFloat = 180
+    private let headerOverlapFraction: CGFloat = 1.0 / 3.0
 
     var body: some View {
         let _ = languageStore.language
 
-        ZStack {
-            AppBackground()
-
-            ScrollView {
-                // Spacing 0 to ensure Header is flush at the top
-                VStack(spacing: 0) {
-                    StretchyHeaderContainer(
-                        heroImageName: heroImageName,
-                        heroHeight: heroHeight,
-                        topScrim: heroScrim
-                    ) {
-                        VStack(alignment: .leading, spacing: AppSpacing.cardGap / 2) {
-                            HStack {
-                                Text(AppStrings.matchesTitle)
-                                    .font(AppFonts.title)
-                                    .foregroundStyle(AppColors.brandWhite)
-                                Spacer()
-                                refreshButton
-                            }
-
-                            if isDemo {
-                                Text(AppStrings.matchesDemoBadge)
-                                    .font(AppFonts.meta.weight(.bold))
-                                    .foregroundStyle(AppColors.brandWhite)
-                                    .padding(.vertical, AppSpacing.cardGap / 3)
-                                    .padding(.horizontal, AppSpacing.cardGap)
-                                    .background(AppColors.brandAccent.opacity(0.5))
-                                    .clipShape(Capsule())
-                            }
-                        }
-                    }
-
-                    // The actual list content
-                    LazyVStack(spacing: AppSpacing.cardGap) {
-                        matchesSection
-                    }
-                    .padding(.horizontal, AppSpacing.screenPadding)
-                    .padding(.top, AppSpacing.sectionGap)
-                    .padding(.bottom, AppSpacing.sectionGap)
-                }
-            }
-            .coordinateSpace(name: "SCROLL")
-            // Match Profile behavior: allow hero to render into the notch.
-            .ignoresSafeArea(edges: .top)
-            .refreshable {
-                await onRefresh()
-            }
+        HeroListScreen(
+            heroImageName: heroImageName,
+            heroHeight: heroHeight,
+            topScrim: heroScrim,
+            overlapFraction: headerOverlapFraction,
+            bottomSpacing: AppSpacing.sectionGap,
+            onRefresh: { await onRefresh() }
+        ) {
+            matchesHeaderCard
+        } content: {
+            matchesSection
         }
         .overlay {
             if isDemo && showMarketingOverlay && !viewModel.matches.isEmpty && !viewModel.isLoading {
@@ -106,15 +71,16 @@ struct MatchResultsView: View {
 
     // MARK: - Subviews
 
-    private var refreshButton: some View {
-        Button(action: {
-            Task { await onRefresh() }
-        }) {
-            Image(systemName: "arrow.clockwise.circle.fill")
-                .font(.title2)
-                .foregroundStyle(AppColors.brandWhite)
-        }
-        .disabled(viewModel.isLoading)
+    private var matchesHeaderCard: some View {
+        HeaderSummaryCard(
+            title: AppStrings.matchesTitle,
+            subtitle: viewModel.isLoading && viewModel.matches.isEmpty
+                ? (isDemo ? AppStrings.matchesLoading : AppStrings.matchesLoadingLive)
+                : AppStrings.profileMatchesFound(viewModel.matches.count),
+            badgeText: isDemo ? AppStrings.matchesDemoBadge : nil,
+            badgeBackground: AppColors.brandAccent.opacity(0.5),
+            badgeForeground: AppColors.brandWhite
+        )
     }
 
     @ViewBuilder
