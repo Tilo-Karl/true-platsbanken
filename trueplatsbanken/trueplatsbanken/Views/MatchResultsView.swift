@@ -65,7 +65,8 @@ struct MatchResultsView: View {
                 }
             }
             .coordinateSpace(name: "SCROLL")
-            .ignoresSafeArea(edges: .top) // Allows header to go behind notch
+            // Match Profile behavior: allow hero to render into the notch.
+            .ignoresSafeArea(edges: .top)
             .refreshable {
                 await onRefresh()
             }
@@ -208,7 +209,7 @@ struct MatchResultsView: View {
 
     private var heroScrim: LinearGradient {
         LinearGradient(
-            colors: [AppColors.brandBlueDark.opacity(0.8), AppColors.brandBlueDark.opacity(0.3), .clear],
+            colors: [AppColors.brandGreen.opacity(0.75), AppColors.brandGreen.opacity(0.25), .clear],
             startPoint: .top,
             endPoint: .bottom
         )

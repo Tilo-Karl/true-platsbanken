@@ -10,29 +10,31 @@ struct StretchyHeaderContainer<HeaderContent: View>: View {
     var body: some View {
         GeometryReader { proxy in
             let minY = proxy.frame(in: .named("SCROLL")).minY
-            // Only stretch when pulling down.
-            let baseHeight = heroHeight + (minY > 0 ? minY : 0)
-            // Add the notch height so the image truly fills the safe area.
             let safeTop = safeAreaTopInset
+            
+            // This is your Master Math from Profile View
+            let baseHeight = heroHeight + (minY > 0 ? minY : 0)
             let imageHeight = baseHeight + safeTop
+            let imageOffset = (minY > 0 ? -minY : 0) - safeTop
 
+            // We use alignment .bottom so the image "grows" upwards into the notch
             ZStack(alignment: .bottomLeading) {
+                // 1. BACKGROUND IMAGE
                 Image(heroImageName)
                     .resizable()
                     .scaledToFill()
-                    // Increase height to cover the notch area.
                     .frame(width: proxy.size.width, height: imageHeight)
-                    // Pin the image to the top edge (including the notch).
-                    .offset(y: (minY > 0 ? -minY : 0) - safeTop)
-                    .clipped()
+                    // This offset pushes it into the notch area
+                    .offset(y: imageOffset) 
 
+                // 2. SCRIM (Matches image offset exactly)
                 if let topScrim {
                     topScrim
-                        // Scrim follows the visible hero area (not the extra notch height).
-                        .frame(width: proxy.size.width, height: baseHeight)
-                        .offset(y: minY > 0 ? -minY : 0)
+                        .frame(width: proxy.size.width, height: imageHeight)
+                        .offset(y: imageOffset)
                 }
 
+                // 3. OVERLAY CONTENT
                 headerOverlay()
                     .padding(.horizontal, AppSpacing.screenPadding)
                     .padding(.bottom, 20)
@@ -40,16 +42,14 @@ struct StretchyHeaderContainer<HeaderContent: View>: View {
             }
         }
         .frame(height: heroHeight)
-        // CRITICAL: This allows the container's internal coordinate 0 to be the screen top
+        // CRITICAL: This allows the image offset to actually enter the notch area
         .ignoresSafeArea(edges: .top) 
     }
 
     private var safeAreaTopInset: CGFloat {
-        // Use the key window safe-area inset to measure the notch height.
-        let window = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .first { $0.isKeyWindow }
+        let scenes = UIApplication.shared.connectedScenes
+        let windowScene = scenes.first as? UIWindowScene
+        let window = windowScene?.windows.first { $0.isKeyWindow }
         return window?.safeAreaInsets.top ?? 0
     }
 }

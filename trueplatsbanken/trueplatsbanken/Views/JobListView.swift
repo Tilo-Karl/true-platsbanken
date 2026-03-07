@@ -44,6 +44,7 @@ struct JobListView: View {
                 }
             }
             .coordinateSpace(name: "SCROLL")
+            // Match Profile behavior: allow hero to render into the notch.
             .ignoresSafeArea(edges: .top)
             .refreshable {
                 await viewModel.loadJobs()
