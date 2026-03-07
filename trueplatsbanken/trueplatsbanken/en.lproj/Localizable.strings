@@ -2,6 +2,8 @@
 "jobs.title" = "Jobs";
 "profile.title" = "Profile";
 "jobDetail.title" = "Job details";
+"jobDetail.description" = "Description";
+"nav.back" = "Back";
 "jobs.loading" = "Loading jobs...";
 "jobs.unavailable" = "Jobs unavailable";
 "jobs.none" = "No jobs yet";

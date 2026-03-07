@@ -9,6 +9,8 @@ enum AppStrings {
     static var matchesTitle: String { localized("matches.title") }
     static var profileTitle: String { localized("profile.title") }
     static var jobDetailTitle: String { localized("jobDetail.title") }
+    static var jobDescriptionTitle: String { localized("jobDetail.description") }
+    static var back: String { localized("nav.back") }
 
     static var jobsLoading: String { localized("jobs.loading") }
     static var jobsUnavailable: String { localized("jobs.unavailable") }

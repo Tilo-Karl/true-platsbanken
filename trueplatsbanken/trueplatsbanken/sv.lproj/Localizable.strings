@@ -2,6 +2,8 @@
 "jobs.title" = "Jobb";
 "profile.title" = "Profil";
 "jobDetail.title" = "Jobbdetaljer";
+"jobDetail.description" = "Beskrivning";
+"nav.back" = "Tillbaka";
 "jobs.loading" = "Laddar jobb...";
 "jobs.unavailable" = "Jobb kunde inte laddas";
 "jobs.none" = "Inga jobb än";
