@@ -1,12 +1,6 @@
 import UniformTypeIdentifiers
 import SwiftUI
 import PhotosUI
-import UIKit
-
-// Notch fix (same idea as StretchyHeaderContainer):
-// 1) Add safeAreaTopInset to the image height.
-// 2) Subtract safeAreaTopInset from the image offset.
-// This anchors the hero image to the physical screen top (0,0) while preserving the stretch/parallax via minY.
 
 struct ProfileEditorView: View {
     @ObservedObject var viewModel: ProfileEditorViewModel
@@ -25,7 +19,7 @@ struct ProfileEditorView: View {
 
     private let heroImages = ["CVMatch11", "CVMatch12"]
     private let heroHeight: CGFloat = 180
-    private let heroOverlap: CGFloat = 115 
+    private let headerOverlapFraction: CGFloat = 1.0 / 3.0
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -35,14 +29,15 @@ struct ProfileEditorView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
-                    ZStack(alignment: .bottom) {
-                        heroSection()
-                        
+                    HeroOverlapHeader(
+                        heroImageName: heroImageName,
+                        heroHeight: heroHeight,
+                        topScrim: heroScrim,
+                        overlapFraction: headerOverlapFraction,
+                        bottomSpacing: AppSpacing.sectionGap
+                    ) {
                         statusCard()
-                            .padding(.horizontal, AppSpacing.screenPadding)
-                            .offset(y: heroOverlap)
                     }
-                    .padding(.bottom, heroOverlap + AppSpacing.sectionGap)
 
                     rolesCard()
                         .padding(.horizontal, AppSpacing.screenPadding)
@@ -68,50 +63,29 @@ struct ProfileEditorView: View {
 
     // MARK: - Sections
 
-    private func heroSection() -> some View {
-        GeometryReader { proxy in
-            let minY = proxy.frame(in: .named("SCROLL")).minY
-            // Only stretch when pulling down.
-            let baseHeight = heroHeight + (minY > 0 ? minY : 0)
-            // Extend hero image into the notch area.
-            let height = baseHeight + safeAreaTopInset
-            
-            Image(heroImageName)
-                .resizable()
-                .scaledToFill()
-                // Increase height to cover the notch.
-                .frame(width: proxy.size.width, height: height)
-                .clipped()
-                // Pin the image to the true top of the screen.
-                .offset(y: (minY > 0 ? -minY : 0) - safeAreaTopInset)
-        }
-        .frame(height: heroHeight)
+    private var heroScrim: LinearGradient {
+        LinearGradient(
+            colors: heroImageName == "CVMatch12"
+                ? [AppColors.brandGreen.opacity(0.75), AppColors.brandGreen.opacity(0.25), .clear]
+                : [AppColors.brandBlueDark.opacity(0.7), AppColors.brandBlueDark.opacity(0.2), .clear],
+            startPoint: .top,
+            endPoint: .bottom
+        )
     }
 
     private func statusCard() -> some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: AppSpacing.cardGap) {
-                HStack(spacing: 8) {
-                    Image(systemName: "checkmark.seal.fill")
-                        .foregroundStyle(AppColors.brandGreen)
-                    Text(isLiveMode ? AppStrings.profileAiActive : AppStrings.profileDemoActive)
-                        .font(AppFonts.sectionTitle)
-                        .foregroundStyle(AppColors.brandBlueDark)
-                }
-
-                Text(AppStrings.profileMatchesFound(matchesCount))
-                    .font(AppFonts.meta)
-                    .foregroundStyle(AppColors.brandBlack.opacity(0.6))
-
-                Button(action: onViewMatches) {
-                    Text(AppStrings.profileViewMatches)
-                        .font(AppFonts.body.weight(.semibold))
-                        .foregroundStyle(AppColors.brandWhite)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(AppColors.brandBlueDark)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                }
+        HeaderSummaryCard(
+            title: isLiveMode ? AppStrings.profileAiActive : AppStrings.profileDemoActive,
+            subtitle: AppStrings.profileMatchesFound(matchesCount)
+        ) {
+            Button(action: onViewMatches) {
+                Text(AppStrings.profileViewMatches)
+                    .font(AppFonts.body.weight(.semibold))
+                    .foregroundStyle(AppColors.brandWhite)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(AppColors.brandBlueDark)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
         }
     }
@@ -259,14 +233,6 @@ struct ProfileEditorView: View {
         return roles.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
     }
 
-    private var safeAreaTopInset: CGFloat {
-        // Window safe-area inset = notch height.
-        let window = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .first { $0.isKeyWindow }
-        return window?.safeAreaInsets.top ?? 0
-    }
 }
 
 // MARK: - Reusable Components
