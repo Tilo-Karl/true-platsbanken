@@ -26,7 +26,8 @@ final class MatchResultsViewModel: ObservableObject {
         self.snapshotReader = snapshotReader
     }
 
-    func loadMatches(payload: ProfileMatchPayload, persist: Bool = false) async {
+    @discardableResult
+    func loadMatches(payload: ProfileMatchPayload, persist: Bool = false) async -> [MatchResult]? {
         let loaded = await performLoad {
             let embedding = try? embeddingCache.loadEmbedding(for: payload)
             return try await matchReader.fetchMatches(for: payload, profileEmbedding: embedding)
@@ -34,6 +35,7 @@ final class MatchResultsViewModel: ObservableObject {
         if persist, let loaded {
             snapshotStore.saveSnapshot(loaded)
         }
+        return loaded
     }
 
     func loadDemoMatches() async {
@@ -72,5 +74,14 @@ final class MatchResultsViewModel: ObservableObject {
 
         isLoading = false
         return nil
+    }
+
+    func replaceMatches(_ updated: [MatchResult], persist: Bool) {
+        matches = updated
+        errorMessage = nil
+        isLoading = false
+        if persist {
+            snapshotStore.saveSnapshot(updated)
+        }
     }
 }

@@ -25,6 +25,7 @@ enum AppStrings {
     static var matchesUnavailable: String { localized("matches.unavailable") }
     static var noMatches: String { localized("matches.none") }
     static var refreshToCheck: String { localized("matches.refreshToCheck") }
+    static var matchesNewToday: String { localized("matches.newToday") }
     static var refresh: String { localized("common.refresh") }
     static var filtersTitle: String { localized("filters.title") }
     static var appTitle: String { localized("app.title") }

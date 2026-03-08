@@ -32,7 +32,7 @@ struct RootView: View {
                         isDemo: appState.matchMode == .demo,
                         onUploadPhotos: appState.handleMatchUploadPhotos,
                         onUploadFiles: appState.handleMatchUploadFiles,
-                        onRefresh: appState.refreshMatches
+                        onRefresh: nil
                     )
                     .tabItem {
                         Label(AppStrings.matchesTitle, systemImage: "checkmark.seal")
@@ -81,6 +81,7 @@ struct RootView: View {
         .task {
             await appState.bootstrap(language: languageStore.language)
             await appState.consumeSharedCVIfAvailable()
+            await appState.checkForMatchUpdate(trigger: .appLaunch)
         }
         .onChange(of: languageStore.language) { _, newValue in
             Task {
@@ -88,9 +89,22 @@ struct RootView: View {
             }
         }
         .onChange(of: scenePhase) { _, newPhase in
-            guard newPhase == .active else { return }
+            switch newPhase {
+            case .active:
+                Task {
+                    await appState.consumeSharedCVIfAvailable()
+                    await appState.checkForMatchUpdate(trigger: .appLaunch)
+                }
+            case .background:
+                MatchUpdateService.shared.scheduleBackgroundRefresh()
+            default:
+                break
+            }
+        }
+        .onChange(of: appState.selectedTab) { _, newValue in
+            guard newValue == .matches else { return }
             Task {
-                await appState.consumeSharedCVIfAvailable()
+                await appState.checkForMatchUpdate(trigger: .matchesAppear)
             }
         }
     }

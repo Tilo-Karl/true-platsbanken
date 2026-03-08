@@ -8,7 +8,7 @@ struct MatchResultsView: View {
     let isDemo: Bool
     let onUploadPhotos: ([Data]) async -> Void
     let onUploadFiles: ([URL]) async -> Void
-    let onRefresh: () async -> Void
+    let onRefresh: (() async -> Void)?
     
     @State private var showMarketingOverlay = true
     @State private var selectedPhotos: [PhotosPickerItem] = []
@@ -30,7 +30,7 @@ struct MatchResultsView: View {
             topScrim: heroScrim,
             overlapFraction: headerOverlapFraction,
             bottomSpacing: AppSpacing.sectionGap,
-            onRefresh: { await onRefresh() }
+            onRefresh: onRefresh
         ) {
             matchesHeaderCard
         } content: {

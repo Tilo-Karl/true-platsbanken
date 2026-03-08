@@ -1,4 +1,5 @@
 import Foundation
+import BackgroundTasks
 
 @MainActor
 final class AppStateViewModel: ObservableObject {
@@ -31,6 +32,8 @@ final class AppStateViewModel: ObservableObject {
     let taxonomyViewModel: TaxonomyViewModel
     private let embeddingCache: EmbeddingCaching
     private let paymentProcessor: PaymentProcessing
+    private let matchUpdateService: MatchUpdateService
+    private var didRegisterBackgroundTasks = false
     private var pendingUpload: PendingUpload?
     private var paidThisSessionForThisRun = false
     var pendingUploadSummary: String? {
@@ -57,10 +60,12 @@ final class AppStateViewModel: ObservableObject {
         roleExpander: BackendRoleExpander = BackendRoleExpander(),
         taxonomyReader: TaxonomyReading = JobTechTaxonomyReader(),
         taxonomyCache: TaxonomyCaching = TaxonomyCacheStore(),
-        paymentProcessor: PaymentProcessing = StubPaymentProcessor()
+        paymentProcessor: PaymentProcessing = StubPaymentProcessor(),
+        matchUpdateService: MatchUpdateService = .shared
     ) {
         self.embeddingCache = EmbeddingCacheStore()
         self.paymentProcessor = paymentProcessor
+        self.matchUpdateService = matchUpdateService
         self.jobListViewModel = JobListViewModel(jobReader: jobReader)
         self.profileEditorViewModel = ProfileEditorViewModel(
             profileReader: profileStore,
@@ -81,6 +86,7 @@ final class AppStateViewModel: ObservableObject {
     }
 
     func bootstrap(language: AppLanguageStore.Language) async {
+        registerBackgroundTasksIfNeeded()
         await taxonomyViewModel.loadIfNeeded(languageCode: language.rawValue)
         await jobListViewModel.loadJobs()
         let hasProfile = await profileEditorViewModel.loadProfile()
@@ -111,7 +117,26 @@ final class AppStateViewModel: ObservableObject {
             guard let payload = profileEditorViewModel.matchPayload() else {
                 return
             }
-            await matchResultsViewModel.loadMatches(payload: payload, persist: true)
+            let loaded = await matchResultsViewModel.loadMatches(payload: payload, persist: true)
+            if loaded != nil, matchResultsViewModel.errorMessage == nil {
+                matchUpdateService.recordSuccessfulRun()
+            }
+        }
+    }
+
+    func checkForMatchUpdate(trigger: MatchUpdateService.Trigger) async {
+        _ = await matchUpdateService.runMatchUpdateIfNeeded(appState: self, trigger: trigger)
+    }
+
+    func registerBackgroundTasksIfNeeded() {
+        guard !didRegisterBackgroundTasks else { return }
+        didRegisterBackgroundTasks = true
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: MatchUpdateService.taskIdentifier, using: nil) { [weak self] task in
+            guard let self, let refreshTask = task as? BGAppRefreshTask else {
+                task.setTaskCompleted(success: false)
+                return
+            }
+            MatchUpdateService.shared.handleBackgroundTask(refreshTask, appState: self)
         }
     }
 
@@ -141,7 +166,14 @@ final class AppStateViewModel: ObservableObject {
         do {
             try await paymentProcessor.charge(amountCents: MatchPricing.amountCents, currency: MatchPricing.currency)
             matchMode = .live
-            await matchResultsViewModel.loadMatches(payload: payload, persist: true)
+            let previousSnapshot = MatchSnapshotStore().loadSnapshot() ?? []
+            let previousLastRun = matchUpdateService.lastMatchRun
+            let loaded = await matchResultsViewModel.loadMatches(payload: payload, persist: false)
+            if let loaded {
+                let marked = matchUpdateService.markNewMatches(loaded, since: previousLastRun, previousSnapshot: previousSnapshot)
+                matchResultsViewModel.replaceMatches(marked, persist: true)
+                matchUpdateService.recordSuccessfulRun()
+            }
             selectedTab = .matches
         } catch {
             // TODO: surface payment failure to the user
@@ -213,7 +245,14 @@ final class AppStateViewModel: ObservableObject {
 
         if success {
             matchMode = .live
+            let previousSnapshot = MatchSnapshotStore().loadSnapshot() ?? []
+            let previousLastRun = matchUpdateService.lastMatchRun
             await refreshMatches()
+            if matchResultsViewModel.errorMessage == nil {
+                let marked = matchUpdateService.markNewMatches(matchResultsViewModel.matches, since: previousLastRun, previousSnapshot: previousSnapshot)
+                matchResultsViewModel.replaceMatches(marked, persist: true)
+                matchUpdateService.recordSuccessfulRun()
+            }
             selectedTab = .profile
             paidThisSessionForThisRun = false
             matchFlowStep = .idle

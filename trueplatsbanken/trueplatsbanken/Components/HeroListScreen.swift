@@ -35,11 +35,21 @@ struct HeroListScreen<HeaderCard: View, Content: View>: View {
             }
             .coordinateSpace(name: "SCROLL")
             .ignoresSafeArea(edges: .top)
-            .refreshable {
-                if let onRefresh {
-                    await onRefresh()
-                }
+            .modifier(RefreshableModifier(onRefresh: onRefresh))
+        }
+    }
+}
+
+private struct RefreshableModifier: ViewModifier {
+    let onRefresh: (() async -> Void)?
+
+    func body(content: Content) -> some View {
+        if let onRefresh {
+            content.refreshable {
+                await onRefresh()
             }
+        } else {
+            content
         }
     }
 }

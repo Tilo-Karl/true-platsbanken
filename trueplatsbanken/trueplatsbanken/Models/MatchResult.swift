@@ -5,4 +5,5 @@ struct MatchResult: Identifiable, Hashable, Codable {
     let job: Job
     let score: Double?
     let reasons: [String]
+    var isNewToday: Bool? = nil
 }

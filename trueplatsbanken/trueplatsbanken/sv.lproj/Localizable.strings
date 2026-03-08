@@ -16,6 +16,7 @@
 "matches.unavailable" = "Matchningar kunde inte laddas";
 "matches.none" = "Inga matchningar än";
 "matches.refreshToCheck" = "Uppdatera för att se igen.";
+"matches.newToday" = "NY idag";
 "common.refresh" = "Uppdatera";
 "matches.score" = "Poäng: %d";
 "matches.demoBadge" = "Demomatchningar";

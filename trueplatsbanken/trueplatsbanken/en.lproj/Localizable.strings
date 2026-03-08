@@ -16,6 +16,7 @@
 "matches.unavailable" = "Matches unavailable";
 "matches.none" = "No matches yet";
 "matches.refreshToCheck" = "Refresh to check again.";
+"matches.newToday" = "NEW today";
 "common.refresh" = "Refresh";
 "matches.score" = "Score: %d";
 "matches.demoBadge" = "Demo matches";
