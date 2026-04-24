@@ -78,7 +78,7 @@ struct MatchResultsView: View {
                 ? (isDemo ? AppStrings.matchesLoading : AppStrings.matchesLoadingLive)
                 : AppStrings.profileMatchesFound(viewModel.matches.count),
             badgeText: isDemo ? AppStrings.matchesDemoBadge : nil,
-            badgeBackground: AppColors.brandAccent.opacity(0.5),
+            badgeBackground: AppColors.brandGreenDark,
             badgeForeground: AppColors.brandWhite
         )
     }
@@ -138,16 +138,20 @@ struct MatchResultsView: View {
     private func handleFileImport(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
+            print("[matches-upload] file import success count=\(urls.count)")
             Task {
                 if let error = UploadValidation.validateFileUrls(urls) {
+                    print("[matches-upload] file validation failed: \(error)")
                     uploadError = error
                     return
                 }
                 uploadError = nil
                 showMarketingOverlay = false
+                print("[matches-upload] file import validated, starting pipeline")
                 await onUploadFiles(urls)
             }
-        case .failure:
+        case .failure(let error):
+            print("[matches-upload] file import failure: \(error.localizedDescription)")
             uploadError = AppStrings.profileImportFailed
         }
     }

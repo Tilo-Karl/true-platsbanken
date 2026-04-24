@@ -35,7 +35,6 @@ final class AppStateViewModel: ObservableObject {
     private let matchUpdateService: MatchUpdateService
     private var didRegisterBackgroundTasks = false
     private var pendingUpload: PendingUpload?
-    private var paidThisSessionForThisRun = false
     var pendingUploadSummary: String? {
         guard let pendingUpload else { return nil }
         switch pendingUpload {
@@ -114,6 +113,7 @@ final class AppStateViewModel: ObservableObject {
         case .demo:
             await matchResultsViewModel.loadDemoMatches()
         case .live:
+            guard matchUpdateService.isEntitled() else { return }
             guard let payload = profileEditorViewModel.matchPayload() else {
                 return
             }
@@ -165,6 +165,7 @@ final class AppStateViewModel: ObservableObject {
         guard let payload = profileEditorViewModel.matchPayload() else { return }
         do {
             try await paymentProcessor.charge(amountCents: MatchPricing.amountCents, currency: MatchPricing.currency)
+            matchUpdateService.extendPaidWindow(days: 7)
             matchMode = .live
             let previousSnapshot = MatchSnapshotStore().loadSnapshot() ?? []
             let previousLastRun = matchUpdateService.lastMatchRun
@@ -187,7 +188,7 @@ final class AppStateViewModel: ObservableObject {
         }
         do {
             try await paymentProcessor.charge(amountCents: MatchPricing.amountCents, currency: MatchPricing.currency)
-            paidThisSessionForThisRun = true
+            matchUpdateService.extendPaidWindow(days: 7)
             startProcessing()
         } catch {
             resetPendingUpload()
@@ -210,7 +211,7 @@ final class AppStateViewModel: ObservableObject {
 
     private func queueUpload(_ upload: PendingUpload) {
         pendingUpload = upload
-        if paidThisSessionForThisRun {
+        if matchUpdateService.isEntitled() {
             startProcessing()
         } else {
             matchFlowStep = .payment
@@ -254,7 +255,6 @@ final class AppStateViewModel: ObservableObject {
                 matchUpdateService.recordSuccessfulRun()
             }
             selectedTab = .profile
-            paidThisSessionForThisRun = false
             matchFlowStep = .idle
         } else {
             matchFlowStep = .failure

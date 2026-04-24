@@ -2,39 +2,38 @@ import Foundation
 
 enum DemoProfileSnapshot {
     static let cvText = """
-    Demo CV
-    Maria Andersson
-    Team Lead, Operations
+    Johan Bergstrom
+    Product Owner · iOS Developer · Customer Success Lead
 
     Summary
-    Experienced team leader with a background in customer success, operations, and service quality.
+    Product leader with a hands-on mobile background and experience building scalable support operations.
 
     Experience
-    - Team Lead, Customer Success (3 years)
-    - Operations Coordinator (2 years)
-    - Service Supervisor (2 years)
+    - Product Owner, Fintech Platform (3 years)
+    - iOS Developer, Consumer Apps (4 years)
+    - Customer Success Lead, B2B SaaS (2 years)
 
     Skills
-    Leadership, process improvement, stakeholder management, reporting, training
+    Product strategy, iOS/Swift, agile delivery, stakeholder management, support operations, analytics
     """
 
     static let draft: ProfileDraft = {
         var draft = ProfileDraft()
-        draft.name = "Maria Andersson"
+        draft.name = "Johan Bergstrom"
         draft.municipality = "Stockholm"
         draft.employmentType = "any"
-        draft.skillsText = "Leadership, process improvement, stakeholder management, reporting, training"
+        draft.skillsText = "Product strategy, iOS/Swift, agile delivery, stakeholder management, support operations, analytics"
         draft.cvText = cvText
         return draft
     }()
 
     static let aiResult = ProfileAIResult(
-        keywords: ["leadership", "customer success", "operations", "quality"],
-        roles: ["team lead", "operations coordinator"],
-        inferredRoles: ["service manager", "quality coordinator"],
-        seniority: "mid",
+        keywords: ["product owner", "ios", "swift", "customer success", "agile", "support operations"],
+        roles: ["product owner", "ios developer", "customer success lead"],
+        inferredRoles: ["scrum master", "technical project manager", "mobile lead"],
+        seniority: "senior",
         locations: ["Stockholm", "Gothenburg"],
-        summary: "Experienced leader focused on customer success and operational excellence.",
+        summary: "Product leader with mobile experience and a track record in customer success.",
         occupationIds: []
     )
 

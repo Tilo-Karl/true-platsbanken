@@ -19,6 +19,7 @@ final class MatchUpdateService {
         static let lastRun = "matches.lastRunAt"
         static let inProgress = "matches.updateInProgress"
         static let lockStartedAt = "matches.updateLockStartedAt"
+        static let paidUntil = "matches.paidUntil"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -27,6 +28,23 @@ final class MatchUpdateService {
 
     var lastMatchRun: Date? {
         defaults.object(forKey: Keys.lastRun) as? Date
+    }
+
+    var paidUntil: Date? {
+        defaults.object(forKey: Keys.paidUntil) as? Date
+    }
+
+    func isEntitled(now: Date = Date()) -> Bool {
+        guard let paidUntil else { return false }
+        return paidUntil >= now
+    }
+
+    func extendPaidWindow(days: Int, now: Date = Date()) {
+        let seconds = TimeInterval(days * 24 * 60 * 60)
+        let base = max(now, paidUntil ?? now)
+        defaults.set(base.addingTimeInterval(seconds), forKey: Keys.paidUntil)
+        let untilLabel = base.addingTimeInterval(seconds).formatted(date: .numeric, time: .shortened)
+        print("[matches] entitlement extended until \(untilLabel)")
     }
 
     func shouldUpdateMatches(now: Date = Date()) -> Bool {
@@ -61,6 +79,10 @@ final class MatchUpdateService {
     }
 
     func scheduleBackgroundRefresh() {
+        guard isEntitled() else {
+            print("[matches] background refresh not scheduled (entitlement expired)")
+            return
+        }
         let request = BGAppRefreshTaskRequest(identifier: Self.taskIdentifier)
         request.earliestBeginDate = Date(timeIntervalSinceNow: minimumInterval)
         do {
@@ -122,9 +144,11 @@ final class MatchUpdateService {
     func runMatchUpdateIfNeeded(appState: AppStateViewModel, trigger: Trigger) async -> Bool {
         let lastRun = lastMatchRun
         let lastRunLabel = lastRun?.formatted(date: .numeric, time: .shortened) ?? "never"
-        print("[matches] update check trigger=\(trigger) lastRun=\(lastRunLabel)")
+        let entitlementLabel = isEntitled() ? "active" : "expired"
+        print("[matches] update check trigger=\(trigger) lastRun=\(lastRunLabel) entitlement=\(entitlementLabel)")
         guard appState.matchFlowStep == .idle else { return false }
         guard appState.matchMode == .live else { return false }
+        guard isEntitled() else { return false }
         guard !appState.profileEditorViewModel.isDemoProfile else { return false }
         guard appState.profileEditorViewModel.canMatch else { return false }
         guard shouldUpdateMatches() else { return false }

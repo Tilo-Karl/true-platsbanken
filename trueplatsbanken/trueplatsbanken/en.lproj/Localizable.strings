@@ -19,7 +19,7 @@
 "matches.newToday" = "NEW today";
 "common.refresh" = "Refresh";
 "matches.score" = "Score: %d";
-"matches.demoBadge" = "Demo matches";
+"matches.demoBadge" = "Johan's matches";
 "matches.overlay.title" = "Let AI find your best roles";
 "matches.overlay.uploadPhoto" = "Upload photo";
 "matches.overlay.uploadFile" = "Upload file";
@@ -98,12 +98,12 @@
 "profile.ai.inferredRoles" = "Inferred roles";
 "profile.ai.keywords" = "Keywords";
 "profile.ai.none" = "None";
-"profile.demoCvBadge" = "Demo CV";
+"profile.demoCvBadge" = "Johan's CV";
 "profile.action.runMatch" = "Run AI Match – %@";
 "profile.hero.upload" = "Upload CV";
 "profile.upload.newCv" = "Upload new CV";
 "profile.ai.active" = "AI Profile Active";
-"profile.demo.active" = "DEMO Profile Active";
+"profile.demo.active" = "Johan's profile";
 "profile.card.title" = "Your profile";
 "profile.hero.subtitle" = "%d matches • Updated %@";
 "profile.lastUpdated" = "Updated %@";

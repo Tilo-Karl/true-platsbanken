@@ -13,7 +13,7 @@ struct RootView: View {
                 TabView(selection: $appState.selectedTab) {
                     ProfileEditorView(
                         viewModel: appState.profileEditorViewModel,
-                        matchesCount: appState.matchResultsViewModel.matches.count,
+                        matchesViewModel: appState.matchResultsViewModel,
                         isLiveMode: appState.matchMode == .live,
                         onUploadPhotos: appState.handleHeroUploadPhotos,
                         onUploadFiles: appState.handleHeroUploadFiles,

@@ -23,10 +23,14 @@ enum UploadValidation {
             return AppStrings.uploadEmptyError
         }
         for url in urls {
-            let values = try? url.resourceValues(forKeys: [.fileSizeKey])
-            guard let size = values?.fileSize, size > 0 else {
-                return AppStrings.uploadEmptyError
+            let needsAccess = url.startAccessingSecurityScopedResource()
+            defer {
+                if needsAccess { url.stopAccessingSecurityScopedResource() }
             }
+
+            let values = try? url.resourceValues(forKeys: [.fileSizeKey])
+            let size = values?.fileSize ?? ((try? Data(contentsOf: url))?.count ?? 0)
+            guard size > 0 else { return AppStrings.uploadEmptyError }
             if size > maxUploadBytes {
                 return AppStrings.uploadTooLargeError
             }

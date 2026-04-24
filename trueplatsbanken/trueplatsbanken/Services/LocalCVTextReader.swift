@@ -127,7 +127,10 @@ private enum PDFTextExtractor {
 
 private extension URL {
     func conforms(to type: UTType) -> Bool {
-        guard let utType = UTType(filenameExtension: pathExtension) else { return false }
+        if let contentType = try? resourceValues(forKeys: [.contentTypeKey]).contentType {
+            return contentType.conforms(to: type)
+        }
+        guard let utType = UTType(filenameExtension: pathExtension.lowercased()) else { return false }
         return utType.conforms(to: type)
     }
 }

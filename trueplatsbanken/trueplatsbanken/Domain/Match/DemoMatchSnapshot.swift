@@ -14,13 +14,13 @@ struct DemoMatchSnapshot: Decodable {
       "matches": [
         {
           "id": "demo-match-001",
-          "score": 0.93,
-          "reasons": ["Leadership", "Customer focus", "Process improvement"],
+          "score": 0.92,
+          "reasons": ["Product strategy", "Stakeholder alignment", "Agile delivery"],
           "job": {
             "id": "demo-job-001",
-            "title": "Team Lead, Customer Success",
-            "description": "Lead a team focused on customer onboarding, retention, and quality improvements.",
-            "employerName": "Nordic Care AB",
+            "title": "Product Owner",
+            "description": "Own roadmap priorities and lead discovery for a customer-facing platform.",
+            "employerName": "Nordic Fintech AB",
             "employerWorkplace": "Gothenburg",
             "municipality": "Gothenburg",
             "employmentType": "Permanent"
@@ -28,13 +28,13 @@ struct DemoMatchSnapshot: Decodable {
         },
         {
           "id": "demo-match-002",
-          "score": 0.89,
-          "reasons": ["Project planning", "Stakeholder management", "Operations"],
+          "score": 0.88,
+          "reasons": ["iOS", "Swift", "Mobile product"],
           "job": {
             "id": "demo-job-002",
-            "title": "Operations Coordinator",
-            "description": "Coordinate daily operations and support cross-functional teams.",
-            "employerName": "Sundberg Logistics",
+            "title": "iOS Developer",
+            "description": "Build and iterate consumer mobile experiences in Swift.",
+            "employerName": "Appline Studio",
             "employerWorkplace": "Stockholm",
             "municipality": "Stockholm",
             "employmentType": "Permanent"
@@ -42,13 +42,13 @@ struct DemoMatchSnapshot: Decodable {
         },
         {
           "id": "demo-match-003",
-          "score": 0.86,
-          "reasons": ["Scheduling", "People management", "Service quality"],
+          "score": 0.85,
+          "reasons": ["Agile leadership", "Team facilitation", "Delivery coaching"],
           "job": {
             "id": "demo-job-003",
-            "title": "Shift Supervisor",
-            "description": "Manage staffing schedules and ensure a consistent guest experience.",
-            "employerName": "City Hotels Group",
+            "title": "Scrum Master",
+            "description": "Coach cross-functional teams and remove delivery blockers.",
+            "employerName": "Flow Systems",
             "employerWorkplace": "Malmo",
             "municipality": "Malmo",
             "employmentType": "Permanent"
@@ -56,13 +56,13 @@ struct DemoMatchSnapshot: Decodable {
         },
         {
           "id": "demo-match-004",
-          "score": 0.82,
-          "reasons": ["Training", "Customer service", "Process ownership"],
+          "score": 0.83,
+          "reasons": ["Customer success", "Retention", "Process improvement"],
           "job": {
             "id": "demo-job-004",
-            "title": "Service Manager",
-            "description": "Own service KPIs and coach teams to improve performance.",
-            "employerName": "True Retail Nordic",
+            "title": "Customer Success Lead",
+            "description": "Lead onboarding and customer expansion initiatives for B2B SaaS.",
+            "employerName": "Bright SaaS",
             "employerWorkplace": "Uppsala",
             "municipality": "Uppsala",
             "employmentType": "Permanent"
@@ -70,13 +70,13 @@ struct DemoMatchSnapshot: Decodable {
         },
         {
           "id": "demo-match-005",
-          "score": 0.79,
-          "reasons": ["Quality assurance", "Communication", "Continuous improvement"],
+          "score": 0.80,
+          "reasons": ["Technical leadership", "Mobile architecture", "Mentorship"],
           "job": {
             "id": "demo-job-005",
-            "title": "Quality Coordinator",
-            "description": "Support audits and improve quality routines across sites.",
-            "employerName": "Bergstrom Health",
+            "title": "Mobile Lead",
+            "description": "Guide mobile engineering direction and support team delivery.",
+            "employerName": "Northwind Mobile",
             "employerWorkplace": "Vasteras",
             "municipality": "Vasteras",
             "employmentType": "Permanent"
@@ -84,13 +84,13 @@ struct DemoMatchSnapshot: Decodable {
         },
         {
           "id": "demo-match-006",
-          "score": 0.77,
-          "reasons": ["Process analysis", "Team collaboration", "Reporting"],
+          "score": 0.78,
+          "reasons": ["Project delivery", "Cross-team alignment", "Product execution"],
           "job": {
             "id": "demo-job-006",
-            "title": "Business Support Specialist",
-            "description": "Deliver operational reporting and support process improvements.",
-            "employerName": "Svea Finance",
+            "title": "Technical Project Manager",
+            "description": "Coordinate product and engineering delivery for customer initiatives.",
+            "employerName": "Svea Digital",
             "employerWorkplace": "Linkoping",
             "municipality": "Linkoping",
             "employmentType": "Permanent"

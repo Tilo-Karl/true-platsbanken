@@ -4,7 +4,7 @@ import PhotosUI
 
 struct ProfileEditorView: View {
     @ObservedObject var viewModel: ProfileEditorViewModel
-    let matchesCount: Int
+    @ObservedObject var matchesViewModel: MatchResultsViewModel
     let isLiveMode: Bool
     let onUploadPhotos: ([Data]) async -> Void
     let onUploadFiles: ([URL]) async -> Void
@@ -56,6 +56,16 @@ struct ProfileEditorView: View {
         .sheet(isPresented: $showUploadSheet) {
             uploadSheetContent()
         }
+        .onChange(of: selectedPhotos) { _, items in
+            handlePhotoSelection(items)
+        }
+        .fileImporter(
+            isPresented: $showFileImporter,
+            allowedContentTypes: [.pdf, .image],
+            allowsMultipleSelection: true
+        ) { result in
+            handleFileImport(result)
+        }
         .onAppear {
             heroImageName = heroImages.randomElement() ?? heroImageName
         }
@@ -76,7 +86,7 @@ struct ProfileEditorView: View {
     private func statusCard() -> some View {
         HeaderSummaryCard(
             title: isLiveMode ? AppStrings.profileAiActive : AppStrings.profileDemoActive,
-            subtitle: AppStrings.profileMatchesFound(matchesCount)
+            subtitle: AppStrings.profileMatchesFound(matchesViewModel.matches.count)
         ) {
             Button(action: onViewMatches) {
                 Text(AppStrings.profileViewMatches)
@@ -176,14 +186,21 @@ struct ProfileEditorView: View {
     private func handleFileImport(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
+            print("[profile-upload] file import success count=\(urls.count)")
             Task {
                 if let error = UploadValidation.validateFileUrls(urls) {
-                    uploadError = error; return
+                    print("[profile-upload] file validation failed: \(error)")
+                    uploadError = error
+                    return
                 }
-                uploadError = nil; showUploadSheet = false
+                uploadError = nil
+                showUploadSheet = false
+                print("[profile-upload] file import validated, starting pipeline")
                 await onUploadFiles(urls)
             }
-        case .failure: uploadError = AppStrings.profileImportFailed
+        case .failure(let error):
+            print("[profile-upload] file import failure: \(error.localizedDescription)")
+            uploadError = AppStrings.profileImportFailed
         }
     }
 
