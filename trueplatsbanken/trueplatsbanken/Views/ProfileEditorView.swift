@@ -59,13 +59,6 @@ struct ProfileEditorView: View {
         .onChange(of: selectedPhotos) { _, items in
             handlePhotoSelection(items)
         }
-        .fileImporter(
-            isPresented: $showFileImporter,
-            allowedContentTypes: [.pdf, .image],
-            allowsMultipleSelection: true
-        ) { result in
-            handleFileImport(result)
-        }
         .onAppear {
             heroImageName = heroImages.randomElement() ?? heroImageName
         }
@@ -186,20 +179,16 @@ struct ProfileEditorView: View {
     private func handleFileImport(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
-            print("[profile-upload] file import success count=\(urls.count)")
             Task {
                 if let error = UploadValidation.validateFileUrls(urls) {
-                    print("[profile-upload] file validation failed: \(error)")
                     uploadError = error
                     return
                 }
                 uploadError = nil
                 showUploadSheet = false
-                print("[profile-upload] file import validated, starting pipeline")
                 await onUploadFiles(urls)
             }
-        case .failure(let error):
-            print("[profile-upload] file import failure: \(error.localizedDescription)")
+        case .failure:
             uploadError = AppStrings.profileImportFailed
         }
     }
@@ -233,6 +222,14 @@ struct ProfileEditorView: View {
             Spacer()
         }
         .padding(20)
+        // Present file picker from the sheet host to avoid "already presenting" conflicts.
+        .fileImporter(
+            isPresented: $showFileImporter,
+            allowedContentTypes: [.pdf, .image],
+            allowsMultipleSelection: true
+        ) { result in
+            handleFileImport(result)
+        }
     }
 
     private func loadPhotoData(from items: [PhotosPickerItem]) async -> [Data] {

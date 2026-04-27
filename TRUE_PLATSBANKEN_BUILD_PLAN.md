@@ -124,7 +124,8 @@ Paid flow (implemented)
 Important constraints
 	•	No pre-extraction or pre-embedding
 	•	Raw CV never persisted
-	•	Payment validity is session-only
+	•	Paid access window is local and time-bound (`paidUntil`, currently 7 days)
+	•	Daily updates are on-device only and run only while entitled
 	•	Failure view allows retry without re-paying (same session)
 	•	Payment is still stubbed (StoreKit later)
 
@@ -141,7 +142,7 @@ Snapshot persistence (updated)
 
 ⸻
 
-Phase 8 — Match Quality (Job Pool Tailoring) 🔜
+Phase 8 — Match Quality (Job Pool Tailoring) ✅ DONE (Track A)
 
 Goal
 	•	Increase match quality by tailoring the job pool to the profile
@@ -150,31 +151,44 @@ Goal
 Reference
 	•	See JOB_MATCH_EXPANSION_PLAN.md for the two-track plan (Phase 8 ship-now + graph-based upgrade).
 
-Approach
-	•	Resolve extracted roles and inferred roles to **JobTech occupation IDs** (canonical taxonomy)
-	•	Use those occupation IDs to fetch jobs from JobTech instead of relying primarily on free-text queries
-	•	Expand the pool slightly using **occupation neighbors** (similar occupations derived from taxonomy proximity)
-	•	Fallback to q= free-text search only when a role cannot be mapped to a JobTech occupation
-	•	Run embeddings + ranking only on this tailored job pool
+Delivered in Track A
+	•	Resolve extracted roles/inferred roles to **JobTech occupation IDs** (canonical)
+	•	Use occupation IDs first for pool fetch; fallback to `q=` only for unmapped roles
+	•	Deterministic neighbor expansion from JobTech taxonomy (same field), capped (`K=2`, depth 1)
+	•	Pool limits and dedupe before ranking (`~40/occupation`, `~200 total`)
+	•	Diagnostics logging (role resolution, expansion, counts, final pool size)
+	•	Store/reuse occupation IDs in profile snapshot
 
-Notes
-	•	JobTech occupations become the canonical role representation in the backend
-	•	Role strings from AI are resolved to occupation IDs once and cached
-	•	Occupation expansion should stay limited (small neighbor set) to avoid noisy pools
-
-Important rule
-	•	No auto-updating against new jobs
-	•	New paid run only happens on explicit upload/payment
-	•	No background costs
+Track B (graph expansion) remains future work
+	•	Skill-graph expansion and explainability layer are postponed after shipping.
 
 ⸻
 
-Phase 9 — UX that sells the AI 🔜
+Phase 8.5 — On-Device Daily Refresh (Entitled Users) ✅ DONE
+
+Goal
+	•	Keep matches fresh without storing profiles/match state on backend.
+
+Delivered
+	•	On app launch and Matches appear: update only if `lastMatchRun >= 24h`
+	•	BGAppRefresh fallback task (`com.trueplatsbanken.matchrefresh`)
+	•	Single-run lock to prevent concurrent expensive runs
+	•	Local timestamps/lock state (`lastMatchRun`, `matchUpdateInProgress`, `lockStartedAt`)
+	•	No pull-to-refresh requirement for Matches
+
+Rules
+	•	Refresh runs only in live mode, non-demo profile, and with active entitlement.
+	•	Cached matches remain visible even when entitlement is expired.
+
+⸻
+
+Phase 9 — UX that sells the AI 🔄 IN PROGRESS
 
 Only surfacing, no new intelligence:
-	•	Match score badges
-	•	“Matched because…” bullets
-	•	Show inferred roles (collapsed)
+	•	Match score badges ✅
+	•	Show inferred roles (collapsed) ✅
+	•	Shared visual language across Profile/Matches/Jobs ✅
+	•	“Matched because…” bullets (optional; not required for release)
 	•	Clear separation:
 	•	“Live jobs”
 	•	“CV-matched jobs”
@@ -192,17 +206,14 @@ Notes:
 
 ⸻
 
-Phase 11 — Payments 🔜 LATER
+Phase 11 — Payments (Production StoreKit) 🔜 LATER
 
 Requires Phase 10.
 
 Notes:
-	•	Payment touchpoints can be surfaced earlier as UI-only affordances.
-	•	Payments gated before:
-	•	CV import
-	•	CV match update
-	•	Backend persistence is still deferred until this phase.
-	•	Payment implementation (planned):
+	•	Current app has stubbed payment flow + local entitlement window (7 days).
+	•	This phase is about replacing stubs with production StoreKit + policy hardening.
+	•	Payment implementation (planned production):
 	•	iOS In-App Purchase (StoreKit 2)
 	•	Non-consumable or subscription TBD (start with single CV-match run as consumable)
 	•	Client-side gating first, receipt validation added when backend persistence is introduced
@@ -219,7 +230,8 @@ Phase 12 — Ship 🚀
 Key decisions locked (important)
 	•	❌ One combined job list → rejected
 	•	✅ Two lists → required
-	•	❌ Auto-matching new jobs → never
-	•	✅ Explicit paid match runs only
+	•	❌ Server-side cron/scheduler for matches
+	•	✅ On-device daily refresh (while entitled) for existing paid profile
+	•	✅ Explicit paid run required to create/replace profile snapshot
 	•	✅ CV match is a product, not a filter
 	•	✅ Server-side search + filters for job lists (JobTech queries)

@@ -138,20 +138,16 @@ struct MatchResultsView: View {
     private func handleFileImport(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
-            print("[matches-upload] file import success count=\(urls.count)")
             Task {
                 if let error = UploadValidation.validateFileUrls(urls) {
-                    print("[matches-upload] file validation failed: \(error)")
                     uploadError = error
                     return
                 }
                 uploadError = nil
                 showMarketingOverlay = false
-                print("[matches-upload] file import validated, starting pipeline")
                 await onUploadFiles(urls)
             }
-        case .failure(let error):
-            print("[matches-upload] file import failure: \(error.localizedDescription)")
+        case .failure:
             uploadError = AppStrings.profileImportFailed
         }
     }

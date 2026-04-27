@@ -1,99 +1,180 @@
-Two-Track Plan — Job Expansion Architecture
+Two-Track Plan — Job Expansion Architecture (v3)
 
 Purpose
-Improve the quality of the job pool used for CV matching while keeping the system simple enough to ship quickly. The system is built so that the simple version can later be replaced by a more advanced expansion system without changing the rest of the matching pipeline.
+Improve CV-match quality by:
+- keeping job-pool retrieval deterministic and taxonomy-based
+- upgrading role expansion from synonym generation to cross-domain employability inference
 
 The matching pipeline remains:
-CV → AI profile extraction → role expansion → role → occupation resolver → job pool builder → embeddings ranking
+CV -> AI profile extraction -> role expansion -> role -> occupation resolver -> job pool builder -> embeddings ranking
 
-Track A — Phase 8 (Ship Now)
+---
+
+Track A — Implemented Baseline (Phase 8 Ship-Now)
 
 Goal
-Improve match quality immediately by replacing generic job searches with occupation-based job pools using the JobTech taxonomy.
+Reduce irrelevant jobs before embeddings by using JobTech occupations as canonical IDs.
 
-Key idea
-Resolve roles returned by AI into JobTech occupation IDs and use those IDs to fetch jobs directly instead of relying mainly on free-text search.
+Delivered
+1. Role -> Occupation Resolver
+- Roles and inferred roles are resolved to JobTech occupation IDs via taxonomy + fuzzy scoring.
+- Unmapped roles fall back to free-text `q=` search.
 
-Steps
-1. Role → Occupation Resolver
-   - AI returns roles and inferred roles from the CV.
-   - These role strings are resolved to JobTech occupation IDs using the JobTech taxonomy and fuzzy matching.
-   - If a role cannot be mapped confidently, the system falls back to free-text job search.
-2. Store Occupation IDs in the Profile Snapshot
-   - The profile snapshot stored after a match run should include:
-     - roles
-     - inferredRoles
-     - occupationIDs
-     - profile embedding
-   - This avoids resolving the same roles again later.
-3. Job Pool Builder (Phase 8 Implementation)
-   - The job pool builder uses the occupation IDs to fetch jobs from JobTech.
-   - Process:
-     - occupationIDs → small neighbor expansion → JobTech queries → merged job pool
-4. Neighbor Expansion (Simple Version)
-   - To avoid overly narrow job pools, each occupation may expand to a small number of related occupations.
-   - Rules:
-     - neighbors per occupation: 2
-     - expansion depth: 1 (no recursive expansion)
-   - Example:
-     - Product Owner → Product Manager → Scrum Master
-   - No further expansion beyond this.
-5. Job Pool Limits
-   - To keep the embedding step efficient:
-     - maximum jobs per occupation: ~40
-     - maximum total job pool: ~200
-   - Duplicate jobs are removed before ranking.
-6. Pool Diagnostics Logging
-   - Log basic metrics to evaluate pool quality:
-     - roles returned by AI
-     - resolved occupation IDs
-     - number of jobs fetched per occupation
-     - final job pool size after deduplication
-   - This allows comparison with the previous generic job pool approach.
+2. Occupation IDs in Snapshot
+- Snapshot includes:
+  - roles
+  - inferredRoles
+  - occupationIds
+  - profile embedding
+
+3. Job Pool Builder
+- Uses occupation IDs first.
+- Process:
+  occupationIds -> small neighbor expansion -> JobTech queries -> merged pool
+
+4. Neighbor Expansion
+- Deterministic from JobTech field proximity.
+- `K = 2`, depth `1` (no recursion).
+
+5. Pool Limits
+- max jobs/occupation: ~40
+- max total pool: ~200
+- dedupe before ranking
+
+6. Diagnostics
+- Logs role resolution, expanded occupation set, per-occupation counts, final deduped size.
 
 Result
-Phase 8 produces a more relevant job pool while keeping the system simple and deterministic.
+Track A is stable and production-usable, but inferred-role breadth is still too narrow.
 
-Track B — Graph-Based Expansion (Future Upgrade)
+---
+
+Track A+ — Role Expansion v2 (Immediate Next)
+
+Problem to solve
+Current inferred roles are often near-duplicates of explicit roles and do not surface adjacent career families.
+
+New objective
+Rewrite role expansion to infer cross-domain employability, not synonyms.
+
+Role expansion must infer broader families from:
+- transferable skills
+- leadership
+- domain knowledge
+- tools/platform literacy
+- physical/operational work
+- customer/commercial work
+- coordination/planning
+- technical literacy
+
+Hard rule
+Do not return roles that are renamed versions of explicit roles.
+
+Definition for "renamed version"
+- lexical near-duplicate of an explicit role (token overlap/high similarity), or
+- same canonical occupation ID as an explicit role after resolver mapping
+
+If either condition is true:
+- reject that inferred role
+
+Output contract (required)
+Each inferred role item must include:
+- `role`
+- `category`
+- `confidence`
+- `reason`
+- `sourceSignals`
+
+Recommended response schema
+```json
+{
+  "inferredRoles": [
+    {
+      "role": "Technical Project Manager",
+      "category": "Leadership & Delivery",
+      "confidence": 0.82,
+      "reason": "Cross-team planning and delivery ownership",
+      "sourceSignals": ["backlog prioritization", "stakeholder coordination", "agile delivery"]
+    }
+  ]
+}
+```
+
+Category set (controlled vocabulary)
+- Leadership & Delivery
+- Operations & Coordination
+- Product & Strategy
+- Customer & Commercial
+- Technical & Engineering
+- Service & Support
+- Field & Physical Operations
+
+Guardrails
+1. Diversity:
+- Return roles across multiple categories where evidence exists.
+- Avoid returning many variants in one narrow family.
+
+2. Confidence discipline:
+- low confidence roles are allowed but must still have concrete evidence in `sourceSignals`.
+- no empty reasons, no empty signal arrays.
+
+3. Explicit-role exclusion:
+- never return explicit roles in inferred output.
+- never return same resolved occupation ID as explicit roles.
+
+4. Explainability:
+- `reason` is concise (1 sentence).
+- `sourceSignals` are evidence phrases, not generic claims.
+
+Integration with existing pipeline
+1. AI extractor returns explicit roles (as today).
+2. Role expansion v2 returns inferred roles with metadata.
+3. Resolver maps both explicit and inferred to occupation IDs.
+4. Deduper removes inferred roles violating the hard rule.
+5. Job pool builder uses canonical occupation IDs.
+
+No backend architecture change is required.
+This is an upgrade of inference quality + output shape.
+
+Success criteria
+- fewer near-duplicate inferred roles
+- broader but relevant occupation coverage
+- improved top-N relevance in matches
+- explainable inferred-role output
+
+---
+
+Track B — Graph Expansion (Post-Ship Upgrade)
 
 Goal
-Improve job discovery and match explanations using a skill-based occupation graph.
-
-Key idea
-Replace simple neighbor expansion with a graph built from occupation-skill relationships so that the system can discover adjacent careers and explain matches through shared skills.
+Replace simple neighbor expansion with skill-graph expansion for deeper discovery and stronger explanations.
 
 Architecture
-Occupation → Skill → Occupation graph
+Occupation <-> Skill <-> Occupation graph (JobTech-based signals)
 
-Nodes:
-- occupations
-- skills
+Track B replaces only:
+job pool expansion logic
 
-Edges:
-- occupation ↔ skill relationships
-- derived occupation ↔ occupation similarity based on shared skills
+Everything else remains:
+CV extraction -> role expansion -> occupation resolution -> ranking
 
-Graph expansion replaces the Phase 8 neighbor expansion.
+Benefits
+- richer adjacency paths
+- skill-grounded exploration
+- better "why this match" explanations
 
-Process:
-occupationIDs → graph walk (skill-based expansion) → expanded occupation set → JobTech queries → embeddings ranking
+---
 
-Additional capabilities enabled by the graph:
-- skill-based explanations (“matched because you have X skills”)
-- career adjacency discovery
-- identification of roles requiring small retraining steps
+Relationship between tracks
 
-Relationship Between Track A and Track B
+Track A:
+deterministic, low risk, shipping baseline
 
-Track B replaces only the Job Pool Builder expansion logic.
+Track A+:
+higher-quality inferred roles (cross-domain employability)
 
-The rest of the system remains unchanged:
-CV extraction → role expansion → role → occupation resolution → profile embedding → job ranking
+Track B:
+future graph-based pool expansion
 
-Pipeline with Track A:
-CV → AI profile extraction → role expansion → occupation resolver → job pool builder (simple neighbors) → embeddings ranking
-
-Pipeline with Track B:
-CV → AI profile extraction → role expansion → occupation resolver → job pool builder (graph expansion) → embeddings ranking
-
-This ensures Phase 8 can ship quickly while keeping the architecture ready for the more advanced expansion system later.
+All three are compatible.
+Track A+ can be delivered before Track B and will already improve quality materially.
