@@ -1,6 +1,7 @@
 const { listJobTechJobs } = require('../jobs/jobTechJobs');
 const { filterJobsByMunicipality } = require('../jobs/filterJobs');
 const { resolveOccupationIds, expandOccupationNeighbors } = require('./occupationResolver');
+const { buildCandidateOpportunityProfile } = require('../opportunity/candidateOpportunityProfile');
 
 const SENIORITY_TOKENS = new Set([
   'senior',
@@ -18,6 +19,9 @@ const MIN_QUERY_LENGTH = 3;
 const MAX_POOL = 200;
 const MIN_POOL = 40;
 const MAX_PER_OCCUPATION = 40;
+const MAX_PIVOT_POOL = 180;
+const MAX_PIVOT_PER_OCCUPATION = 24;
+const MAX_PIVOT_QUERIES = 12;
 
 async function buildMatchJobPool(profile, limit) {
   const explicitRoles = Array.isArray(profile?.roles) ? profile.roles : [];
@@ -156,6 +160,180 @@ async function buildMatchJobPool(profile, limit) {
   return pool;
 }
 
+async function buildMatchJobPools(profile, limit) {
+  const explicitRoles = Array.isArray(profile?.roles) ? profile.roles : [];
+  const inferredRoles = Array.isArray(profile?.inferredRoles) ? profile.inferredRoles : [];
+
+  let coreOccupationIds = Array.isArray(profile?.occupationIds)
+    ? uniquePreservingOrder(profile.occupationIds.map(String))
+    : [];
+
+  if (!coreOccupationIds.length) {
+    const resolved = await resolveOccupationIds(explicitRoles, inferredRoles);
+    coreOccupationIds = resolved.occupationIds || [];
+  }
+
+  const opportunityProfile = await buildCandidateOpportunityProfile({
+    explicitRoles,
+    inferredRoles,
+    summary: profile?.summary,
+    profileSignals: buildOpportunitySignals(profile),
+    coreOccupationIds
+  });
+
+  const corePool = await buildMatchJobPool(
+    {
+      ...profile,
+      occupationIds: coreOccupationIds
+    },
+    limit
+  );
+
+  const pivotPool = await buildPivotJobPool({
+    profile,
+    limit,
+    opportunityProfile,
+    coreOccupationIds
+  });
+
+  const cappedCorePool = corePool.slice(0, Math.min(corePool.length, Math.max(limit * 6, 120)));
+  const cappedPivotPool = pivotPool.slice(0, Math.min(pivotPool.length, Math.max(limit * 4, 100)));
+
+  return {
+    corePool: tagPool(cappedCorePool, 'core'),
+    pivotPool: tagPool(cappedPivotPool, 'pivot'),
+    opportunityProfile
+  };
+}
+
+async function buildPivotJobPool({ profile, limit, opportunityProfile, coreOccupationIds }) {
+  const municipality = profile?.municipality ? String(profile.municipality).trim() : '';
+  const hasMunicipality = Boolean(municipality);
+
+  const families = Array.isArray(opportunityProfile?.pivotOpportunityFamilies)
+    ? opportunityProfile.pivotOpportunityFamilies
+    : [];
+  if (!families.length) return [];
+
+  const coreOccupationSet = new Set(uniquePreservingOrder(coreOccupationIds));
+  const maxPool = Math.min(Math.max(limit * 6, 80), MAX_PIVOT_POOL);
+  const perFamilyTarget = Math.max(12, Math.ceil(maxPool / Math.max(1, families.length)));
+  const perFamilyMaxPool = Math.max(20, Math.ceil(perFamilyTarget * 1.5));
+
+  let pool = [];
+  for (const family of families) {
+    const familyId = String(family?.id || '').trim();
+    const familyLabel = String(family?.label || '').trim();
+    if (!familyId || !familyLabel) continue;
+
+    const familyTag = {
+      id: familyId,
+      label: familyLabel,
+      fitScore: Number(family?.fitScore || 0)
+    };
+    const familyOccupationIds = uniquePreservingOrder(
+      Array.isArray(family?.occupationIds) ? family.occupationIds : []
+    ).filter((occupationId) => !coreOccupationSet.has(occupationId));
+    const familyQueries = uniquePreservingOrder([
+      ...(Array.isArray(family?.searchTerms) ? family.searchTerms : []),
+      ...(Array.isArray(family?.occupationSeeds) ? family.occupationSeeds : [])
+    ]).slice(0, MAX_PIVOT_QUERIES);
+
+    const perOccupationLimit = computePivotPerOccupationLimit(familyOccupationIds.length, limit);
+    const perQueryLimit = computePivotPerQueryLimit(familyQueries.length, limit);
+
+    let familyPool = [];
+    if (familyOccupationIds.length) {
+      let result = await fetchJobsForOccupationIds(familyOccupationIds, {
+        perOccupationLimit,
+        maxPool: perFamilyMaxPool,
+        municipality: hasMunicipality ? municipality : null,
+        decorateJob: (job) => ({ ...job, _pivotFamily: familyTag })
+      });
+      familyPool = mergePools(familyPool, result.pool, perFamilyMaxPool);
+
+      if (familyPool.length < Math.floor(perFamilyTarget * 0.5) && hasMunicipality) {
+        result = await fetchJobsForOccupationIds(familyOccupationIds, {
+          perOccupationLimit,
+          maxPool: perFamilyMaxPool,
+          municipality: null,
+          decorateJob: (job) => ({ ...job, _pivotFamily: familyTag })
+        });
+        familyPool = mergePools(familyPool, result.pool, perFamilyMaxPool);
+      }
+    }
+
+    if (familyQueries.length && familyPool.length < perFamilyTarget) {
+      let queryPool = await fetchJobsForQueries(familyQueries, {
+        perQueryLimit,
+        maxPool: perFamilyMaxPool - familyPool.length,
+        municipality: hasMunicipality ? municipality : null,
+        decorateJob: (job) => ({ ...job, _pivotFamily: familyTag })
+      });
+      familyPool = mergePools(familyPool, queryPool, perFamilyMaxPool);
+
+      if (familyPool.length < Math.floor(perFamilyTarget * 0.5) && hasMunicipality) {
+        queryPool = await fetchJobsForQueries(familyQueries, {
+          perQueryLimit,
+          maxPool: perFamilyMaxPool - familyPool.length,
+          municipality: null,
+          decorateJob: (job) => ({ ...job, _pivotFamily: familyTag })
+        });
+        familyPool = mergePools(familyPool, queryPool, perFamilyMaxPool);
+      }
+    }
+
+    pool = mergePools(pool, familyPool, maxPool);
+    logPoolSize(`pivot_family_${familyId}`, familyPool);
+    if (pool.length >= maxPool) break;
+  }
+
+  logPoolSize('pivot_final', pool);
+
+  return pool;
+}
+
+function tagPool(pool, matchType) {
+  return (Array.isArray(pool) ? pool : []).map((job) => ({
+    ...job,
+    _matchType: matchType
+  }));
+}
+
+function computePivotPerOccupationLimit(occupationCount, limit) {
+  const targetPool = Math.min(Math.max(limit * 5, 80), MAX_PIVOT_POOL);
+  if (!occupationCount) return Math.min(targetPool, MAX_PIVOT_PER_OCCUPATION);
+  const perOccupation = Math.ceil(targetPool / occupationCount);
+  return Math.min(Math.max(perOccupation, 12), MAX_PIVOT_PER_OCCUPATION);
+}
+
+function computePivotPerQueryLimit(queryCount, limit) {
+  const targetPool = Math.min(Math.max(limit * 5, 80), MAX_PIVOT_POOL);
+  if (!queryCount) return Math.min(targetPool, 40);
+  const perQuery = Math.ceil(targetPool / queryCount);
+  return Math.min(Math.max(perQuery, 16), 40);
+}
+
+function buildOpportunitySignals(profile) {
+  const keywords = Array.isArray(profile?.keywords) ? profile.keywords : [];
+  const skills = Array.isArray(profile?.skills) ? profile.skills : [];
+  const roles = Array.isArray(profile?.roles) ? profile.roles : [];
+  const inferredRoles = Array.isArray(profile?.inferredRoles) ? profile.inferredRoles : [];
+  const summary = typeof profile?.summary === 'string' ? profile.summary : '';
+  const cvText = typeof profile?.cvText === 'string'
+    ? profile.cvText.slice(0, 4000)
+    : '';
+
+  return uniquePreservingOrder([
+    ...keywords,
+    ...skills,
+    ...roles,
+    ...inferredRoles,
+    summary,
+    cvText
+  ]);
+}
+
 function computePerQueryLimit(queryCount, limit) {
   const targetPool = Math.min(Math.max(limit * 6, MIN_POOL), MAX_POOL);
   if (!queryCount) return Math.min(targetPool, 60);
@@ -237,7 +415,11 @@ async function fetchJobsForOccupationIds(occupationIds, options) {
       if (!job || !job.id) continue;
       if (seen.has(job.id)) continue;
       seen.add(job.id);
-      results.push(job);
+      const mappedJob = typeof options.decorateJob === 'function'
+        ? options.decorateJob(job, occupationId)
+        : job;
+      if (!mappedJob || !mappedJob.id) continue;
+      results.push(mappedJob);
       if (results.length >= options.maxPool) {
         return { pool: results, perOccupationCounts };
       }
@@ -272,7 +454,11 @@ async function fetchJobsForQueries(queries, options) {
       if (!job || !job.id) continue;
       if (seen.has(job.id)) continue;
       seen.add(job.id);
-      results.push(job);
+      const mappedJob = typeof options.decorateJob === 'function'
+        ? options.decorateJob(job, response)
+        : job;
+      if (!mappedJob || !mappedJob.id) continue;
+      results.push(mappedJob);
       if (results.length >= options.maxPool) {
         return results;
       }
@@ -348,4 +534,4 @@ function mergePools(primary, secondary, maxPool) {
   return merged;
 }
 
-module.exports = { buildMatchJobPool };
+module.exports = { buildMatchJobPool, buildMatchJobPools };

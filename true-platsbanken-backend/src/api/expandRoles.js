@@ -1,6 +1,8 @@
 const { postOpenAI } = require('../readers/openai');
 const { buildRoleExpansionPayload, parseRoleExpansionResponse } = require('../domain/profile/roleExpansion');
 const { resolveOccupationIds } = require('../domain/matching/occupationResolver');
+const { resolveEducationPaths } = require('../domain/education/educationPathResolver');
+const { buildCandidateOpportunityProfile } = require('../domain/opportunity/candidateOpportunityProfile');
 
 const SENIORITY_TOKENS = new Set([
   'senior',
@@ -35,14 +37,52 @@ async function expandProfileRoles(profile) {
 
   const inferredRoles = inferredNoCanonicalDuplicates.map(item => item.role);
   const rationale = buildRationale(expansion.rationale, inferredNoCanonicalDuplicates);
-  const resolved = await resolveOccupationIds(explicitRoles, inferredRoles);
+  const [explicitResolved, inferredResolved] = await Promise.all([
+    resolveOccupationIds(explicitRoles, []),
+    resolveOccupationIds([], inferredRoles)
+  ]);
+
+  const occupationIds = uniquePreservingOrder([
+    ...(explicitResolved.occupationIds || []),
+    ...(inferredResolved.occupationIds || [])
+  ]);
+
+  let opportunityProfile = null;
+  try {
+    opportunityProfile = await buildCandidateOpportunityProfile({
+      explicitRoles,
+      inferredRoles,
+      summary: profile.summary,
+      profileSignals: buildPivotSignals(profile),
+      coreOccupationIds: occupationIds
+    });
+  } catch (error) {
+    console.log('Candidate opportunity profile build failed:', error.message);
+  }
+
+  let educationPath = { strengthen: [], pivot: [] };
+  try {
+    educationPath = await resolveEducationPaths({
+      explicitOccupationIds: explicitResolved.occupationIds || [],
+      inferredOccupationIds: inferredResolved.occupationIds || [],
+      explicitRoles,
+      inferredRoles,
+      inferredRoleDetails: inferredNoCanonicalDuplicates,
+      profileSignals: buildEducationSignals(profile, inferredNoCanonicalDuplicates),
+      pivotSignals: buildPivotSignals(profile)
+    });
+  } catch (error) {
+    console.log('Education path resolver failed:', error.message);
+  }
 
   return {
     ...expansion,
     inferredRoles,
     inferredRoleDetails: inferredNoCanonicalDuplicates,
     rationale,
-    occupationIds: resolved.occupationIds
+    occupationIds,
+    opportunityProfile,
+    educationPath
   };
 }
 
@@ -154,6 +194,51 @@ function buildRationale(baseRationale, inferredRoleDetails) {
     rationale[role.role] = role.reason;
   }
   return rationale;
+}
+
+function buildEducationSignals(profile, inferredRoleDetails) {
+  const keywords = Array.isArray(profile?.keywords) ? profile.keywords : [];
+  const roles = Array.isArray(profile?.roles) ? profile.roles : [];
+  const summary = typeof profile?.summary === 'string' ? profile.summary : '';
+  const detailSignals = inferredRoleDetails.flatMap((item) => {
+    if (!item || typeof item !== 'object') return [];
+    if (Array.isArray(item.sourceSignals)) return item.sourceSignals;
+    if (typeof item.reason === 'string') return [item.reason];
+    return [];
+  });
+
+  return uniquePreservingOrder([
+    ...keywords,
+    ...roles,
+    ...detailSignals,
+    summary
+  ]).filter(Boolean);
+}
+
+function buildPivotSignals(profile) {
+  const keywords = Array.isArray(profile?.keywords) ? profile.keywords : [];
+  const roles = Array.isArray(profile?.roles) ? profile.roles : [];
+  const summary = typeof profile?.summary === 'string' ? profile.summary : '';
+
+  return uniquePreservingOrder([
+    ...keywords,
+    ...roles,
+    summary
+  ]).filter(Boolean);
+}
+
+function uniquePreservingOrder(values) {
+  const seen = new Set();
+  const result = [];
+  for (const value of values) {
+    const text = String(value || '').trim();
+    if (!text) continue;
+    const key = text.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(text);
+  }
+  return result;
 }
 
 module.exports = { expandProfileRoles };

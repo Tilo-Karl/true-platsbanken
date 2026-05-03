@@ -79,6 +79,26 @@ npm run deploy
 
 This deploys Firebase Functions with automatic scheduling every 6 hours.
 
+## JobEd Connect Probe (Phase 9.5)
+
+Use this to verify endpoint reachability, auth status (401/403), and basic response shape before implementing education-path resolver logic:
+
+```bash
+npm run jobed:probe
+```
+
+Probe behavior:
+- Calls the confirmed Swagger URLs and v1 endpoints.
+- Tests `match-by-jobtitle`, `match-by-text`, and dynamic follow-up probes when IDs are found.
+- Prints HTTP status, auth hints, payload keys/previews, and basic swagger/educations shape summaries.
+
+Optional environment variables:
+
+```bash
+JOBED_CONNECT_BASE_URL=https://jobed-connect-api.jobtechdev.se
+JOBED_CONNECT_TIMEOUT_MS=8000
+```
+
 ## JobTech API Integration
 
 - Base URL: `https://jobsearch.api.jobtechdev.se/search`

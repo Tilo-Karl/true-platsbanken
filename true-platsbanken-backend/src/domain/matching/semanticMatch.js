@@ -13,7 +13,8 @@ function rankSemanticMatches(jobs, profileEmbedding, jobEmbeddings, profileSigna
         jobId: job.id,
         job,
         score,
-        reasons: buildMatchReasons(profileSignals, job)
+        reasons: buildMatchReasons(profileSignals, job),
+        matchType: job?._matchType || 'core'
       };
     })
     .sort((a, b) => b.score - a.score)
