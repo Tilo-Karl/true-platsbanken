@@ -22,6 +22,15 @@ struct MatchCard: View {
 
                 if let published = JobPresentation.publishedPresentation(for: match.job, now: Date()) {
                     HStack(spacing: AppSpacing.cardGap) {
+                        if match.matchType == .pivot {
+                            Text(AppStrings.matchesPivotBadge)
+                                .font(AppFonts.meta.weight(.semibold))
+                                .padding(.horizontal, AppSpacing.cardGap)
+                                .padding(.vertical, AppSpacing.cardGap / 3)
+                                .background(AppColors.brandBlueDark.opacity(0.16))
+                                .clipShape(Capsule())
+                        }
+
                         if match.isNewToday == true {
                             Text(AppStrings.matchesNewToday)
                                 .font(AppFonts.meta.weight(.semibold))
@@ -43,13 +52,26 @@ struct MatchCard: View {
                             .font(AppFonts.meta)
                             .foregroundStyle(AppColors.brandBlack.opacity(0.6))
                     }
-                } else if match.isNewToday == true {
-                    Text(AppStrings.matchesNewToday)
-                        .font(AppFonts.meta.weight(.semibold))
-                        .padding(.horizontal, AppSpacing.cardGap)
-                        .padding(.vertical, AppSpacing.cardGap / 3)
-                        .background(AppColors.brandAccent.opacity(0.25))
-                        .clipShape(Capsule())
+                } else {
+                    HStack(spacing: AppSpacing.cardGap) {
+                        if match.matchType == .pivot {
+                            Text(AppStrings.matchesPivotBadge)
+                                .font(AppFonts.meta.weight(.semibold))
+                                .padding(.horizontal, AppSpacing.cardGap)
+                                .padding(.vertical, AppSpacing.cardGap / 3)
+                                .background(AppColors.brandBlueDark.opacity(0.16))
+                                .clipShape(Capsule())
+                        }
+
+                        if match.isNewToday == true {
+                            Text(AppStrings.matchesNewToday)
+                                .font(AppFonts.meta.weight(.semibold))
+                                .padding(.horizontal, AppSpacing.cardGap)
+                                .padding(.vertical, AppSpacing.cardGap / 3)
+                                .background(AppColors.brandAccent.opacity(0.25))
+                                .clipShape(Capsule())
+                        }
+                    }
                 }
 
                 if let score = match.score {

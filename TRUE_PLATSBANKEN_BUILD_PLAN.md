@@ -142,7 +142,7 @@ Snapshot persistence (updated)
 
 ⸻
 
-Phase 8 — Match Quality (Job Pool Tailoring) ✅ DONE (Track A)
+Phase 8 — Match Quality (Job Pool Tailoring) ✅ DONE (Track A + Track A+)
 
 Goal
 	•	Increase match quality by tailoring the job pool to the profile
@@ -158,6 +158,15 @@ Delivered in Track A
 	•	Pool limits and dedupe before ranking (`~40/occupation`, `~200 total`)
 	•	Diagnostics logging (role resolution, expansion, counts, final pool size)
 	•	Store/reuse occupation IDs in profile snapshot
+
+Delivered in Track A+ (Role Expansion v2)
+	•	Role expansion rewritten toward cross-domain employability (not synonym expansion)
+	•	Structured inferred-role output added:
+		•	`role`, `category`, `confidence`, `reason`, `sourceSignals`
+	•	Server-side guardrails enforce:
+		•	No lexical near-duplicates of explicit roles
+		•	No inferred roles resolving to the same canonical occupation IDs as explicit roles
+	•	Backward compatibility preserved by still returning `inferredRoles` string array for current client usage
 
 Track B (graph expansion) remains future work
 	•	Skill-graph expansion and explainability layer are postponed after shipping.
@@ -182,16 +191,110 @@ Rules
 
 ⸻
 
-Phase 9 — UX that sells the AI 🔄 IN PROGRESS
+Phase 9 — UX that sells the AI ✅ BASELINE DONE
 
-Only surfacing, no new intelligence:
+Delivered:
 	•	Match score badges ✅
 	•	Show inferred roles (collapsed) ✅
 	•	Shared visual language across Profile/Matches/Jobs ✅
-	•	“Matched because…” bullets (optional; not required for release)
+	•	“Matched because…” bullets intentionally skipped (not required for release)
 	•	Clear separation:
 	•	“Live jobs”
 	•	“CV-matched jobs”
+
+Notes:
+	•	UI reliability and polish continue as ongoing release QA, not a standalone blocking phase.
+
+⸻
+
+Phase 9.5 — Education Path (Pre-Payments) ✅ DONE
+
+Goal
+	•	Add practical education guidance that helps users both:
+	•	stay competitive in their current direction
+	•	quickly pivot into adjacent/new work paths
+
+Product model
+	•	Two recommendation tracks are shown in Profile:
+	•	Track A: “Strengthen your path”
+	•	Track B: “Try a new path”
+
+Track definitions
+	•	Track A (Strengthen):
+	•	Courses linked to explicit + inferred target occupations
+	•	Goal: improve placement odds in roles close to current profile
+	•	Track B (Pivot):
+	•	Courses linked to occupations not present in explicit role history
+	•	Goal: show reachable alternatives and reduce inactivity risk
+
+Delivered (backend)
+	•	`EducationPathResolver` added in backend domain layer
+	•	Input includes explicit/inferred occupation IDs + profile signals
+	•	JobEd Connect integration verified and active
+	•	Output includes concrete course/program data:
+	•	`track`, `occupationId`, `occupationLabel`, `courseTitle`, `provider`, `startDate`, `duration`, `confidence`, `reason`, `sourceSignals`, `courseId`, `courseUrl`
+	•	Deduplication added to avoid duplicate cards
+	•	Returns top 5 per track (backend)
+	•	Profile shows top 2 per track with “See more” for full track list
+
+Hard rules
+	•	Do not replace current match ranking pipeline
+	•	Do not trigger additional profile extraction/embedding runs for education suggestions
+	•	Do not suggest duplicate role-family paths across both tracks
+	•	Do not output generic education advice without a concrete course/program result
+	•	Do not show an education path unless a real course/program is found from JobTech-accessible data
+
+Delivered (frontend)
+	•	“Education path” section added under inferred roles in Profile
+	•	Two groups rendered:
+	•	“Strengthen your path”
+	•	“Try a new path”
+	•	Each item shows:
+	•	course title
+	•	start timing
+	•	why this is suggested
+	•	Provider/course links are tappable when `courseUrl` exists
+	•	No payment gate added (guidance-only UX)
+
+Success criteria
+	•	Users see actionable near-term options in both tracks
+	•	Pivot track offers credible alternatives without repeating current-role synonyms
+	•	UI remains stable and readable on long lists
+
+Status
+	•	Met for current release scope
+
+Out of scope for 9.5
+	•	Application submission flow to courses/programs
+	•	Push notifications for course deadlines
+	•	Accounts-based server persistence changes
+
+⸻
+
+Phase 9.6 — Opportunity Profile + Dual Match Pools ✅ DONE (Inspection Baseline)
+
+Goal
+	•	Split match output into:
+	•	Core matches (closest to CV)
+	•	Career pivots (capability-family driven)
+
+Delivered
+	•	Added backend concept: `CandidateOpportunityProfile`
+	•	`/api/profile/expand-roles` now returns `opportunityProfile`
+	•	`/api/match` now returns:
+	•	`matches`, `coreMatches`, `pivotMatches`, `coreCount`, `pivotCount`, `opportunityProfile`
+	•	Pivot pool now built from `pivotOpportunityFamilies` (not inferred-role synonym expansion)
+	•	Pivot matches tagged with `pivotFamily`
+	•	Final pivot selection uses round-robin family balancing
+	•	Matches UI now shows:
+	•	“Best CV matches”
+	•	“Career pivots”
+	•	Pivot cards include `Pivot` badge
+	•	Profile has temporary debug section for opportunity profile visibility
+
+Notes
+	•	This phase is intentionally low-polish and inspection-focused.
+	•	Primary objective was to verify pivot logic is materially different from core matching.
 
 ⸻
 

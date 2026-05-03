@@ -99,7 +99,31 @@ struct MatchResultsView: View {
         } else if viewModel.matches.isEmpty {
             ContentUnavailableView(AppStrings.noMatches, systemImage: "sparkles", description: Text(AppStrings.refreshToCheck))
         } else {
-            ForEach(viewModel.matches) { match in
+            let coreMatches = viewModel.matches.filter { $0.matchType == .core }
+            let pivotMatches = viewModel.matches.filter { $0.matchType == .pivot }
+
+            if !coreMatches.isEmpty {
+                matchesGroup(title: AppStrings.matchesCoreGroupTitle, items: coreMatches)
+            }
+
+            if !pivotMatches.isEmpty {
+                matchesGroup(title: AppStrings.matchesPivotGroupTitle, items: pivotMatches)
+            }
+
+            if coreMatches.isEmpty && pivotMatches.isEmpty {
+                matchesGroup(title: AppStrings.matchesCoreGroupTitle, items: viewModel.matches)
+            }
+        }
+    }
+
+    private func matchesGroup(title: String, items: [MatchResult]) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.cardGap) {
+            Text(title)
+                .font(AppFonts.meta.weight(.semibold))
+                .foregroundStyle(AppColors.brandBlack.opacity(0.7))
+                .padding(.top, AppSpacing.cardGap / 2)
+
+            ForEach(items) { match in
                 if isDemo {
                     Button {
                         presentOverlay()

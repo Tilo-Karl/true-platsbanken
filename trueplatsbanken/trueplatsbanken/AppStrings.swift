@@ -25,6 +25,9 @@ enum AppStrings {
     static var matchesUnavailable: String { localized("matches.unavailable") }
     static var noMatches: String { localized("matches.none") }
     static var refreshToCheck: String { localized("matches.refreshToCheck") }
+    static var matchesCoreGroupTitle: String { localized("matches.group.core") }
+    static var matchesPivotGroupTitle: String { localized("matches.group.pivot") }
+    static var matchesPivotBadge: String { localized("matches.badge.pivot") }
     static var matchesNewToday: String { localized("matches.newToday") }
     static var refresh: String { localized("common.refresh") }
     static var filtersTitle: String { localized("filters.title") }
@@ -139,6 +142,23 @@ enum AppStrings {
     }
     static var profileViewMatches: String { localized("profile.viewMatches") }
     static var profileDetailsTitle: String { localized("profile.details.title") }
+    static var profileEducationTitle: String { localized("profile.education.title") }
+    static var profileEducationStrengthen: String { localized("profile.education.strengthen") }
+    static var profileEducationPivot: String { localized("profile.education.pivot") }
+    static var profileEducationSeeMore: String { localized("profile.education.seeMore") }
+    static var profileEducationProviderUnknown: String { localized("profile.education.providerUnknown") }
+    static var profileEducationOpenCourse: String { localized("profile.education.openCourse") }
+    static func profileEducationCourseId(_ value: String) -> String {
+        String(format: localized("profile.education.courseId"), locale: Locale.current, value)
+    }
+    static func profileEducationStarts(_ date: String) -> String {
+        String(format: localized("profile.education.starts"), locale: Locale.current, date)
+    }
+    static var profileOpportunityTitle: String { localized("profile.opportunity.title") }
+    static var profileOpportunityPrimaryDomains: String { localized("profile.opportunity.primaryDomains") }
+    static var profileOpportunitySecondaryDomains: String { localized("profile.opportunity.secondaryDomains") }
+    static var profileOpportunityCapabilities: String { localized("profile.opportunity.capabilities") }
+    static var profileOpportunityPivotFamilies: String { localized("profile.opportunity.pivotFamilies") }
 
     static func employmentTypeLabel(for key: String) -> String {
         switch key {

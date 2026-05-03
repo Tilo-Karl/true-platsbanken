@@ -32,12 +32,20 @@ final class BackendMatchReader: MatchReading {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         let payload = try decoder.decode(MatchResponse.self, from: data)
-        return payload.matches.map { match in
+        let rawMatches: [MatchPayload]
+        if let core = payload.coreMatches, let pivot = payload.pivotMatches {
+            rawMatches = core + pivot
+        } else {
+            rawMatches = payload.matches
+        }
+
+        return rawMatches.map { match in
             MatchResult(
                 id: match.jobId,
                 job: match.job,
                 score: match.score,
-                reasons: match.reasons
+                reasons: match.reasons,
+                matchType: match.matchType ?? .core
             )
         }
     }
@@ -52,6 +60,8 @@ private struct MatchRequest: Encodable {
 
 private struct MatchResponse: Decodable {
     let matches: [MatchPayload]
+    let coreMatches: [MatchPayload]?
+    let pivotMatches: [MatchPayload]?
 }
 
 private struct MatchPayload: Decodable {
@@ -59,4 +69,5 @@ private struct MatchPayload: Decodable {
     let job: Job
     let score: Double?
     let reasons: [String]
+    let matchType: MatchResult.MatchType?
 }

@@ -16,6 +16,7 @@ struct ProfileEditorView: View {
     @State private var showCvDetails = false
     @State private var heroImageName = "CVMatch11"
     @State private var uploadError: String?
+    @State private var educationSheetTrack: EducationTrack?
 
     private let heroImages = ["CVMatch11", "CVMatch12"]
     private let heroHeight: CGFloat = 180
@@ -43,6 +44,18 @@ struct ProfileEditorView: View {
                         .padding(.horizontal, AppSpacing.screenPadding)
                         .padding(.bottom, AppSpacing.sectionGap)
 
+                    if hasOpportunityProfileDebug {
+                        opportunityProfileCard()
+                            .padding(.horizontal, AppSpacing.screenPadding)
+                            .padding(.bottom, AppSpacing.sectionGap)
+                    }
+
+                    if hasEducationPath {
+                        educationPathCard()
+                            .padding(.horizontal, AppSpacing.screenPadding)
+                            .padding(.bottom, AppSpacing.sectionGap)
+                    }
+
                     cvCard()
                         .padding(.horizontal, AppSpacing.screenPadding)
                 }
@@ -58,6 +71,9 @@ struct ProfileEditorView: View {
         }
         .onChange(of: selectedPhotos) { _, items in
             handlePhotoSelection(items)
+        }
+        .sheet(item: $educationSheetTrack) { track in
+            educationTrackSheet(for: track)
         }
         .onAppear {
             heroImageName = heroImages.randomElement() ?? heroImageName
@@ -162,6 +178,137 @@ struct ProfileEditorView: View {
         }
     }
 
+    private var hasEducationPath: Bool {
+        sanitizedEducationPath.hasAnyItems
+    }
+
+    private var hasOpportunityProfileDebug: Bool {
+        (viewModel.aiResult?.opportunityProfile ?? .empty).hasDebugContent
+    }
+
+    private func opportunityProfileCard() -> some View {
+        let profile = viewModel.aiResult?.opportunityProfile ?? .empty
+
+        return SectionCard(title: AppStrings.profileOpportunityTitle) {
+            VStack(alignment: .leading, spacing: 16) {
+                opportunityChipGroup(
+                    title: AppStrings.profileOpportunityPrimaryDomains,
+                    items: profile.primaryDomains
+                )
+                opportunityChipGroup(
+                    title: AppStrings.profileOpportunitySecondaryDomains,
+                    items: profile.secondaryDomains
+                )
+                opportunityChipGroup(
+                    title: AppStrings.profileOpportunityCapabilities,
+                    items: profile.transferableCapabilities
+                )
+                opportunityChipGroup(
+                    title: AppStrings.profileOpportunityPivotFamilies,
+                    items: profile.pivotOpportunityFamilies.map(\.label)
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func opportunityChipGroup(title: String, items: [String]) -> some View {
+        if !items.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title)
+                    .font(AppFonts.meta.weight(.semibold))
+                    .foregroundStyle(.secondary)
+
+                FlowLayout(spacing: 8) {
+                    ForEach(items, id: \.self) { item in
+                        ChipView(text: item, style: .secondary)
+                    }
+                }
+            }
+        }
+    }
+
+    private func educationPathCard() -> some View {
+        let path = sanitizedEducationPath
+
+        return SectionCard(title: AppStrings.profileEducationTitle) {
+            VStack(alignment: .leading, spacing: 20) {
+                if !path.strengthen.isEmpty {
+                    educationTrackSection(
+                        title: AppStrings.profileEducationStrengthen,
+                        items: path.strengthen,
+                        track: .strengthen
+                    )
+                }
+
+                if !path.pivot.isEmpty {
+                    educationTrackSection(
+                        title: AppStrings.profileEducationPivot,
+                        items: path.pivot,
+                        track: .pivot
+                    )
+                }
+            }
+        }
+    }
+
+    private func educationTrackSection(
+        title: String,
+        items: [ProfileEducationPathItem],
+        track: EducationTrack
+    ) -> some View {
+        let previewItems = Array(items.prefix(2))
+
+        return VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(AppFonts.meta.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            ForEach(Array(previewItems.enumerated()), id: \.offset) { _, item in
+                EducationItemRow(item: item)
+            }
+
+            if items.count > 2 {
+                Button {
+                    educationSheetTrack = track
+                } label: {
+                    Text(AppStrings.profileEducationSeeMore)
+                        .font(AppFonts.meta.weight(.semibold))
+                        .foregroundStyle(AppColors.brandBlueDark)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 2)
+            }
+        }
+    }
+
+    private func educationTrackSheet(for track: EducationTrack) -> some View {
+        let path = sanitizedEducationPath
+        let items = track == .strengthen ? path.strengthen : path.pivot
+        let title = track == .strengthen ? AppStrings.profileEducationStrengthen : AppStrings.profileEducationPivot
+
+        return NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppSpacing.cardGap) {
+                    ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                        EducationItemRow(item: item)
+                    }
+                }
+                .padding(AppSpacing.screenPadding)
+            }
+            .background(AppBackground().ignoresSafeArea())
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(AppStrings.filterDone) {
+                        educationSheetTrack = nil
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: - Helper Methods
     
     private func handlePhotoSelection(_ items: [PhotosPickerItem]) {
@@ -247,6 +394,119 @@ struct ProfileEditorView: View {
         return roles.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
     }
 
+    private var sanitizedEducationPath: ProfileEducationPath {
+        dedupedEducationPath(viewModel.aiResult?.educationPath ?? .empty)
+    }
+
+    private func dedupedEducationPath(_ path: ProfileEducationPath) -> ProfileEducationPath {
+        ProfileEducationPath(
+            strengthen: dedupedEducationItems(path.strengthen),
+            pivot: dedupedEducationItems(path.pivot)
+        )
+    }
+
+    private func dedupedEducationItems(_ items: [ProfileEducationPathItem]) -> [ProfileEducationPathItem] {
+        var bestByKey: [String: ProfileEducationPathItem] = [:]
+        var order: [String] = []
+
+        for item in items {
+            let key = educationDedupeKey(item)
+            if let existing = bestByKey[key] {
+                if shouldReplace(existing: existing, candidate: item) {
+                    bestByKey[key] = item
+                }
+                continue
+            }
+            bestByKey[key] = item
+            order.append(key)
+        }
+
+        return order.compactMap { bestByKey[$0] }
+    }
+
+    private func shouldReplace(existing: ProfileEducationPathItem, candidate: ProfileEducationPathItem) -> Bool {
+        if candidate.confidence != existing.confidence {
+            return candidate.confidence > existing.confidence
+        }
+
+        let existingDate = educationDateSortValue(existing.startDate)
+        let candidateDate = educationDateSortValue(candidate.startDate)
+        if existingDate != candidateDate {
+            return candidateDate < existingDate
+        }
+
+        let existingTitle = existing.courseTitle.localizedLowercase
+        let candidateTitle = candidate.courseTitle.localizedLowercase
+        return candidateTitle < existingTitle
+    }
+
+    private func educationDedupeKey(_ item: ProfileEducationPathItem) -> String {
+        let track = item.track.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let title = normalizeEducationKeyText(item.courseTitle)
+        let provider = normalizeEducationKeyText(item.provider ?? "")
+        let startDate = normalizeEducationDateKey(item.startDate)
+        return "\(track)::\(title)::\(provider)::\(startDate)"
+    }
+
+    private func normalizeEducationKeyText(_ raw: String) -> String {
+        let pieces = raw
+            .folding(options: .diacriticInsensitive, locale: .current)
+            .lowercased()
+            .components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .filter { !$0.isEmpty }
+
+        var compacted: [String] = []
+        for piece in pieces {
+            if compacted.last == piece { continue }
+            compacted.append(piece)
+        }
+        return compacted.joined(separator: " ")
+    }
+
+    private func normalizeEducationDateKey(_ raw: String?) -> String {
+        guard let raw = raw?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty,
+              let date = parseEducationDate(raw) else {
+            return ""
+        }
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+
+    private func educationDateSortValue(_ raw: String?) -> Int {
+        guard let raw = raw?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty,
+              let date = parseEducationDate(raw) else {
+            return Int.max
+        }
+        return Int(date.timeIntervalSince1970)
+    }
+
+    private func parseEducationDate(_ raw: String) -> Date? {
+        let iso = ISO8601DateFormatter()
+        if let full = iso.date(from: raw) {
+            return full
+        }
+
+        let simple = DateFormatter()
+        simple.calendar = Calendar(identifier: .gregorian)
+        simple.locale = Locale(identifier: "en_US_POSIX")
+        simple.timeZone = TimeZone(secondsFromGMT: 0)
+        simple.dateFormat = "yyyy-MM-dd"
+        return simple.date(from: raw)
+    }
+
+}
+
+private enum EducationTrack: String, Identifiable {
+    case strengthen
+    case pivot
+
+    var id: String { rawValue }
 }
 
 // MARK: - Reusable Components
@@ -264,6 +524,112 @@ private struct ChipView: View {
             .padding(.vertical, 8)
             .background(style == .primary ? AppColors.brandBlueDark.opacity(0.12) : AppColors.brandBlack.opacity(0.05))
             .clipShape(Capsule())
+    }
+}
+
+private struct EducationItemRow: View {
+    @Environment(\.openURL) private var openURL
+    let item: ProfileEducationPathItem
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(item.courseTitle)
+                .font(AppFonts.body.weight(.semibold))
+                .foregroundStyle(AppColors.brandBlueDark)
+
+            Text(providerLine)
+                .font(AppFonts.meta)
+                .foregroundStyle(AppColors.brandBlack.opacity(0.7))
+
+            if let startLabel {
+                Text(startLabel)
+                    .font(AppFonts.meta)
+                    .foregroundStyle(AppColors.brandBlack.opacity(0.65))
+            }
+
+            Text(item.reason)
+                .font(AppFonts.meta)
+                .foregroundStyle(AppColors.brandBlack.opacity(0.65))
+
+            if let courseURL {
+                Link(destination: courseURL) {
+                    Text(AppStrings.profileEducationOpenCourse)
+                        .font(AppFonts.meta.weight(.semibold))
+                        .foregroundStyle(AppColors.brandBlueDark)
+                        .padding(.top, 4)
+                }
+            } else if let courseIdLine {
+                Text(courseIdLine)
+                    .font(AppFonts.meta)
+                    .foregroundStyle(AppColors.brandBlack.opacity(0.55))
+                    .padding(.top, 2)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(AppColors.brandWhite.opacity(0.55))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .onTapGesture {
+            guard let courseURL else { return }
+            openURL(courseURL)
+        }
+    }
+
+    private var providerLine: String {
+        let provider = item.provider?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if provider.isEmpty { return AppStrings.profileEducationProviderUnknown }
+        return provider
+    }
+
+    private var startLabel: String? {
+        guard let startDate = item.startDate,
+              let parsed = parseISODate(startDate) else {
+            return nil
+        }
+        let formatted = dateFormatter.string(from: parsed)
+        return AppStrings.profileEducationStarts(formatted)
+    }
+
+    private var courseURL: URL? {
+        guard let raw = item.courseUrl?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty,
+              let url = URL(string: raw),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else {
+            return nil
+        }
+        return url
+    }
+
+    private var courseIdLine: String? {
+        guard let courseId = item.courseId?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !courseId.isEmpty else {
+            return nil
+        }
+        return AppStrings.profileEducationCourseId(courseId)
+    }
+
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter
+    }
+
+    private func parseISODate(_ raw: String) -> Date? {
+        let iso = ISO8601DateFormatter()
+        if let full = iso.date(from: raw) {
+            return full
+        }
+
+        let simple = DateFormatter()
+        simple.calendar = Calendar(identifier: .gregorian)
+        simple.locale = Locale(identifier: "en_US_POSIX")
+        simple.timeZone = TimeZone(secondsFromGMT: 0)
+        simple.dateFormat = "yyyy-MM-dd"
+        return simple.date(from: raw)
     }
 }
 

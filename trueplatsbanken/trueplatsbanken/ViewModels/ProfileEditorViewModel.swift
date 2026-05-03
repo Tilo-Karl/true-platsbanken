@@ -107,7 +107,9 @@ final class ProfileEditorViewModel: ObservableObject {
                 seniority: extraction.seniority,
                 locations: extraction.locations,
                 summary: extraction.summary,
-                occupationIds: expansion.occupationIds
+                occupationIds: expansion.occupationIds,
+                opportunityProfile: expansion.opportunityProfile,
+                educationPath: expansion.educationPath
             )
 
             if draft.municipality.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
