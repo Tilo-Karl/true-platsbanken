@@ -15,6 +15,7 @@ struct RootView: View {
                         viewModel: appState.profileEditorViewModel,
                         matchesViewModel: appState.matchResultsViewModel,
                         isLiveMode: appState.matchMode == .live,
+                        isBootstrapping: appState.isBootstrapping,
                         onUploadPhotos: appState.handleHeroUploadPhotos,
                         onUploadFiles: appState.handleHeroUploadFiles,
                         onViewMatches: {

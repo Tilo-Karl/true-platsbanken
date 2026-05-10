@@ -117,6 +117,7 @@
 "profile.education.strengthen" = "Stärk din väg";
 "profile.education.pivot" = "Prova en ny väg";
 "profile.education.seeMore" = "Visa fler";
+"profile.common.seeLess" = "Visa färre";
 "profile.education.providerUnknown" = "Utbildningsanordnare saknas";
 "profile.education.openCourse" = "Öppna utbildning";
 "profile.education.courseId" = "Utbildnings-ID: %@";

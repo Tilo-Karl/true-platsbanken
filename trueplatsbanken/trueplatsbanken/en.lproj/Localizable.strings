@@ -117,6 +117,7 @@
 "profile.education.strengthen" = "Strengthen your path";
 "profile.education.pivot" = "Try a new path";
 "profile.education.seeMore" = "See more";
+"profile.common.seeLess" = "See less";
 "profile.education.providerUnknown" = "Provider unavailable";
 "profile.education.openCourse" = "Open course";
 "profile.education.courseId" = "Course ID: %@";

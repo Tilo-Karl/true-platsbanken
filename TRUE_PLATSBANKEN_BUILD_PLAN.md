@@ -298,28 +298,48 @@ Notes
 
 ⸻
 
-Phase 10 — Accounts 🔜 LATER
+Phase 10 — Accounts (Optional Backend Persistence) 🔜 LATER
 
-Required before Phase 11.
-This is not just UI prep.
+Not required before Phase 11.
+Only needed if/when product goals include cross-device restore, reinstall recovery, or server-side entitlement enforcement.
 
 Notes:
-	•	Account tab placeholder can be introduced earlier (Phase 6) for layout validation.
-	•	Backend persistence is still deferred until this phase.
+	•	Account tab placeholder can still be introduced earlier (Phase 6) for layout validation.
+	•	Default remains local-first persistence.
+	•	If enabled later, start minimal: entitlement + paid snapshot metadata, not full profile sync.
 
 ⸻
 
-Phase 11 — Payments (Production StoreKit) 🔜 LATER
+Phase 11 — Payments (Production StoreKit) 🔄 NEXT
 
-Requires Phase 10.
+Can proceed without Phase 10 (local-first payment model).
 
-Notes:
-	•	Current app has stubbed payment flow + local entitlement window (7 days).
-	•	This phase is about replacing stubs with production StoreKit + policy hardening.
-	•	Payment implementation (planned production):
-	•	iOS In-App Purchase (StoreKit 2)
-	•	Non-consumable or subscription TBD (start with single CV-match run as consumable)
-	•	Client-side gating first, receipt validation added when backend persistence is introduced
+Goal
+	•	Replace stubbed payment with production StoreKit while keeping local-first persistence.
+
+Deliverables
+	•	Real StoreKit 2 purchase flow
+	•	Phase 11 v1 product type locked: consumable (single CV-match run purchase)
+	•	7-day entitlement model
+	•	Apple transaction verification on-device
+	•	Local `paidUntil` persistence for fast gating + refresh checks
+	•	Expired entitlement state handling (clear locked/unlocked UX)
+
+Product type rule (important)
+	•	Consumables are not restorable by StoreKit after reinstall.
+	•	If reinstall/device restore becomes a requirement later, migrate to a restorable IAP type and add restore flow then.
+
+Non-goals in this phase
+	•	No Firebase account system
+	•	No backend user storage
+	•	No restore-purchases UX for consumable-only v1
+
+Implementation sweeps (recommended order)
+	1. StoreKit product wiring + config/constants
+	2. Purchase flow replacement (remove stub, real buy path)
+	3. Entitlement engine (`paidUntil` write/read, transaction verification gate)
+	4. Expired-state UX + app lifecycle refresh checks
+	5. Hardening pass (failure states, offline behavior, logging, App Review checklist)
 
 ⸻
 

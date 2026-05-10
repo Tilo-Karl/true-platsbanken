@@ -146,6 +146,7 @@ enum AppStrings {
     static var profileEducationStrengthen: String { localized("profile.education.strengthen") }
     static var profileEducationPivot: String { localized("profile.education.pivot") }
     static var profileEducationSeeMore: String { localized("profile.education.seeMore") }
+    static var profileSeeLess: String { localized("profile.common.seeLess") }
     static var profileEducationProviderUnknown: String { localized("profile.education.providerUnknown") }
     static var profileEducationOpenCourse: String { localized("profile.education.openCourse") }
     static func profileEducationCourseId(_ value: String) -> String {

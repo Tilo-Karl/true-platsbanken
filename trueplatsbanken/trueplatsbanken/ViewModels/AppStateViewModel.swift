@@ -25,6 +25,7 @@ final class AppStateViewModel: ObservableObject {
     @Published var matchMode: MatchMode = .demo
     @Published var matchFlowStep: MatchFlowStep = .idle
     @Published var showUploadSheet = false
+    @Published var isBootstrapping = true
 
     let jobListViewModel: JobListViewModel
     let profileEditorViewModel: ProfileEditorViewModel
@@ -85,16 +86,24 @@ final class AppStateViewModel: ObservableObject {
     }
 
     func bootstrap(language: AppLanguageStore.Language) async {
+        isBootstrapping = true
+        defer { isBootstrapping = false }
+
         registerBackgroundTasksIfNeeded()
         await taxonomyViewModel.loadIfNeeded(languageCode: language.rawValue)
         await jobListViewModel.loadJobs()
+
+        let hasSnapshot = matchResultsViewModel.loadSnapshot()
+        if hasSnapshot {
+            matchMode = .live
+        }
+
         let hasProfile = await profileEditorViewModel.loadProfile()
         if matchMode == .demo && !hasProfile {
             profileEditorViewModel.loadDemoProfile()
         }
-        if matchResultsViewModel.loadSnapshot() {
-            matchMode = .live
-        } else {
+
+        if !hasSnapshot {
             await refreshMatches()
         }
     }

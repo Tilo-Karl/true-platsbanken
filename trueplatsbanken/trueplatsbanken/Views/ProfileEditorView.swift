@@ -6,6 +6,7 @@ struct ProfileEditorView: View {
     @ObservedObject var viewModel: ProfileEditorViewModel
     @ObservedObject var matchesViewModel: MatchResultsViewModel
     let isLiveMode: Bool
+    let isBootstrapping: Bool
     let onUploadPhotos: ([Data]) async -> Void
     let onUploadFiles: ([URL]) async -> Void
     let onViewMatches: () -> Void
@@ -16,11 +17,15 @@ struct ProfileEditorView: View {
     @State private var showCvDetails = false
     @State private var heroImageName = "CVMatch11"
     @State private var uploadError: String?
-    @State private var educationSheetTrack: EducationTrack?
+    @State private var isStrengthenEducationExpanded = false
+    @State private var isPivotEducationExpanded = false
+    @State private var isProfileSectionExpanded = false
+    @State private var isOpportunitySectionExpanded = false
 
     private let heroImages = ["CVMatch11", "CVMatch12"]
     private let heroHeight: CGFloat = 180
     private let headerOverlapFraction: CGFloat = 1.0 / 3.0
+    private let profileSectionPreviewLimit = 2
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -72,9 +77,6 @@ struct ProfileEditorView: View {
         .onChange(of: selectedPhotos) { _, items in
             handlePhotoSelection(items)
         }
-        .sheet(item: $educationSheetTrack) { track in
-            educationTrackSheet(for: track)
-        }
         .onAppear {
             heroImageName = heroImages.randomElement() ?? heroImageName
         }
@@ -93,8 +95,15 @@ struct ProfileEditorView: View {
     }
 
     private func statusCard() -> some View {
-        HeaderSummaryCard(
-            title: isLiveMode ? AppStrings.profileAiActive : AppStrings.profileDemoActive,
+        let title: String
+        if isBootstrapping {
+            title = AppStrings.profileTitle
+        } else {
+            title = isLiveMode ? AppStrings.profileAiActive : AppStrings.profileDemoActive
+        }
+
+        return HeaderSummaryCard(
+            title: title,
             subtitle: AppStrings.profileMatchesFound(matchesViewModel.matches.count)
         ) {
             Button(action: onViewMatches) {
@@ -112,33 +121,41 @@ struct ProfileEditorView: View {
     private func rolesCard() -> some View {
         let roles = normalizedRoles(viewModel.aiResult?.roles)
         let inferred = normalizedRoles(viewModel.aiResult?.inferredRoles)
+        let hasHiddenItems = roles.count > profileSectionPreviewLimit || inferred.count > profileSectionPreviewLimit
 
         return SectionCard(title: AppStrings.profileCardTitle) {
             VStack(alignment: .leading, spacing: 24) {
                 if !roles.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(AppStrings.profileAiRoles)
-                            .font(AppFonts.meta.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                        FlowLayout(spacing: 8) {
-                            ForEach(roles, id: \.self) { role in
-                                ChipView(text: role, style: .primary)
-                            }
-                        }
-                    }
+                    previewChipGroup(
+                        title: AppStrings.profileAiRoles,
+                        items: roles,
+                        style: .primary,
+                        expanded: isProfileSectionExpanded
+                    )
                 }
 
                 if !inferred.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(AppStrings.profileAiInferredRoles)
-                            .font(AppFonts.meta.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                        FlowLayout(spacing: 8) {
-                            ForEach(inferred, id: \.self) { role in
-                                ChipView(text: role, style: .secondary)
-                            }
+                    previewChipGroup(
+                        title: AppStrings.profileAiInferredRoles,
+                        items: inferred,
+                        style: .secondary,
+                        expanded: isProfileSectionExpanded
+                    )
+                }
+
+                if hasHiddenItems {
+                    Button {
+                        isProfileSectionExpanded.toggle()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(isProfileSectionExpanded ? AppStrings.profileSeeLess : AppStrings.profileEducationSeeMore)
+                            Image(systemName: isProfileSectionExpanded ? "chevron.up" : "chevron.down")
                         }
+                        .font(AppFonts.meta.weight(.semibold))
+                        .foregroundStyle(AppColors.brandBlueDark)
                     }
+                    .buttonStyle(.plain)
+                    .padding(.top, -8)
                 }
             }
         }
@@ -188,41 +205,85 @@ struct ProfileEditorView: View {
 
     private func opportunityProfileCard() -> some View {
         let profile = viewModel.aiResult?.opportunityProfile ?? .empty
+        let primaryDomains = profile.primaryDomains
+        let secondaryDomains = profile.secondaryDomains
+        let capabilities = profile.transferableCapabilities
+        let pivotFamilies = profile.pivotOpportunityFamilies.map(\.label)
+        let hasHiddenItems =
+            primaryDomains.count > profileSectionPreviewLimit ||
+            secondaryDomains.count > profileSectionPreviewLimit ||
+            capabilities.count > profileSectionPreviewLimit ||
+            pivotFamilies.count > profileSectionPreviewLimit
 
         return SectionCard(title: AppStrings.profileOpportunityTitle) {
             VStack(alignment: .leading, spacing: 16) {
                 opportunityChipGroup(
                     title: AppStrings.profileOpportunityPrimaryDomains,
-                    items: profile.primaryDomains
+                    items: primaryDomains,
+                    expanded: isOpportunitySectionExpanded
                 )
                 opportunityChipGroup(
                     title: AppStrings.profileOpportunitySecondaryDomains,
-                    items: profile.secondaryDomains
+                    items: secondaryDomains,
+                    expanded: isOpportunitySectionExpanded
                 )
                 opportunityChipGroup(
                     title: AppStrings.profileOpportunityCapabilities,
-                    items: profile.transferableCapabilities
+                    items: capabilities,
+                    expanded: isOpportunitySectionExpanded
                 )
                 opportunityChipGroup(
                     title: AppStrings.profileOpportunityPivotFamilies,
-                    items: profile.pivotOpportunityFamilies.map(\.label)
+                    items: pivotFamilies,
+                    expanded: isOpportunitySectionExpanded
                 )
+
+                if hasHiddenItems {
+                    Button {
+                        isOpportunitySectionExpanded.toggle()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(isOpportunitySectionExpanded ? AppStrings.profileSeeLess : AppStrings.profileEducationSeeMore)
+                            Image(systemName: isOpportunitySectionExpanded ? "chevron.up" : "chevron.down")
+                        }
+                        .font(AppFonts.meta.weight(.semibold))
+                        .foregroundStyle(AppColors.brandBlueDark)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, -4)
+                }
             }
         }
     }
 
     @ViewBuilder
-    private func opportunityChipGroup(title: String, items: [String]) -> some View {
+    private func opportunityChipGroup(title: String, items: [String], expanded: Bool) -> some View {
         if !items.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(title)
-                    .font(AppFonts.meta.weight(.semibold))
-                    .foregroundStyle(.secondary)
+            previewChipGroup(
+                title: title,
+                items: items,
+                style: .secondary,
+                expanded: expanded
+            )
+        }
+    }
 
-                FlowLayout(spacing: 8) {
-                    ForEach(items, id: \.self) { item in
-                        ChipView(text: item, style: .secondary)
-                    }
+    private func previewChipGroup(
+        title: String,
+        items: [String],
+        style: ChipView.Style,
+        expanded: Bool
+    ) -> some View {
+        let previewItems = expanded ? items : Array(items.prefix(profileSectionPreviewLimit))
+
+        return VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(AppFonts.meta.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            FlowLayout(spacing: 8) {
+                ForEach(previewItems, id: \.self) { item in
+                    ChipView(text: item, style: style)
                 }
             }
         }
@@ -237,16 +298,20 @@ struct ProfileEditorView: View {
                     educationTrackSection(
                         title: AppStrings.profileEducationStrengthen,
                         items: path.strengthen,
-                        track: .strengthen
-                    )
+                        isExpanded: isStrengthenEducationExpanded
+                    ) {
+                        isStrengthenEducationExpanded.toggle()
+                    }
                 }
 
                 if !path.pivot.isEmpty {
                     educationTrackSection(
                         title: AppStrings.profileEducationPivot,
                         items: path.pivot,
-                        track: .pivot
-                    )
+                        isExpanded: isPivotEducationExpanded
+                    ) {
+                        isPivotEducationExpanded.toggle()
+                    }
                 }
             }
         }
@@ -255,56 +320,33 @@ struct ProfileEditorView: View {
     private func educationTrackSection(
         title: String,
         items: [ProfileEducationPathItem],
-        track: EducationTrack
+        isExpanded: Bool,
+        onToggle: @escaping () -> Void
     ) -> some View {
-        let previewItems = Array(items.prefix(2))
+        let displayedItems = isExpanded ? items : Array(items.prefix(2))
 
         return VStack(alignment: .leading, spacing: 10) {
             Text(title)
                 .font(AppFonts.meta.weight(.semibold))
                 .foregroundStyle(.secondary)
 
-            ForEach(Array(previewItems.enumerated()), id: \.offset) { _, item in
+            ForEach(Array(displayedItems.enumerated()), id: \.offset) { _, item in
                 EducationItemRow(item: item)
             }
 
             if items.count > 2 {
                 Button {
-                    educationSheetTrack = track
+                    onToggle()
                 } label: {
-                    Text(AppStrings.profileEducationSeeMore)
+                    HStack(spacing: 6) {
+                        Text(isExpanded ? AppStrings.profileSeeLess : AppStrings.profileEducationSeeMore)
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                    }
                         .font(AppFonts.meta.weight(.semibold))
                         .foregroundStyle(AppColors.brandBlueDark)
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 2)
-            }
-        }
-    }
-
-    private func educationTrackSheet(for track: EducationTrack) -> some View {
-        let path = sanitizedEducationPath
-        let items = track == .strengthen ? path.strengthen : path.pivot
-        let title = track == .strengthen ? AppStrings.profileEducationStrengthen : AppStrings.profileEducationPivot
-
-        return NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: AppSpacing.cardGap) {
-                    ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                        EducationItemRow(item: item)
-                    }
-                }
-                .padding(AppSpacing.screenPadding)
-            }
-            .background(AppBackground().ignoresSafeArea())
-            .navigationTitle(title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(AppStrings.filterDone) {
-                        educationSheetTrack = nil
-                    }
-                }
             }
         }
     }
@@ -500,13 +542,6 @@ struct ProfileEditorView: View {
         return simple.date(from: raw)
     }
 
-}
-
-private enum EducationTrack: String, Identifiable {
-    case strengthen
-    case pivot
-
-    var id: String { rawValue }
 }
 
 // MARK: - Reusable Components
