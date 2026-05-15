@@ -16,6 +16,8 @@ struct RootView: View {
                         matchesViewModel: appState.matchResultsViewModel,
                         isLiveMode: appState.matchMode == .live,
                         isBootstrapping: appState.isBootstrapping,
+                        entitlementStatusText: appState.entitlementStatusText,
+                        showEntitlementExpiredBadge: appState.isEntitlementExpiredInLiveMode,
                         onUploadPhotos: appState.handleHeroUploadPhotos,
                         onUploadFiles: appState.handleHeroUploadFiles,
                         onViewMatches: {
@@ -31,6 +33,8 @@ struct RootView: View {
                     MatchResultsView(
                         viewModel: appState.matchResultsViewModel,
                         isDemo: appState.matchMode == .demo,
+                        entitlementStatusText: appState.entitlementStatusText,
+                        showEntitlementExpiredBadge: appState.isEntitlementExpiredInLiveMode,
                         onUploadPhotos: appState.handleMatchUploadPhotos,
                         onUploadFiles: appState.handleMatchUploadFiles,
                         onRefresh: nil
@@ -58,8 +62,11 @@ struct RootView: View {
                     EmptyView()
                 case .payment:
                     MatchPaymentView(
-                        price: MatchPricing.displayPrice,
+                        price: appState.matchPaymentPrice,
                         uploadSummary: appState.pendingUploadSummary,
+                        entitlementMessage: appState.isEntitlementExpiredInLiveMode ? AppStrings.paymentEntitlementExpiredHint : nil,
+                        errorMessage: appState.paymentErrorMessage,
+                        isProcessing: appState.isPaymentInProgress,
                         onConfirm: {
                             await appState.confirmPayment()
                         },
@@ -81,8 +88,7 @@ struct RootView: View {
         }
         .task {
             await appState.bootstrap(language: languageStore.language)
-            await appState.consumeSharedCVIfAvailable()
-            await appState.checkForMatchUpdate(trigger: .appLaunch)
+            await appState.handleSceneDidBecomeActive()
         }
         .onChange(of: languageStore.language) { _, newValue in
             Task {
@@ -93,8 +99,7 @@ struct RootView: View {
             switch newPhase {
             case .active:
                 Task {
-                    await appState.consumeSharedCVIfAvailable()
-                    await appState.checkForMatchUpdate(trigger: .appLaunch)
+                    await appState.handleSceneDidBecomeActive()
                 }
             case .background:
                 MatchUpdateService.shared.scheduleBackgroundRefresh()

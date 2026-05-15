@@ -3,6 +3,9 @@ import SwiftUI
 struct MatchPaymentView: View {
     let price: String
     let uploadSummary: String?
+    let entitlementMessage: String?
+    let errorMessage: String?
+    let isProcessing: Bool
     let onConfirm: () async -> Void
     let onCancel: () -> Void
 
@@ -20,6 +23,14 @@ struct MatchPaymentView: View {
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
+
+                if let entitlementMessage {
+                    Text(entitlementMessage)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.orange)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 2)
+                }
 
                 if let uploadSummary {
                     HStack(spacing: 6) {
@@ -43,12 +54,30 @@ struct MatchPaymentView: View {
                 }
                 .padding(.top, 8)
 
+                if isProcessing {
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .scaleEffect(0.85)
+                        Text(AppStrings.paymentProcessing)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                if let errorMessage {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 2)
+                }
+
                 Button {
                     Task {
                         await onConfirm()
                     }
                 } label: {
-                    Text(AppStrings.paymentContinue)
+                    Text(isProcessing ? AppStrings.paymentProcessing : AppStrings.paymentContinue)
                         .font(.headline)
                         .foregroundStyle(AppColors.brandWhite)
                         .frame(maxWidth: .infinity)
@@ -57,12 +86,15 @@ struct MatchPaymentView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .padding(.top, 12)
+                .disabled(isProcessing)
+                .opacity(isProcessing ? 0.7 : 1)
 
                 Button(AppStrings.paymentCancel) {
                     onCancel()
                 }
                 .foregroundStyle(.secondary)
                 .padding(.top, 4)
+                .disabled(isProcessing)
             }
             .padding(24)
         }

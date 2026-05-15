@@ -39,12 +39,30 @@ final class MatchUpdateService {
         return paidUntil >= now
     }
 
-    func extendPaidWindow(days: Int, now: Date = Date()) {
+    @discardableResult
+    func extendPaidWindow(days: Int, now: Date = Date()) -> Date {
         let seconds = TimeInterval(days * 24 * 60 * 60)
         let base = max(now, paidUntil ?? now)
-        defaults.set(base.addingTimeInterval(seconds), forKey: Keys.paidUntil)
-        let untilLabel = base.addingTimeInterval(seconds).formatted(date: .numeric, time: .shortened)
+        let updatedPaidUntil = base.addingTimeInterval(seconds)
+        defaults.set(updatedPaidUntil, forKey: Keys.paidUntil)
+        let untilLabel = updatedPaidUntil.formatted(date: .numeric, time: .shortened)
         print("[matches] entitlement extended until \(untilLabel)")
+        return updatedPaidUntil
+    }
+
+    @discardableResult
+    func applyVerifiedPurchase(
+        _ purchase: VerifiedPurchase,
+        entitlementDays: Int = MatchPurchaseConfig.entitlementDays
+    ) -> Date? {
+        guard purchase.productID == MatchPurchaseConfig.productID else {
+            print("[matches] ignoring purchase for unexpected product id=\(purchase.productID)")
+            return nil
+        }
+
+        let paidUntil = extendPaidWindow(days: entitlementDays, now: purchase.purchasedAt)
+        print("[matches] entitlement granted from verified transaction id=\(purchase.transactionID)")
+        return paidUntil
     }
 
     func shouldUpdateMatches(now: Date = Date()) -> Bool {

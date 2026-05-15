@@ -7,6 +7,8 @@ struct ProfileEditorView: View {
     @ObservedObject var matchesViewModel: MatchResultsViewModel
     let isLiveMode: Bool
     let isBootstrapping: Bool
+    let entitlementStatusText: String?
+    let showEntitlementExpiredBadge: Bool
     let onUploadPhotos: ([Data]) async -> Void
     let onUploadFiles: ([URL]) async -> Void
     let onViewMatches: () -> Void
@@ -102,9 +104,17 @@ struct ProfileEditorView: View {
             title = isLiveMode ? AppStrings.profileAiActive : AppStrings.profileDemoActive
         }
 
+        let subtitleParts = [
+            AppStrings.profileMatchesFound(matchesViewModel.matches.count),
+            isLiveMode ? entitlementStatusText : nil
+        ].compactMap { $0 }
+
         return HeaderSummaryCard(
             title: title,
-            subtitle: AppStrings.profileMatchesFound(matchesViewModel.matches.count)
+            subtitle: subtitleParts.joined(separator: " • "),
+            badgeText: showEntitlementExpiredBadge ? AppStrings.entitlementExpiredBadge : nil,
+            badgeBackground: AppColors.brandBlack.opacity(0.2),
+            badgeForeground: AppColors.brandBlack
         ) {
             Button(action: onViewMatches) {
                 Text(AppStrings.profileViewMatches)

@@ -82,6 +82,14 @@ enum AppStrings {
     static var paymentSubtitle: String { localized("payment.subtitle") }
     static var paymentContinue: String { localized("payment.continue") }
     static var paymentCancel: String { localized("payment.cancel") }
+    static var paymentProcessing: String { localized("payment.processing") }
+    static var paymentEntitlementExpiredHint: String { localized("payment.entitlement.expiredHint") }
+    static var paymentErrorPending: String { localized("payment.error.pending") }
+    static var paymentErrorVerification: String { localized("payment.error.verification") }
+    static var paymentErrorOffline: String { localized("payment.error.offline") }
+    static var paymentErrorUnavailable: String { localized("payment.error.unavailable") }
+    static var paymentErrorGeneric: String { localized("payment.error.generic") }
+    static var entitlementExpiredBadge: String { localized("entitlement.badge.expired") }
     static var processingTitle: String { localized("processing.title") }
     static var processingSubtitle: String { localized("processing.subtitle") }
     static var failureTitle: String { localized("failure.title") }
@@ -155,6 +163,13 @@ enum AppStrings {
     static func profileEducationStarts(_ date: String) -> String {
         String(format: localized("profile.education.starts"), locale: Locale.current, date)
     }
+    static func profileEntitlementActiveUntil(_ value: String) -> String {
+        String(format: localized("profile.entitlement.activeUntil"), locale: Locale.current, value)
+    }
+    static func profileEntitlementExpiredOn(_ value: String) -> String {
+        String(format: localized("profile.entitlement.expiredOn"), locale: Locale.current, value)
+    }
+    static var profileEntitlementExpiredNoHistory: String { localized("profile.entitlement.expiredNoHistory") }
     static var profileOpportunityTitle: String { localized("profile.opportunity.title") }
     static var profileOpportunityPrimaryDomains: String { localized("profile.opportunity.primaryDomains") }
     static var profileOpportunitySecondaryDomains: String { localized("profile.opportunity.secondaryDomains") }

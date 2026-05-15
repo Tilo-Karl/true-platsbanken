@@ -1,5 +1,6 @@
 import Foundation
 import BackgroundTasks
+import StoreKit
 
 @MainActor
 final class AppStateViewModel: ObservableObject {
@@ -26,6 +27,11 @@ final class AppStateViewModel: ObservableObject {
     @Published var matchFlowStep: MatchFlowStep = .idle
     @Published var showUploadSheet = false
     @Published var isBootstrapping = true
+    @Published var matchPaymentPrice: String = MatchPricing.displayPrice
+    @Published private(set) var hasActiveEntitlement = false
+    @Published private(set) var entitlementPaidUntil: Date?
+    @Published var paymentErrorMessage: String?
+    @Published private(set) var isPaymentInProgress = false
 
     let jobListViewModel: JobListViewModel
     let profileEditorViewModel: ProfileEditorViewModel
@@ -33,6 +39,7 @@ final class AppStateViewModel: ObservableObject {
     let taxonomyViewModel: TaxonomyViewModel
     private let embeddingCache: EmbeddingCaching
     private let paymentProcessor: PaymentProcessing
+    private let storeKitProductCatalog: StoreKitProductCataloging
     private let matchUpdateService: MatchUpdateService
     private var didRegisterBackgroundTasks = false
     private var pendingUpload: PendingUpload?
@@ -44,6 +51,25 @@ final class AppStateViewModel: ObservableObject {
         case .files(let urls):
             return AppStrings.uploadSuccessFiles(urls.count)
         }
+    }
+
+
+    var isEntitlementExpiredInLiveMode: Bool {
+        matchMode == .live && !hasActiveEntitlement
+    }
+
+    var entitlementStatusText: String? {
+        guard matchMode == .live else { return nil }
+
+        if hasActiveEntitlement, let entitlementPaidUntil {
+            return AppStrings.profileEntitlementActiveUntil(formattedEntitlementDate(entitlementPaidUntil))
+        }
+
+        if let entitlementPaidUntil {
+            return AppStrings.profileEntitlementExpiredOn(formattedEntitlementDate(entitlementPaidUntil))
+        }
+
+        return AppStrings.profileEntitlementExpiredNoHistory
     }
 
     private enum PendingUpload {
@@ -60,11 +86,14 @@ final class AppStateViewModel: ObservableObject {
         roleExpander: BackendRoleExpander = BackendRoleExpander(),
         taxonomyReader: TaxonomyReading = JobTechTaxonomyReader(),
         taxonomyCache: TaxonomyCaching = TaxonomyCacheStore(),
-        paymentProcessor: PaymentProcessing = StubPaymentProcessor(),
+        paymentProcessor: PaymentProcessing? = nil,
+        storeKitProductCatalog: StoreKitProductCataloging? = nil,
         matchUpdateService: MatchUpdateService = .shared
     ) {
         self.embeddingCache = EmbeddingCacheStore()
-        self.paymentProcessor = paymentProcessor
+        let resolvedProductCatalog = storeKitProductCatalog ?? StoreKitProductCatalog()
+        self.storeKitProductCatalog = resolvedProductCatalog
+        self.paymentProcessor = paymentProcessor ?? StoreKitPaymentProcessor(productCatalog: resolvedProductCatalog)
         self.matchUpdateService = matchUpdateService
         self.jobListViewModel = JobListViewModel(jobReader: jobReader)
         self.profileEditorViewModel = ProfileEditorViewModel(
@@ -83,11 +112,17 @@ final class AppStateViewModel: ObservableObject {
             reader: taxonomyReader,
             cache: taxonomyCache
         )
+        refreshEntitlementState()
     }
 
     func bootstrap(language: AppLanguageStore.Language) async {
         isBootstrapping = true
         defer { isBootstrapping = false }
+        refreshEntitlementState()
+
+        Task {
+            await loadStoreKitProductMetadata()
+        }
 
         registerBackgroundTasksIfNeeded()
         await taxonomyViewModel.loadIfNeeded(languageCode: language.rawValue)
@@ -117,12 +152,20 @@ final class AppStateViewModel: ObservableObject {
         await profileEditorViewModel.handleSharedText(text)
     }
 
+
+    func handleSceneDidBecomeActive() async {
+        refreshEntitlementState()
+        await consumeSharedCVIfAvailable()
+        await checkForMatchUpdate(trigger: .appLaunch)
+    }
+
     func refreshMatches() async {
         switch matchMode {
         case .demo:
             await matchResultsViewModel.loadDemoMatches()
         case .live:
-            guard matchUpdateService.isEntitled() else { return }
+            refreshEntitlementState()
+            guard hasActiveEntitlement else { return }
             guard let payload = profileEditorViewModel.matchPayload() else {
                 return
             }
@@ -134,6 +177,7 @@ final class AppStateViewModel: ObservableObject {
     }
 
     func checkForMatchUpdate(trigger: MatchUpdateService.Trigger) async {
+        refreshEntitlementState()
         _ = await matchUpdateService.runMatchUpdateIfNeeded(appState: self, trigger: trigger)
     }
 
@@ -172,9 +216,15 @@ final class AppStateViewModel: ObservableObject {
     func runPaidMatch() async {
         guard !profileEditorViewModel.isDemoProfile else { return }
         guard let payload = profileEditorViewModel.matchPayload() else { return }
+        guard !isPaymentInProgress else { return }
+
+        paymentErrorMessage = nil
+        isPaymentInProgress = true
+        defer { isPaymentInProgress = false }
+
         do {
-            try await paymentProcessor.charge(amountCents: MatchPricing.amountCents, currency: MatchPricing.currency)
-            matchUpdateService.extendPaidWindow(days: 7)
+            let purchase = try await paymentProcessor.charge(amountCents: MatchPricing.amountCents, currency: MatchPricing.currency)
+            try applyVerifiedPurchaseOrThrow(purchase)
             matchMode = .live
             let previousSnapshot = MatchSnapshotStore().loadSnapshot() ?? []
             let previousLastRun = matchUpdateService.lastMatchRun
@@ -186,7 +236,7 @@ final class AppStateViewModel: ObservableObject {
             }
             selectedTab = .matches
         } catch {
-            // TODO: surface payment failure to the user
+            handlePaymentFailure(error, source: "runPaidMatch")
         }
     }
 
@@ -195,18 +245,25 @@ final class AppStateViewModel: ObservableObject {
             matchFlowStep = .idle
             return
         }
+        guard !isPaymentInProgress else { return }
+
+        paymentErrorMessage = nil
+        isPaymentInProgress = true
+        defer { isPaymentInProgress = false }
+
         do {
-            try await paymentProcessor.charge(amountCents: MatchPricing.amountCents, currency: MatchPricing.currency)
-            matchUpdateService.extendPaidWindow(days: 7)
+            let purchase = try await paymentProcessor.charge(amountCents: MatchPricing.amountCents, currency: MatchPricing.currency)
+            try applyVerifiedPurchaseOrThrow(purchase)
             startProcessing()
         } catch {
-            resetPendingUpload()
-            matchFlowStep = .idle
-            selectedTab = .profile
+            handlePaymentFailure(error, source: "confirmPayment")
+            matchFlowStep = .payment
         }
     }
 
     func cancelPayment() {
+        guard !isPaymentInProgress else { return }
+        paymentErrorMessage = nil
         resetPendingUpload()
         matchFlowStep = .idle
         selectedTab = .profile
@@ -219,8 +276,10 @@ final class AppStateViewModel: ObservableObject {
     }
 
     private func queueUpload(_ upload: PendingUpload) {
+        paymentErrorMessage = nil
         pendingUpload = upload
-        if matchUpdateService.isEntitled() {
+        refreshEntitlementState()
+        if hasActiveEntitlement {
             startProcessing()
         } else {
             matchFlowStep = .payment
@@ -272,6 +331,108 @@ final class AppStateViewModel: ObservableObject {
 
     private func resetPendingUpload() {
         pendingUpload = nil
+    }
+
+    private func applyVerifiedPurchaseOrThrow(_ purchase: VerifiedPurchase) throws {
+        guard let paidUntil = matchUpdateService.applyVerifiedPurchase(purchase) else {
+            throw PaymentProcessingError.unexpectedPurchaseResult
+        }
+        entitlementPaidUntil = paidUntil
+        hasActiveEntitlement = true
+    }
+
+    private func refreshEntitlementState(now: Date = Date()) {
+        let paidUntil = matchUpdateService.paidUntil
+        entitlementPaidUntil = paidUntil
+        hasActiveEntitlement = matchUpdateService.isEntitled(now: now)
+    }
+
+    private func formattedEntitlementDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+
+    private func handlePaymentFailure(_ error: Error, source: String) {
+        if isPaymentCancellation(error) {
+            paymentErrorMessage = nil
+            print("[payments] \(source) cancelled by user")
+            return
+        }
+
+        paymentErrorMessage = paymentFailureMessage(for: error)
+        print("[payments] \(source) failed: \(error.localizedDescription)")
+    }
+
+    private func isPaymentCancellation(_ error: Error) -> Bool {
+        if let paymentError = error as? PaymentProcessingError,
+           case .userCancelled = paymentError {
+            return true
+        }
+
+        let nsError = error as NSError
+        guard nsError.domain == SKError.errorDomain,
+              let skCode = SKError.Code(rawValue: nsError.code) else {
+            return false
+        }
+        return skCode == .paymentCancelled
+    }
+
+    private func paymentFailureMessage(for error: Error) -> String {
+        if let paymentError = error as? PaymentProcessingError {
+            switch paymentError {
+            case .pending:
+                return AppStrings.paymentErrorPending
+            case .unverified:
+                return AppStrings.paymentErrorVerification
+            case .userCancelled:
+                return ""
+            case .unexpectedPurchaseResult:
+                return AppStrings.paymentErrorGeneric
+            }
+        }
+
+        if error is StoreKitProductCatalogError {
+            return AppStrings.paymentErrorUnavailable
+        }
+
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .notConnectedToInternet, .networkConnectionLost, .cannotConnectToHost, .timedOut, .dnsLookupFailed:
+                return AppStrings.paymentErrorOffline
+            default:
+                break
+            }
+        }
+
+        let nsError = error as NSError
+        if nsError.domain == SKError.errorDomain {
+            switch nsError.code {
+            case SKError.Code.storeProductNotAvailable.rawValue,
+                 SKError.Code.paymentNotAllowed.rawValue:
+                return AppStrings.paymentErrorUnavailable
+            // SKErrorCloudServiceNetworkConnectionFailed raw value.
+            case 7:
+                return AppStrings.paymentErrorOffline
+            default:
+                return AppStrings.paymentErrorGeneric
+            }
+        }
+
+        return AppStrings.paymentErrorGeneric
+    }
+
+    private func loadStoreKitProductMetadata() async {
+        do {
+            let product = try await storeKitProductCatalog.matchRunProduct()
+            matchPaymentPrice = product.displayPrice
+            print("[payments] StoreKit product loaded id=\(product.id) price=\(product.displayPrice)")
+        } catch {
+            // Keep fallback display price so payment CTA remains usable in development.
+            print("[payments] StoreKit product metadata unavailable for \(MatchPricing.productID): \(error.localizedDescription)")
+        }
     }
 
     func refreshTaxonomy(language: AppLanguageStore.Language) async {

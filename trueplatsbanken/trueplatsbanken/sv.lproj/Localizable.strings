@@ -40,6 +40,14 @@
 "payment.subtitle" = "Få rankade resultat på några sekunder.";
 "payment.continue" = "Fortsätt till betalning";
 "payment.cancel" = "Avbryt";
+"payment.processing" = "Bearbetar betalning...";
+"payment.entitlement.expiredHint" = "Din tidigare åtkomstperiod har gått ut. Slutför betalning för att låsa upp en ny 7-dagarsperiod.";
+"payment.error.pending" = "Betalningen väntar på godkännande. Vänta och försök igen.";
+"payment.error.verification" = "Betalningen kunde inte verifieras. Ingen debitering har gjorts.";
+"payment.error.offline" = "Du verkar vara offline. Anslut till internet och försök igen.";
+"payment.error.unavailable" = "Köp är tillfälligt otillgängliga. Försök igen senare.";
+"payment.error.generic" = "Betalningen misslyckades. Försök igen.";
+"entitlement.badge.expired" = "Åtkomst utgången";
 "processing.title" = "Bearbetar ditt CV";
 "processing.subtitle" = "Detta kan ta några sekunder.";
 "failure.title" = "Vi kunde inte läsa CV:t";
@@ -111,6 +119,9 @@
 "profile.hero.subtitle" = "%d matchningar • Uppdaterad %@";
 "profile.lastUpdated" = "Uppdaterad %@";
 "profile.matchesFound" = "%d matchningar hittade";
+"profile.entitlement.activeUntil" = "Åtkomst aktiv till %@";
+"profile.entitlement.expiredOn" = "Åtkomst gick ut %@";
+"profile.entitlement.expiredNoHistory" = "Åtkomst utgången";
 "profile.viewMatches" = "Visa matchningar";
 "profile.details.title" = "Profiluppgifter";
 "profile.education.title" = "Utbildningsväg";

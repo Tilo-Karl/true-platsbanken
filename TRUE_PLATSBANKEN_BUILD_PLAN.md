@@ -319,11 +319,22 @@ Goal
 
 Deliverables
 	•	Real StoreKit 2 purchase flow
+	•	Catalog source for release: App Store Connect product metadata (no local `.storekit` dependency in shipped flow)
 	•	Phase 11 v1 product type locked: consumable (single CV-match run purchase)
 	•	7-day entitlement model
 	•	Apple transaction verification on-device
 	•	Local `paidUntil` persistence for fast gating + refresh checks
 	•	Expired entitlement state handling (clear locked/unlocked UX)
+
+Release prerequisites (App Store Connect)
+	•	Consumable IAP exists with exact product ID: `com.trueplatsbanken.cv_match.single_run`
+	•	Paid Apps agreement + tax + banking are active
+	•	At least one archived app build is uploaded and linked to the app record
+	•	IAP metadata/pricing are completed in App Store Connect
+
+Verification policy (production-only path)
+	•	Without local StoreKit config and without sandbox/testflight validation, pre-release proof is limited.
+	•	Final proof of end-to-end purchase behavior occurs in live App Store distribution.
 
 Product type rule (important)
 	•	Consumables are not restorable by StoreKit after reinstall.

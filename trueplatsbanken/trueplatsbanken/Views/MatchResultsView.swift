@@ -6,6 +6,8 @@ struct MatchResultsView: View {
     @ObservedObject var viewModel: MatchResultsViewModel
     @EnvironmentObject private var languageStore: AppLanguageStore
     let isDemo: Bool
+    let entitlementStatusText: String?
+    let showEntitlementExpiredBadge: Bool
     let onUploadPhotos: ([Data]) async -> Void
     let onUploadFiles: ([URL]) async -> Void
     let onRefresh: (() async -> Void)?
@@ -72,14 +74,25 @@ struct MatchResultsView: View {
     // MARK: - Subviews
 
     private var matchesHeaderCard: some View {
-        HeaderSummaryCard(
+        let baseSubtitle = viewModel.isLoading && viewModel.matches.isEmpty
+            ? (isDemo ? AppStrings.matchesLoading : AppStrings.matchesLoadingLive)
+            : AppStrings.profileMatchesFound(viewModel.matches.count)
+        let subtitleParts = [baseSubtitle, isDemo ? nil : entitlementStatusText].compactMap { $0 }
+        let badgeText: String?
+        if isDemo {
+            badgeText = AppStrings.matchesDemoBadge
+        } else if showEntitlementExpiredBadge {
+            badgeText = AppStrings.entitlementExpiredBadge
+        } else {
+            badgeText = nil
+        }
+
+        return HeaderSummaryCard(
             title: AppStrings.matchesTitle,
-            subtitle: viewModel.isLoading && viewModel.matches.isEmpty
-                ? (isDemo ? AppStrings.matchesLoading : AppStrings.matchesLoadingLive)
-                : AppStrings.profileMatchesFound(viewModel.matches.count),
-            badgeText: isDemo ? AppStrings.matchesDemoBadge : nil,
-            badgeBackground: AppColors.brandGreenDark,
-            badgeForeground: AppColors.brandWhite
+            subtitle: subtitleParts.joined(separator: " • "),
+            badgeText: badgeText,
+            badgeBackground: showEntitlementExpiredBadge ? AppColors.brandBlack.opacity(0.2) : AppColors.brandGreenDark,
+            badgeForeground: showEntitlementExpiredBadge ? AppColors.brandBlack : AppColors.brandWhite
         )
     }
 
