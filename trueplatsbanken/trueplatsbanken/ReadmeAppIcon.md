@@ -42,6 +42,9 @@ It adds padding, masks, and rounded corners, even when explicitly told not to
 ⸻
 
 ✅ Correct workflow for making the icon (fast & reliable)
+
+ - actually now chatGPT can make icons, i just had to resize to 1024.
+
     1.    Use Icon Kitchen
 👉 https://icon.kitchen/
     2.    Create the final app icon there

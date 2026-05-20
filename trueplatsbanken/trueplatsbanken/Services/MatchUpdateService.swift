@@ -3,7 +3,7 @@ import BackgroundTasks
 
 final class MatchUpdateService {
     static let shared = MatchUpdateService()
-    static let taskIdentifier = "com.trueplatsbanken.matchrefresh"
+    static let taskIdentifier = "com.tilodelau.jobtrek.matchrefresh"
 
     enum Trigger {
         case appLaunch

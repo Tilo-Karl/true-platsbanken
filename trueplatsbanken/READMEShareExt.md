@@ -24,10 +24,10 @@ This creates:
 2. Bundle Identifiers (Must Be Distinct)
 
 Main app:
-    •    com.tilodelau.trueplatsbanken
+    •    com.tilodelau.jobtrek
 
 Share extension:
-    •    com.tilodelau.trueplatsbanken.TBShareExt
+    •    com.tilodelau.jobtrek.TBShareExt
 
 They must NOT be identical.
 
@@ -59,7 +59,7 @@ Both targets must have the same App Group.
 
 In Xcode:
     •    Select main app target → Signing & Capabilities → App Groups
-    •    Add: group.com.tilodelau.trueplatsbanken
+    •    Add: group.com.tilodelau.jobtrek
 
 Repeat for:
     •    TBShareExt target

@@ -1,7 +1,7 @@
 import Foundation
 
 enum SharedCVStore {
-    private static let groupId = "group.com.tilodelau.trueplatsbanken"
+    private static let groupId = "group.com.tilodelau.jobtrek"
     private static let payloadKey = "shared.cv.payload"
 
     static func saveText(_ text: String) {

@@ -56,7 +56,7 @@ final class ShareViewModel: ObservableObject {
     }
 
     func openApp() {
-        guard let url = URL(string: "trueplatsbanken://share") else { return }
+        guard let url = URL(string: "jobtrek://share") else { return }
         extensionContext?.open(url, completionHandler: { [weak self] _ in
             Task { @MainActor in
                 self?.close()
