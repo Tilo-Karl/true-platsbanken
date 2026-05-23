@@ -83,6 +83,9 @@ enum AppStrings {
     static var paymentContinue: String { localized("payment.continue") }
     static var paymentCancel: String { localized("payment.cancel") }
     static var paymentProcessing: String { localized("payment.processing") }
+    static var paymentPriceLoading: String { localized("payment.priceLoading") }
+    static var paymentPriceUnavailable: String { localized("payment.priceUnavailable") }
+    static var paymentPurchaseUnavailable: String { localized("payment.purchaseUnavailable") }
     static var paymentEntitlementExpiredHint: String { localized("payment.entitlement.expiredHint") }
     static var paymentErrorPending: String { localized("payment.error.pending") }
     static var paymentErrorVerification: String { localized("payment.error.verification") }

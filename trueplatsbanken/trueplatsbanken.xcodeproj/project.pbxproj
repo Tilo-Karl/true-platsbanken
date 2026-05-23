@@ -522,6 +522,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = trueplatsbanken/Info.plist;
 				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleURLSchemes =     (\n        jobtrek,\n    );\n}";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Allow access to select CV images.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -554,6 +556,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = trueplatsbanken/Info.plist;
 				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleURLSchemes =     (\n        jobtrek,\n    );\n}";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Allow access to select CV images.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -656,7 +660,7 @@
 				DEVELOPMENT_TEAM = 8JN55CP2C9;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TBShareExt/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "True Platsbanken";
+				INFOPLIST_KEY_CFBundleDisplayName = "Job Trek";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -682,7 +686,7 @@
 				DEVELOPMENT_TEAM = 8JN55CP2C9;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TBShareExt/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "True Platsbanken";
+				INFOPLIST_KEY_CFBundleDisplayName = "Job Trek";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

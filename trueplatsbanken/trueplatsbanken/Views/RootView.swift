@@ -63,6 +63,8 @@ struct RootView: View {
                 case .payment:
                     MatchPaymentView(
                         price: appState.matchPaymentPrice,
+                        isPaymentAvailable: appState.isPaymentAvailable,
+                        isPriceLoading: appState.isPaymentMetadataLoading,
                         uploadSummary: appState.pendingUploadSummary,
                         entitlementMessage: appState.isEntitlementExpiredInLiveMode ? AppStrings.paymentEntitlementExpiredHint : nil,
                         errorMessage: appState.paymentErrorMessage,

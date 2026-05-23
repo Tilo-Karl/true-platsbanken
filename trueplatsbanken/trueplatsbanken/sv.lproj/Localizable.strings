@@ -41,6 +41,9 @@
 "payment.continue" = "Fortsätt till betalning";
 "payment.cancel" = "Avbryt";
 "payment.processing" = "Bearbetar betalning...";
+"payment.priceLoading" = "Laddar pris...";
+"payment.priceUnavailable" = "Pris ej tillgängligt";
+"payment.purchaseUnavailable" = "Köp ej tillgängligt";
 "payment.entitlement.expiredHint" = "Din tidigare åtkomstperiod har gått ut. Slutför betalning för att låsa upp en ny 7-dagarsperiod.";
 "payment.error.pending" = "Betalningen väntar på godkännande. Vänta och försök igen.";
 "payment.error.verification" = "Betalningen kunde inte verifieras. Ingen debitering har gjorts.";

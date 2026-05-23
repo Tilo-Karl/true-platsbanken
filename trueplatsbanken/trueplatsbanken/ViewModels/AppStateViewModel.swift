@@ -27,7 +27,9 @@ final class AppStateViewModel: ObservableObject {
     @Published var matchFlowStep: MatchFlowStep = .idle
     @Published var showUploadSheet = false
     @Published var isBootstrapping = true
-    @Published var matchPaymentPrice: String = MatchPricing.displayPrice
+    @Published var matchPaymentPrice: String?
+    @Published private(set) var isPaymentAvailable = false
+    @Published private(set) var isPaymentMetadataLoading = true
     @Published private(set) var hasActiveEntitlement = false
     @Published private(set) var entitlementPaidUntil: Date?
     @Published var paymentErrorMessage: String?
@@ -217,6 +219,10 @@ final class AppStateViewModel: ObservableObject {
         guard !profileEditorViewModel.isDemoProfile else { return }
         guard let payload = profileEditorViewModel.matchPayload() else { return }
         guard !isPaymentInProgress else { return }
+        guard isPaymentAvailable else {
+            paymentErrorMessage = AppStrings.paymentErrorUnavailable
+            return
+        }
 
         paymentErrorMessage = nil
         isPaymentInProgress = true
@@ -246,6 +252,11 @@ final class AppStateViewModel: ObservableObject {
             return
         }
         guard !isPaymentInProgress else { return }
+        guard isPaymentAvailable else {
+            paymentErrorMessage = AppStrings.paymentErrorUnavailable
+            matchFlowStep = .payment
+            return
+        }
 
         paymentErrorMessage = nil
         isPaymentInProgress = true
@@ -425,12 +436,17 @@ final class AppStateViewModel: ObservableObject {
     }
 
     private func loadStoreKitProductMetadata() async {
+        isPaymentMetadataLoading = true
+        defer { isPaymentMetadataLoading = false }
+
         do {
             let product = try await storeKitProductCatalog.matchRunProduct()
             matchPaymentPrice = product.displayPrice
+            isPaymentAvailable = true
             print("[payments] StoreKit product loaded id=\(product.id) price=\(product.displayPrice)")
         } catch {
-            // Keep fallback display price so payment CTA remains usable in development.
+            matchPaymentPrice = nil
+            isPaymentAvailable = false
             print("[payments] StoreKit product metadata unavailable for \(MatchPricing.productID): \(error.localizedDescription)")
         }
     }

@@ -41,6 +41,9 @@
 "payment.continue" = "Continue with payment";
 "payment.cancel" = "Cancel";
 "payment.processing" = "Processing payment...";
+"payment.priceLoading" = "Loading price...";
+"payment.priceUnavailable" = "Price unavailable";
+"payment.purchaseUnavailable" = "Purchase unavailable";
 "payment.entitlement.expiredHint" = "Your previous access period has expired. Complete payment to unlock a new 7-day window.";
 "payment.error.pending" = "Payment is pending approval. Please wait and try again.";
 "payment.error.verification" = "Payment could not be verified. No charge was applied.";

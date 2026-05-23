@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct MatchPaymentView: View {
-    let price: String
+    let price: String?
+    let isPaymentAvailable: Bool
+    let isPriceLoading: Bool
     let uploadSummary: String?
     let entitlementMessage: String?
     let errorMessage: String?
@@ -43,9 +45,10 @@ struct MatchPaymentView: View {
                     .padding(.top, 4)
                 }
 
-                Text(price)
-                    .font(.largeTitle)
+                Text(priceText)
+                    .font(price == nil ? .title3 : .largeTitle)
                     .fontWeight(.bold)
+                    .multilineTextAlignment(.center)
                     .padding(.top, 4)
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -77,7 +80,7 @@ struct MatchPaymentView: View {
                         await onConfirm()
                     }
                 } label: {
-                    Text(isProcessing ? AppStrings.paymentProcessing : AppStrings.paymentContinue)
+                    Text(buttonTitle)
                         .font(.headline)
                         .foregroundStyle(AppColors.brandWhite)
                         .frame(maxWidth: .infinity)
@@ -86,8 +89,8 @@ struct MatchPaymentView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .padding(.top, 12)
-                .disabled(isProcessing)
-                .opacity(isProcessing ? 0.7 : 1)
+                .disabled(isProcessing || !isPaymentAvailable)
+                .opacity(isProcessing || !isPaymentAvailable ? 0.7 : 1)
 
                 Button(AppStrings.paymentCancel) {
                     onCancel()
@@ -109,5 +112,25 @@ struct MatchPaymentView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    private var buttonTitle: String {
+        if isProcessing {
+            return AppStrings.paymentProcessing
+        }
+        if isPriceLoading {
+            return AppStrings.paymentPriceLoading
+        }
+        if !isPaymentAvailable {
+            return AppStrings.paymentPurchaseUnavailable
+        }
+        return AppStrings.paymentContinue
+    }
+
+    private var priceText: String {
+        if isPriceLoading {
+            return AppStrings.paymentPriceLoading
+        }
+        return price ?? AppStrings.paymentPriceUnavailable
     }
 }
