@@ -11,6 +11,11 @@ protocol PaymentProcessing {
     func charge(amountCents: Int, currency: String) async throws -> VerifiedPurchase
 }
 
+@MainActor
+protocol PaymentTransactionObserving {
+    func observeTransactions(_ handler: @escaping @MainActor (VerifiedPurchase) async -> Void)
+}
+
 struct StubPaymentProcessor: PaymentProcessing {
     func charge(amountCents: Int, currency: String) async throws -> VerifiedPurchase {
         try await Task.sleep(nanoseconds: 350_000_000)
@@ -43,8 +48,9 @@ enum PaymentProcessingError: LocalizedError {
 }
 
 @MainActor
-final class StoreKitPaymentProcessor: PaymentProcessing {
+final class StoreKitPaymentProcessor: PaymentProcessing, PaymentTransactionObserving {
     private let productCatalog: StoreKitProductCataloging
+    private var transactionUpdatesTask: Task<Void, Never>?
 
     init(productCatalog: StoreKitProductCataloging) {
         self.productCatalog = productCatalog
@@ -75,6 +81,30 @@ final class StoreKitPaymentProcessor: PaymentProcessing {
         }
     }
 
+    func observeTransactions(_ handler: @escaping @MainActor (VerifiedPurchase) async -> Void) {
+        guard transactionUpdatesTask == nil else { return }
+
+        transactionUpdatesTask = Task {
+            for await result in Transaction.updates {
+                do {
+                    let transaction = try await MainActor.run {
+                        try self.verifiedTransaction(from: result)
+                    }
+                    let purchase = VerifiedPurchase(
+                        productID: transaction.productID,
+                        transactionID: transaction.id,
+                        purchasedAt: transaction.purchaseDate
+                    )
+                    await handler(purchase)
+                    await transaction.finish()
+                    print("[payments] transaction update handled product=\(transaction.productID) tx=\(transaction.id)")
+                } catch {
+                    print("[payments] transaction update ignored: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
     private func verifiedTransaction(
         from result: VerificationResult<Transaction>
     ) throws -> Transaction {
@@ -84,5 +114,9 @@ final class StoreKitPaymentProcessor: PaymentProcessing {
         case .unverified(_, let error):
             throw PaymentProcessingError.unverified(error.localizedDescription)
         }
+    }
+
+    deinit {
+        transactionUpdatesTask?.cancel()
     }
 }

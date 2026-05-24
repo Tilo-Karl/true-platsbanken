@@ -22,7 +22,7 @@
 "matches.newToday" = "NEW today";
 "common.refresh" = "Refresh";
 "matches.score" = "Score: %d";
-"matches.demoBadge" = "Johan's matches";
+"matches.demoBadge" = "Demo matches";
 "matches.overlay.title" = "Let AI find your best roles";
 "matches.overlay.uploadPhoto" = "Upload photo";
 "matches.overlay.uploadFile" = "Upload file";
@@ -53,6 +53,7 @@
 "entitlement.badge.expired" = "Access expired";
 "processing.title" = "Processing your CV";
 "processing.subtitle" = "This may take a few seconds.";
+"processing.included.title" = "Included in your active access";
 "failure.title" = "We couldn’t read this CV";
 "failure.body" = "Please upload a clearer version.";
 "failure.retry" = "Upload another CV";
@@ -112,12 +113,12 @@
 "profile.ai.inferredRoles" = "Inferred roles";
 "profile.ai.keywords" = "Keywords";
 "profile.ai.none" = "None";
-"profile.demoCvBadge" = "Johan's CV";
+"profile.demoCvBadge" = "Demo CV";
 "profile.action.runMatch" = "Run AI Match – %@";
 "profile.hero.upload" = "Upload CV";
 "profile.upload.newCv" = "Upload new CV";
 "profile.ai.active" = "AI Profile Active";
-"profile.demo.active" = "Johan's profile";
+"profile.demo.active" = "Demo profile";
 "profile.card.title" = "Your profile";
 "profile.hero.subtitle" = "%d matches • Updated %@";
 "profile.lastUpdated" = "Updated %@";

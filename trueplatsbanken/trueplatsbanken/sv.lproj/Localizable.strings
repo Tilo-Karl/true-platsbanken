@@ -22,7 +22,7 @@
 "matches.newToday" = "NY idag";
 "common.refresh" = "Uppdatera";
 "matches.score" = "Poäng: %d";
-"matches.demoBadge" = "Johans matchningar";
+"matches.demoBadge" = "Demomatchningar";
 "matches.overlay.title" = "Låt AI hitta dina bästa roller";
 "matches.overlay.uploadPhoto" = "Ladda upp foto";
 "matches.overlay.uploadFile" = "Ladda upp fil";
@@ -53,6 +53,7 @@
 "entitlement.badge.expired" = "Åtkomst utgången";
 "processing.title" = "Bearbetar ditt CV";
 "processing.subtitle" = "Detta kan ta några sekunder.";
+"processing.included.title" = "Ingår i din aktiva åtkomst";
 "failure.title" = "Vi kunde inte läsa CV:t";
 "failure.body" = "Ladda upp en tydligare version.";
 "failure.retry" = "Ladda upp ett nytt CV";
@@ -112,12 +113,12 @@
 "profile.ai.inferredRoles" = "Härledda roller";
 "profile.ai.keywords" = "Nyckelord";
 "profile.ai.none" = "Ingen";
-"profile.demoCvBadge" = "Johans CV";
+"profile.demoCvBadge" = "Demo-CV";
 "profile.action.runMatch" = "Kör AI-matchning – %@";
 "profile.hero.upload" = "Ladda upp CV";
 "profile.upload.newCv" = "Ladda upp nytt CV";
 "profile.ai.active" = "AI-profil aktiv";
-"profile.demo.active" = "Johans profil";
+"profile.demo.active" = "Demoprofil";
 "profile.card.title" = "Din profil";
 "profile.hero.subtitle" = "%d matchningar • Uppdaterad %@";
 "profile.lastUpdated" = "Uppdaterad %@";

@@ -114,6 +114,7 @@ final class AppStateViewModel: ObservableObject {
             reader: taxonomyReader,
             cache: taxonomyCache
         )
+        observePaymentTransactions()
         refreshEntitlementState()
     }
 
@@ -350,6 +351,21 @@ final class AppStateViewModel: ObservableObject {
         }
         entitlementPaidUntil = paidUntil
         hasActiveEntitlement = true
+    }
+
+    private func observePaymentTransactions() {
+        guard let observer = paymentProcessor as? PaymentTransactionObserving else {
+            return
+        }
+
+        observer.observeTransactions { [weak self] purchase in
+            guard let self else { return }
+            guard let paidUntil = self.matchUpdateService.applyVerifiedPurchase(purchase) else {
+                return
+            }
+            self.entitlementPaidUntil = paidUntil
+            self.hasActiveEntitlement = true
+        }
     }
 
     private func refreshEntitlementState(now: Date = Date()) {

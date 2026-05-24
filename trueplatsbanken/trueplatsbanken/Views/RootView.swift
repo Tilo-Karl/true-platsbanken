@@ -77,7 +77,9 @@ struct RootView: View {
                         }
                     )
                 case .processing:
-                    MatchProcessingView()
+                    MatchProcessingView(
+                        entitlementMessage: appState.hasActiveEntitlement ? appState.entitlementStatusText : nil
+                    )
                 case .failure:
                     MatchFailureView {
                         appState.retryAfterFailure()

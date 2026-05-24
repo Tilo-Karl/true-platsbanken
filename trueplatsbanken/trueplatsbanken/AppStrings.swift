@@ -95,6 +95,7 @@ enum AppStrings {
     static var entitlementExpiredBadge: String { localized("entitlement.badge.expired") }
     static var processingTitle: String { localized("processing.title") }
     static var processingSubtitle: String { localized("processing.subtitle") }
+    static var processingIncludedTitle: String { localized("processing.included.title") }
     static var failureTitle: String { localized("failure.title") }
     static var failureBody: String { localized("failure.body") }
     static var failureRetry: String { localized("failure.retry") }
