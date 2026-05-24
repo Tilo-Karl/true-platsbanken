@@ -66,7 +66,7 @@ struct RootView: View {
                         isPaymentAvailable: appState.isPaymentAvailable,
                         isPriceLoading: appState.isPaymentMetadataLoading,
                         uploadSummary: appState.pendingUploadSummary,
-                        entitlementMessage: appState.isEntitlementExpiredInLiveMode ? AppStrings.paymentEntitlementExpiredHint : nil,
+                        entitlementMessage: paymentEntitlementMessage,
                         errorMessage: appState.paymentErrorMessage,
                         isProcessing: appState.isPaymentInProgress,
                         onConfirm: {
@@ -77,9 +77,7 @@ struct RootView: View {
                         }
                     )
                 case .processing:
-                    MatchProcessingView(
-                        entitlementMessage: appState.hasActiveEntitlement ? appState.entitlementStatusText : nil
-                    )
+                    MatchProcessingView()
                 case .failure:
                     MatchFailureView {
                         appState.retryAfterFailure()
@@ -117,5 +115,17 @@ struct RootView: View {
                 await appState.checkForMatchUpdate(trigger: .matchesAppear)
             }
         }
+    }
+
+    private var paymentEntitlementMessage: String? {
+        if appState.hasActiveEntitlement {
+            return AppStrings.paymentActiveReplacementHint
+        }
+
+        if appState.isEntitlementExpiredInLiveMode {
+            return AppStrings.paymentEntitlementExpiredHint
+        }
+
+        return nil
     }
 }

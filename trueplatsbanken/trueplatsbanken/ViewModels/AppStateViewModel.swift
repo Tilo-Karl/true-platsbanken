@@ -115,6 +115,7 @@ final class AppStateViewModel: ObservableObject {
             cache: taxonomyCache
         )
         observePaymentTransactions()
+        registerBackgroundTasksIfNeeded()
         refreshEntitlementState()
     }
 
@@ -127,7 +128,6 @@ final class AppStateViewModel: ObservableObject {
             await loadStoreKitProductMetadata()
         }
 
-        registerBackgroundTasksIfNeeded()
         await taxonomyViewModel.loadIfNeeded(languageCode: language.rawValue)
         await jobListViewModel.loadJobs()
 
@@ -291,11 +291,7 @@ final class AppStateViewModel: ObservableObject {
         paymentErrorMessage = nil
         pendingUpload = upload
         refreshEntitlementState()
-        if hasActiveEntitlement {
-            startProcessing()
-        } else {
-            matchFlowStep = .payment
-        }
+        matchFlowStep = .payment
     }
 
     private func startProcessing() {

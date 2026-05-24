@@ -36,8 +36,8 @@
 "upload.success.photos.other" = "Uppladdning klar: %d foton.";
 "upload.success.files.one" = "Uppladdning klar: %d fil.";
 "upload.success.files.other" = "Uppladdning klar: %d filer.";
-"payment.title" = "Lås upp AI-matchningar";
-"payment.subtitle" = "Få rankade resultat på några sekunder.";
+"payment.title" = "Starta en ny CV-matchning";
+"payment.subtitle" = "Detta köp analyserar detta CV och låser upp matchade jobb i 7 dagar.";
 "payment.continue" = "Fortsätt till betalning";
 "payment.cancel" = "Avbryt";
 "payment.processing" = "Bearbetar betalning...";
@@ -45,6 +45,7 @@
 "payment.priceUnavailable" = "Pris ej tillgängligt";
 "payment.purchaseUnavailable" = "Köp ej tillgängligt";
 "payment.entitlement.expiredHint" = "Din tidigare åtkomstperiod har gått ut. Slutför betalning för att låsa upp en ny 7-dagarsperiod.";
+"payment.entitlement.activeReplacementHint" = "Ett nytt CV startar en ny betald matchning och ersätter din nuvarande AI-profil.";
 "payment.error.pending" = "Betalningen väntar på godkännande. Vänta och försök igen.";
 "payment.error.verification" = "Betalningen kunde inte verifieras. Ingen debitering har gjorts.";
 "payment.error.offline" = "Du verkar vara offline. Anslut till internet och försök igen.";
@@ -53,7 +54,6 @@
 "entitlement.badge.expired" = "Åtkomst utgången";
 "processing.title" = "Bearbetar ditt CV";
 "processing.subtitle" = "Detta kan ta några sekunder.";
-"processing.included.title" = "Ingår i din aktiva åtkomst";
 "failure.title" = "Vi kunde inte läsa CV:t";
 "failure.body" = "Ladda upp en tydligare version.";
 "failure.retry" = "Ladda upp ett nytt CV";

@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct MatchProcessingView: View {
-    let entitlementMessage: String?
-
     var body: some View {
         ZStack {
             AppColors.brandWhite
@@ -17,19 +15,6 @@ struct MatchProcessingView: View {
                 Text(AppStrings.processingSubtitle)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-
-                if let entitlementMessage {
-                    VStack(spacing: 4) {
-                        Text(AppStrings.processingIncludedTitle)
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(AppColors.brandBlueDark)
-                        Text(entitlementMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .padding(.top, 8)
-                }
             }
             .padding(24)
         }

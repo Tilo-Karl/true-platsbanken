@@ -87,6 +87,7 @@ enum AppStrings {
     static var paymentPriceUnavailable: String { localized("payment.priceUnavailable") }
     static var paymentPurchaseUnavailable: String { localized("payment.purchaseUnavailable") }
     static var paymentEntitlementExpiredHint: String { localized("payment.entitlement.expiredHint") }
+    static var paymentActiveReplacementHint: String { localized("payment.entitlement.activeReplacementHint") }
     static var paymentErrorPending: String { localized("payment.error.pending") }
     static var paymentErrorVerification: String { localized("payment.error.verification") }
     static var paymentErrorOffline: String { localized("payment.error.offline") }
@@ -95,7 +96,6 @@ enum AppStrings {
     static var entitlementExpiredBadge: String { localized("entitlement.badge.expired") }
     static var processingTitle: String { localized("processing.title") }
     static var processingSubtitle: String { localized("processing.subtitle") }
-    static var processingIncludedTitle: String { localized("processing.included.title") }
     static var failureTitle: String { localized("failure.title") }
     static var failureBody: String { localized("failure.body") }
     static var failureRetry: String { localized("failure.retry") }
