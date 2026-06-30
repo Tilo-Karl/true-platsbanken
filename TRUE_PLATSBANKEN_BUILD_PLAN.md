@@ -123,7 +123,10 @@ Paid flow (implemented)
 
 Important constraints
 	•	No pre-extraction or pre-embedding
-	•	Raw CV never persisted
+	•	The original uploaded CV document/photo bytes (for example, the PDF or image files) are never persisted after on-device text extraction
+	•	The processed plain-text CV (`cvText`) is persisted locally as part of the user's local profile state; the current CV extraction pipeline does not intentionally persist it on the backend
+	•	CV text is not redacted before it is sent to the AI, so it may include names, contact details, and other personal data
+	•	We do not attempt deterministic PII redaction because reliably separating personal data from job-relevant CV content in arbitrary layouts and languages would require complex, effectively AI-level parsing; using an external AI merely to identify PII would expose the same source text before redaction
 	•	Paid access window is local and time-bound (`paidUntil`, currently 7 days)
 	•	Daily updates are on-device only and run only while entitled
 	•	Failure view allows retry without re-paying (same session)
